@@ -3,11 +3,18 @@ import { sendMail } from '../config/email';
 import { logger } from '../config/logger';
 import { bullMQConnection, redis } from '../config/redis';
 
-export interface EmailJob {
-  user: { firstName: string; email: string };
-  link: string;
-  type: 'welcome' | 'accountDeletion';
-}
+export type EmailJob =
+  | {
+      type: 'welcome';
+      user: { firstName: string; email: string };
+      link: string;
+    }
+  | {
+      type: 'accountDeletion';
+      user: { firstName: string; email: string };
+      link: string;
+    }
+  | { type: 'otp'; user: { firstName?: string; email: string }; code: string };
 
 export const emailQueue = new Queue<EmailJob>('emails', {
   connection: bullMQConnection,
@@ -25,8 +32,8 @@ export const emailQueue = new Queue<EmailJob>('emails', {
 export const emailWorker = new Worker<EmailJob>(
   'emails',
   async (job: Job<EmailJob>) => {
-    const { user, link, type } = job.data;
-    await sendMail(user, link, type);
+    const { user, type } = job.data;
+    await sendMail(job.data);
     logger.info(
       { email: user.email, type, jobId: job.id },
       'Email job completed'

@@ -40,8 +40,7 @@ passport.use(
         providerId: profile.id,
       };
 
-      const { user } = await AuthService.oAuthSignIn(userProfile);
-      return done(null, user);
+      return done(null, userProfile);
     }
   )
 );

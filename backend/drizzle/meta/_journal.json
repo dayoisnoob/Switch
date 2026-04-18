@@ -22,6 +22,27 @@
       "when": 1776268988826,
       "tag": "0002_quick_doctor_faustus",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1776486335218,
+      "tag": "0003_oval_archangel",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1776486428860,
+      "tag": "0004_parallel_living_lightning",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1776549193506,
+      "tag": "0005_fluffy_frank_castle",
+      "breakpoints": true
     }
   ]
 }

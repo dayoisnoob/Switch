@@ -1,4 +1,5 @@
-import type { NextFunction, Request, RequestHandler, Response } from 'express';
+import type { NextFunction, Request, Response } from 'express';
+import type { AuthenticatedRequest } from '../types/auth.types';
 
 type AsyncRequestHandler = (
   req: Request,
@@ -6,8 +7,14 @@ type AsyncRequestHandler = (
   next: NextFunction
 ) => Promise<any>;
 
-export const asyncHandler = (fn: AsyncRequestHandler): RequestHandler => {
-  return (req, res, next) => {
-    Promise.resolve(fn(req, res, next)).catch(next);
+type AsyncAuthHandler = (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+) => Promise<any>;
+
+export const asyncHandler = (fn: AsyncRequestHandler | AsyncAuthHandler) => {
+  return (req: Request, res: Response, next: NextFunction) => {
+    Promise.resolve(fn(req as AuthenticatedRequest, res, next)).catch(next);
   };
 };

@@ -18,14 +18,17 @@ export const usersTable = pgTable(
     id: uuid('id').primaryKey().defaultRandom(),
     email: varchar('email', { length: 100 }).notNull().unique(),
 
-    firstName: varchar('first_name', { length: 100 }).notNull(),
+    firstName: varchar('first_name', { length: 100 }),
     lastName: varchar('last_name', { length: 100 }),
     role: userRoleEnum('role').notNull().default('user'),
 
     avatarUrl: text('avatar_url'),
 
-    authProvider: varchar('auth_provider', { length: 50 }).notNull(),
-    providerId: varchar('provider_id', { length: 255 }).notNull(),
+    authProvider: varchar('auth_provider', { length: 50 }),
+    providerId: varchar('provider_id', { length: 255 }),
+
+    passwordHash: text('password_hash'),
+    emailVerified: boolean('email_verified').default(false),
 
     isActive: boolean('is_active').default(true).notNull(),
     lastLogin: timestamp('last_login'),
@@ -44,3 +47,4 @@ export const usersTable = pgTable(
     uniqueIndex('users_provider_idx').on(t.authProvider, t.providerId),
   ]
 );
+//circle back to unique index on nullable column

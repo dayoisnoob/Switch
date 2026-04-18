@@ -32,7 +32,7 @@ router.get(
 );
 
 router.get(
-  '/:workspaceId/boards/:boardId',
+  '/:workspaceId/projects/:projectId/board',
   asyncHandler(BoardController.getBoardState)
 );
 

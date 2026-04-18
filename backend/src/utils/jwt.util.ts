@@ -1,18 +1,22 @@
 import jwt, { type SignOptions } from 'jsonwebtoken';
-import type { User } from '../types/auth.types';
 import { env } from '../config/env';
+import type { JwtPayload } from '../types/auth.types';
 
-export const jwtToken = (payload: User) => {
-  const tokenSecret = env.ACCESS_TOKEN_SECRET;
-  const tokenExpiry = env.ACCESS_TOKEN_EXPIRY;
-
+export const jwtToken = (
+  payload: JwtPayload,
+  secret: string = env.ACCESS_TOKEN_SECRET,
+  expiry: string = env.ACCESS_TOKEN_EXPIRY
+) => {
   const options: SignOptions = {
-    expiresIn: tokenExpiry as SignOptions['expiresIn'],
+    expiresIn: expiry as SignOptions['expiresIn'],
   };
 
-  return jwt.sign(payload, tokenSecret, options);
+  return jwt.sign(payload, secret, options);
 };
 
-export const jwtVerify = (token: string) => {
-  return jwt.verify(token, env.ACCESS_TOKEN_SECRET) as User;
+export const jwtVerify = (
+  token: string,
+  secret: string = env.ACCESS_TOKEN_SECRET
+) => {
+  return jwt.verify(token, secret) as JwtPayload;
 };

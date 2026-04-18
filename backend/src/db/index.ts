@@ -4,6 +4,7 @@ import { columnsTable } from './schema/columns.schema';
 import { taskAssigneesTable, tasksTable } from './schema/tasks.schema';
 
 export * from './schema/users.schema';
+export * from './schema/otp.schema';
 export * from './schema/auth.schema';
 export * from './schema/workspaces.schema';
 export * from './schema/projects.schema';

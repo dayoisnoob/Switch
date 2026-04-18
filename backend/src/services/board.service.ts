@@ -8,7 +8,7 @@ export class BoardService {
   static async getBoardState(
     userId: string,
     workspaceId: string,
-    boardId: string
+    projectId: string
   ) {
     const isMember = await ProjectService.checkMembership(userId, workspaceId);
     if (!isMember) {
@@ -16,7 +16,7 @@ export class BoardService {
     }
 
     const boardState = await db.query.boardsTable.findFirst({
-      where: eq(boardsTable.id, boardId),
+      where: eq(boardsTable.projectId, projectId),
       with: {
         columns: {
           orderBy: (cols, { asc }) => [asc(cols.order)],

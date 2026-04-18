@@ -17,6 +17,7 @@ router.post(
   validateInput(createTaskSchema),
   asyncHandler(TasksController.createTask)
 );
+
 router.patch(
   '/:taskId/position',
   validateInput(updateTaskPositionSchema),

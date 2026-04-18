@@ -56,7 +56,7 @@ export const forgotPasswordHourlyLimiter = createLimiter({
 });
 
 export const resetPasswordLimiter = createLimiter({
-  keyGenerator: (req) => `${req.ip}-${req.query.token as string}`,
+  keyGenerator: (req) => `${req.ip}-${req.body.token as string}`,
   max: 5,
   windowMinutes: 15,
 });

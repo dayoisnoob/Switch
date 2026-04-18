@@ -4,28 +4,33 @@ import { COOKIE_OPTIONS } from '../constants';
 import { AuthService } from '../services/auth.service';
 import { ApiError, ApiResponse } from '../utils/api-response';
 import { Tokens } from '../utils/tokens.util';
+import type {
+  AuthenticatedRequest,
+  OAuthProfileInput,
+} from '../types/auth.types';
 
 export class AuthController {
-  static async oAuthCallback(req: Request, res: Response) {
-    const user = req.user;
+  static async OAuthCallback(req: Request, res: Response) {
+    const userProfile = req.user;
 
-    if (!user) {
+    if (!userProfile) {
       return res.redirect(`${env.FRONTEND_URL}/login?error=oauth_failed`);
     }
 
-    const { accessToken, refreshToken } = await Tokens.generateAuthTokens(user);
+    const { accessToken, refreshToken } = await AuthService.OAuthSignIn(
+      userProfile as OAuthProfileInput
+    );
 
-    res
+    return res
       .cookie('__auth.refresh', refreshToken, COOKIE_OPTIONS)
       .cookie('__auth.access', accessToken, {
         ...COOKIE_OPTIONS,
         httpOnly: true,
-      });
-
-    return res.redirect(`${env.FRONTEND_URL}/auth/callback`);
+      })
+      .redirect(`${env.FRONTEND_URL}/auth/callback`);
   }
 
-  static oAuthError(
+  static OAuthError(
     err: Error,
     req: Request,
     res: Response,
@@ -35,10 +40,59 @@ export class AuthController {
     return res.redirect(`${env.FRONTEND_URL}/login?error=${message}`);
   }
 
+  static async init(req: Request, res: Response) {
+    const userEmail = await AuthService.init(req.body.email);
+
+    res.json(
+      new ApiResponse(
+        200,
+        'Verification code sent. Please check your email.',
+        userEmail
+      )
+    );
+  }
+
+  static async verifyOtpForLogin(req: Request, res: Response) {
+    await AuthService.verifyOtpForLogin(req.body);
+
+    res.json(new ApiResponse(200, 'Email verified successfully'));
+  }
+
+  static async verifyOtpForResetPassword(req: Request, res: Response) {
+    const token = await AuthService.verifyOtpForResetPassword(req.body);
+
+    res.json(new ApiResponse(200, 'OTP verified successfully', token));
+  }
+
+  static async completeReg(req: Request, res: Response) {
+    const result = await AuthService.completeReg(req.body);
+
+    return res
+      .cookie('__auth.refresh', result.refreshToken, COOKIE_OPTIONS)
+      .cookie('__auth.access', result.accessToken, {
+        ...COOKIE_OPTIONS,
+        httpOnly: true,
+      })
+      .status(201)
+      .json(new ApiResponse(201, 'Account created successfully'));
+  }
+
+  static async login(req: Request, res: Response) {
+    const result = await AuthService.login(req.body);
+
+    res
+      .cookie('__auth.refresh', result.refreshToken, COOKIE_OPTIONS)
+      .cookie('__auth.access', result.accessToken, {
+        ...COOKIE_OPTIONS,
+        httpOnly: false,
+      })
+      .json(new ApiResponse(200, 'Login successful', result.email));
+  }
+
   static async refreshAccessToken(req: Request, res: Response) {
     const refreshToken = req.cookies['__auth.refresh'];
 
-    if (!refreshToken) {
+    if (!refreshToken.trim()) {
       throw new ApiError(401, 'Authentication required. Please sign in.');
     }
 
@@ -53,7 +107,7 @@ export class AuthController {
       .json(new ApiResponse(200, 'Access token successfully refreshed'));
   }
 
-  static async logout(req: Request, res: Response) {
+  static async logout(req: AuthenticatedRequest, res: Response) {
     const refreshToken = req.cookies['__auth.refresh'];
 
     if (!refreshToken) {
@@ -71,10 +125,8 @@ export class AuthController {
       .json(new ApiResponse(200, result.message));
   }
 
-  static async logoutAll(req: Request, res: Response) {
-    const userId = req.user!.id;
-
-    const result = await AuthService.logoutAll(userId);
+  static async logoutAll(req: AuthenticatedRequest, res: Response) {
+    const result = await AuthService.logoutAll(req.user.id);
 
     res
       .clearCookie('__auth.refresh', COOKIE_OPTIONS)
@@ -85,19 +137,33 @@ export class AuthController {
       .json(new ApiResponse(200, result.message));
   }
 
-  static async updateUser(req: Request, res: Response) {
-    const userId = req.user!.id;
+  static async forgotPassword(req: Request, res: Response) {
+    await AuthService.forgotPassword(req.body.email);
 
-    const updatedUser = await AuthService.updateUser(userId, req.body);
+    res.json(new ApiResponse(200, "If email exixts, we'll send an OTP"));
+  }
+
+  static async resetPassword(req: Request, res: Response) {
+    await AuthService.resetPassword(req.body);
+
+    res.json(new ApiResponse(200, 'Password reset was successfully'));
+  }
+
+  static async changePassword(req: AuthenticatedRequest, res: Response) {
+    await AuthService.changePassword(req.user.id, req.body);
+
+    res.json(new ApiResponse(200, 'Password successfully changed'));
+  }
+
+  static async updateUser(req: AuthenticatedRequest, res: Response) {
+    const updatedUser = await AuthService.updateUser(req.user.id, req.body);
     res.json(
       new ApiResponse(200, 'User successfully updated', { updatedUser })
     );
   }
 
-  static async deleteUser(req: Request, res: Response) {
-    const userId = req.user!.id;
-
-    await AuthService.deleteUser(userId);
+  static async deleteUser(req: AuthenticatedRequest, res: Response) {
+    await AuthService.deleteUser(req.user.id);
 
     res.clearCookie('__auth.refresh', COOKIE_OPTIONS);
     res.json(

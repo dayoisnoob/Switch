@@ -60,6 +60,7 @@ export class WorkspaceService {
         eq(workspacesTable.id, workspaceMembershipsTable.workspaceId)
       )
       .where(eq(workspaceMembershipsTable.userId, userId));
+
     return workspaces;
   }
 }

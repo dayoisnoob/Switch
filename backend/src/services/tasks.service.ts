@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm';
+import { desc, eq } from 'drizzle-orm';
 import { db } from '../config/db';
 import {
   boardsTable,
@@ -17,6 +17,15 @@ export class TasksService {
 
     const column = await TasksService.verifyWorkspaceAccess(userId, columnId);
 
+    const [lastTask] = await db
+      .select({ order: tasksTable.order })
+      .from(tasksTable)
+      .where(eq(tasksTable.columnId, columnId))
+      .orderBy(desc(tasksTable.order))
+      .limit(1);
+
+    const newOrder = lastTask ? lastTask.order + 1000 : 1000;
+
     const newTask = await db.transaction(async (tx) => {
       const [task] = await tx
         .insert(tasksTable)
@@ -26,7 +35,7 @@ export class TasksService {
           title,
           description,
           createdBy: userId,
-          order: 1000,
+          order: newOrder,
         })
         .returning();
 

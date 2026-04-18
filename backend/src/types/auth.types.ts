@@ -1,3 +1,5 @@
+import type { Request } from 'express';
+
 export type OAuthProfileInput = {
   email: string;
   firstName: string;
@@ -7,11 +9,23 @@ export type OAuthProfileInput = {
   providerId: string;
 };
 
-export interface User {
+export interface JwtPayload {
+  id: string;
+  email?: string;
+  isActive?: boolean;
+  role?: 'user' | 'admin';
+  purpose?: string;
+}
+
+export interface AuthenticatedUser {
   id: string;
   email: string;
   firstName: string;
   lastName: string | null;
-  isActive: boolean;
   role: 'user' | 'admin';
+  isActive: boolean;
+}
+
+export interface AuthenticatedRequest extends Request {
+  user: AuthenticatedUser;
 }

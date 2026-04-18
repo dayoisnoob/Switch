@@ -19,12 +19,12 @@ const envSchema = z.object({
 
   ACCESS_TOKEN_SECRET: z.string(),
   ACCESS_TOKEN_EXPIRY: z.string().default('15m'),
+  RESET_TOKEN_SECRET: z.string(),
+  RESET_TOKEN_EXPIRY: z.string().default('10m'),
 
   EMAIL_FROM: z.string(),
 
   FRONTEND_URL: z.string().default('http://localhost:7001'),
-
-  // REFRESH_COOKIE_MAX_AGE: z.string(),
 
   RESEND_API_KEY: z.string(),
 
