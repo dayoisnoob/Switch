@@ -6,8 +6,10 @@ import {
   uniqueIndex,
   index,
   pgEnum,
+  text,
 } from 'drizzle-orm/pg-core';
 import { usersTable } from './users.schema';
+import type { InferSelectModel } from 'drizzle-orm';
 
 export const workspaceRoleEnum = pgEnum('workspace_role', [
   'owner',
@@ -23,7 +25,10 @@ export const workspacesTable = pgTable('workspaces', {
     .notNull()
     .references(() => usersTable.id),
   createdAt: timestamp('created_at').notNull().defaultNow(),
-  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at')
+    .notNull()
+    .defaultNow()
+    .$onUpdate(() => new Date()),
 });
 
 export const workspaceMembershipsTable = pgTable(
@@ -52,8 +57,11 @@ export const workspaceInvitationsTable = pgTable(
     workspaceId: uuid('workspace_id')
       .notNull()
       .references(() => workspacesTable.id, { onDelete: 'cascade' }),
+    invitedBy: uuid('invited_by')
+      .notNull()
+      .references(() => usersTable.id),
     email: varchar('email', { length: 255 }).notNull(),
-    tokenHash: varchar('token_hash', { length: 64 }).notNull().unique(),
+    tokenHash: text('token_hash').notNull().unique(),
     expiresAt: timestamp('expires_at').notNull(),
     acceptedAt: timestamp('accepted_at'),
     role: workspaceRoleEnum('role').notNull().default('member'),
@@ -61,3 +69,7 @@ export const workspaceInvitationsTable = pgTable(
   },
   (t) => [index('wi_workspace_id_idx').on(t.workspaceId)]
 );
+
+export type WorkspaceMember = InferSelectModel<
+  typeof workspaceMembershipsTable
+>;

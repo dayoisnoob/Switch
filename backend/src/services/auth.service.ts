@@ -9,7 +9,6 @@ import { logger } from '../config/logger';
 import { otpTable, refreshTokensTable, usersTable } from '../db';
 import { queueEmail } from '../queues/email.queue';
 import type { OAuthProfileInput } from '../types/auth.types';
-import { Tokens } from '../utils/tokens.util';
 import type {
   changePasswordInput,
   LoginInput,
@@ -18,7 +17,8 @@ import type {
   updateInput,
 } from '../validations/auth.validation';
 import { generateSecureOtp } from '../utils/helpers';
-import { jwtToken, jwtVerify } from '../utils/jwt.util';
+import { jwtDecode, jwtToken, jwtVerify } from '../utils/jwt.util';
+import { authTokens } from '../utils/tokens.util';
 
 export class AuthService {
   static async OAuthSignIn(userProfile: OAuthProfileInput) {
@@ -50,7 +50,7 @@ export class AuthService {
 
       logger.info({ userId: userToLogin?.id }, 'User logged in via auth');
 
-      const tokens = await Tokens.generateAuthTokens(userToLogin);
+      const tokens = await authTokens(userToLogin);
 
       return { user: userToLogin, ...tokens };
     }
@@ -90,7 +90,7 @@ export class AuthService {
       );
     }
 
-    const tokens = await Tokens.generateAuthTokens(newUser);
+    const tokens = await authTokens(newUser);
     return { user: newUser, ...tokens };
   }
 
@@ -193,7 +193,13 @@ export class AuthService {
       purpose: 'password_reset',
     };
 
-    return jwtToken(payload, env.RESET_TOKEN_SECRET, env.RESET_TOKEN_EXPIRY);
+    const token = jwtToken(
+      payload,
+      `${env.RESET_TOKEN_SECRET}${existing.passwordHash}`,
+      env.RESET_TOKEN_EXPIRY
+    );
+
+    return token;
   }
 
   static async completeReg(userData: SignupInput) {
@@ -239,7 +245,9 @@ export class AuthService {
       );
     }
 
-    const tokens = await Tokens.generateAuthTokens(updatedUser);
+    await AuthService.updateLastLogin(updatedUser.id);
+
+    const tokens = await authTokens(updatedUser);
     return tokens;
   }
 
@@ -280,12 +288,9 @@ export class AuthService {
       throw new ApiError(401, 'Invalid credentials');
     }
 
-    await db
-      .update(usersTable)
-      .set({ lastLogin: new Date() })
-      .where(eq(usersTable.id, existing.id));
+    await AuthService.updateLastLogin(existing.id);
 
-    const tokens = await Tokens.generateAuthTokens(existing);
+    const tokens = await authTokens(existing);
 
     logger.info({ userId: existing.id, email }, 'User logged in');
 
@@ -336,15 +341,7 @@ export class AuthService {
     }
 
     const [user] = await db
-      .select({
-        id: usersTable.id,
-        firstName: usersTable.firstName,
-        lastName: usersTable.lastName,
-        email: usersTable.email,
-        role: usersTable.role,
-        isActive: usersTable.isActive,
-        createdAt: usersTable.createdAt,
-      })
+      .select()
       .from(usersTable)
       .where(
         and(
@@ -365,11 +362,7 @@ export class AuthService {
         .set({ rotatedAt: new Date(), isRevoked: true, revokedAt: new Date() })
         .where(eq(refreshTokensTable.id, storedToken.id));
 
-      return await Tokens.generateAuthTokens(
-        user,
-        storedToken.tokenFamilyId,
-        tx
-      );
+      return await authTokens(user, storedToken.tokenFamilyId, tx);
     });
 
     logger.info({ userId: user.id }, 'Token refreshed');
@@ -452,13 +445,7 @@ export class AuthService {
       );
     }
 
-    const decoded = jwtVerify(token, env.RESET_TOKEN_SECRET);
-
-    if (decoded.purpose !== 'password_reset') {
-      throw new ApiError(403, 'Invalid reset token.');
-    }
-
-    const userId = decoded.id;
+    const peek = jwtDecode(token);
 
     const [user] = await db
       .select({
@@ -466,7 +453,7 @@ export class AuthService {
         passwordHash: usersTable.passwordHash,
       })
       .from(usersTable)
-      .where(and(eq(usersTable.id, userId), eq(usersTable.isActive, true)))
+      .where(and(eq(usersTable.id, peek.id), eq(usersTable.isActive, true)))
       .limit(1);
 
     if (!user) {
@@ -481,6 +468,15 @@ export class AuthService {
         403,
         'This account uses OAuth. Password reset is not available.'
       );
+    }
+
+    const decoded = jwtVerify(
+      token,
+      `${env.RESET_TOKEN_SECRET}${user.passwordHash}`
+    );
+
+    if (decoded.purpose !== 'password_reset') {
+      throw new ApiError(403, 'Invalid reset token.');
     }
 
     const isSamePassword = await bcryptCompare(newPassword, user.passwordHash);
@@ -702,22 +698,13 @@ export class AuthService {
     }
   }
 
-  private static async findUserByIdentifier(
+  static async findUserByIdentifier(
     identifier: string,
     field: 'id' | 'email' = 'email'
   ) {
     const column = { email: usersTable.email, id: usersTable.id };
     const [user] = await db
-      .select({
-        id: usersTable.id,
-        email: usersTable.email,
-        firstName: usersTable.firstName,
-        avatarUrl: usersTable.avatarUrl,
-        emailVerified: usersTable.emailVerified,
-        isActive: usersTable.isActive,
-        passwordHash: usersTable.passwordHash,
-        role: usersTable.role,
-      })
+      .select()
       .from(usersTable)
       .where(eq(column[field], identifier))
       .limit(1);
@@ -777,5 +764,12 @@ export class AuthService {
     }
 
     return { hashedCode, otpId: otp.id };
+  }
+
+  private static async updateLastLogin(userId: string) {
+    await db
+      .update(usersTable)
+      .set({ lastLogin: new Date() })
+      .where(eq(usersTable.id, userId));
   }
 }

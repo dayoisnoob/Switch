@@ -1,0 +1,3 @@
+ALTER TABLE "workspace_invitations" ALTER COLUMN "token_hash" SET DATA TYPE text;--> statement-breakpoint
+ALTER TABLE "workspace_invitations" ADD COLUMN "invited_by" uuid NOT NULL;--> statement-breakpoint
+ALTER TABLE "workspace_invitations" ADD CONSTRAINT "workspace_invitations_invited_by_users_id_fk" FOREIGN KEY ("invited_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;

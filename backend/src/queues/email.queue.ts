@@ -1,7 +1,7 @@
 import { Queue, Worker, Job } from 'bullmq';
 import { sendMail } from '../config/email';
 import { logger } from '../config/logger';
-import { bullMQConnection, redis } from '../config/redis';
+import { bullMQConnection } from '../config/redis';
 
 export type EmailJob =
   | {
@@ -14,7 +14,19 @@ export type EmailJob =
       user: { firstName: string; email: string };
       link: string;
     }
-  | { type: 'otp'; user: { firstName?: string; email: string }; code: string };
+  | { type: 'otp'; user: { firstName?: string; email: string }; code: string }
+  | {
+      type: 'passwordReset';
+      user: { firstName?: string; email: string };
+      link: string;
+    }
+  | {
+      type: 'invitation';
+      user: { firstName?: string; email: string };
+      inviterName: string;
+      workspaceName: string;
+      link: string;
+    };
 
 export const emailQueue = new Queue<EmailJob>('emails', {
   connection: bullMQConnection,

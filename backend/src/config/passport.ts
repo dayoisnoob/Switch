@@ -1,12 +1,11 @@
 import passport from 'passport';
-import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import {
   Strategy as GitHubStrategy,
   type Profile as GitHubProfile,
 } from 'passport-github2';
-import { env } from './env';
+import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import type { OAuthProfileInput } from '../types/auth.types';
-import { AuthService } from '../services/auth.service';
+import { env } from './env';
 
 interface GitHubEmail {
   value: string;

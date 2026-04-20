@@ -28,6 +28,7 @@ import {
   updateUserSchema,
   verifyOtpSchema,
 } from '../validations/auth.validation';
+import { sendMail } from '../config/email';
 
 const router = Router();
 

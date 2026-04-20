@@ -20,3 +20,7 @@ export const jwtVerify = (
 ) => {
   return jwt.verify(token, secret) as JwtPayload;
 };
+
+export const jwtDecode = (token: string) => {
+  return jwt.decode(token) as JwtPayload;
+};

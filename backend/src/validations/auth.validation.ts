@@ -42,7 +42,7 @@ export const sendOtpSchema = z.object({
 
 export const verifyOtpSchema = z.object({
   email: z.string().email().trim().toLowerCase(),
-  code: z.number(),
+  code: z.string(),
 });
 
 export const resetPasswordSchema = z

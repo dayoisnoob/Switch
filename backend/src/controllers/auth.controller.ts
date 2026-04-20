@@ -3,7 +3,6 @@ import { env } from '../config/env';
 import { COOKIE_OPTIONS } from '../constants';
 import { AuthService } from '../services/auth.service';
 import { ApiError, ApiResponse } from '../utils/api-response';
-import { Tokens } from '../utils/tokens.util';
 import type {
   AuthenticatedRequest,
   OAuthProfileInput,
@@ -61,7 +60,9 @@ export class AuthController {
   static async verifyOtpForResetPassword(req: Request, res: Response) {
     const token = await AuthService.verifyOtpForResetPassword(req.body);
 
-    res.json(new ApiResponse(200, 'OTP verified successfully', token));
+    res.json(
+      new ApiResponse(200, 'OTP verified successfully', { token: token })
+    );
   }
 
   static async completeReg(req: Request, res: Response) {
@@ -86,7 +87,7 @@ export class AuthController {
         ...COOKIE_OPTIONS,
         httpOnly: false,
       })
-      .json(new ApiResponse(200, 'Login successful', result.email));
+      .json(new ApiResponse(200, 'Login successful', { email: result.email }));
   }
 
   static async refreshAccessToken(req: Request, res: Response) {
@@ -140,7 +141,7 @@ export class AuthController {
   static async forgotPassword(req: Request, res: Response) {
     await AuthService.forgotPassword(req.body.email);
 
-    res.json(new ApiResponse(200, "If email exixts, we'll send an OTP"));
+    res.json(new ApiResponse(200, "If email exists, we'll send an OTP"));
   }
 
   static async resetPassword(req: Request, res: Response) {
@@ -158,7 +159,7 @@ export class AuthController {
   static async updateUser(req: AuthenticatedRequest, res: Response) {
     const updatedUser = await AuthService.updateUser(req.user.id, req.body);
     res.json(
-      new ApiResponse(200, 'User successfully updated', { updatedUser })
+      new ApiResponse(200, 'User successfully updated', { user: updatedUser })
     );
   }
 

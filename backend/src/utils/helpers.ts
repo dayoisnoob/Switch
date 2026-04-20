@@ -1,6 +1,4 @@
 import crypto from 'crypto';
-import { ApiError } from './api-response';
-import { jwtVerify } from './jwt.util';
 import { cryptoHash } from './hash.util';
 
 export const workspaceSlugGen = (str: string) => {

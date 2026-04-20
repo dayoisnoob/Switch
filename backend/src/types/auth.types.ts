@@ -12,9 +12,16 @@ export type OAuthProfileInput = {
 export interface JwtPayload {
   id: string;
   email?: string;
+  firstName?: string;
   isActive?: boolean;
   role?: 'user' | 'admin';
   purpose?: string;
+}
+export interface TokenGenType {
+  id: string | null;
+  firstName: string | null;
+  isActive: boolean | null;
+  role: 'user' | 'admin' | null;
 }
 
 export interface AuthenticatedUser {
@@ -29,3 +36,5 @@ export interface AuthenticatedUser {
 export interface AuthenticatedRequest extends Request {
   user: AuthenticatedUser;
 }
+
+export type WorkspaceRoles = 'member' | 'admin' | 'owner';

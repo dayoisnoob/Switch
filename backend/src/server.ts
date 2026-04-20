@@ -1,10 +1,9 @@
 import 'dotenv/config';
 import { app } from './app';
-import { logger } from './config/logger';
 import { env } from './config/env';
-import { emailWorker } from './queues/email.queue';
+import { logger } from './config/logger';
 import { registerCleanupJobs } from './jobs/cleanup.';
-import { workspaceSlugGen } from './utils/helpers';
+import { emailWorker } from './queues/email.queue';
 
 const PORT = env.PORT || 7000;
 const NODE_ENV = env.NODE_ENV;

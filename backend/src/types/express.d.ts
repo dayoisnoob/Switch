@@ -1,5 +1,12 @@
 declare global {
   namespace Express {
+    interface Request {
+      workspace?: {
+        workspaceId: string;
+        workspaceName: string;
+        role: 'owner' | 'admin' | 'member';
+      };
+    }
     interface User {
       // Always present
       email?: string;

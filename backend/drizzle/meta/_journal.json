@@ -43,6 +43,13 @@
       "when": 1776549193506,
       "tag": "0005_fluffy_frank_castle",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1776655254904,
+      "tag": "0006_orange_marten_broadcloak",
+      "breakpoints": true
     }
   ]
 }
