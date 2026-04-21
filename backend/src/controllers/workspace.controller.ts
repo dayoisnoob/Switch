@@ -1,7 +1,12 @@
 import type { Request, Response } from 'express';
 import { WorkspaceService } from '../services/workspace.service';
 import { ApiError, ApiResponse } from '../utils/api-response';
-import type { AuthenticatedRequest } from '../types/auth.types';
+import type {
+  AuthenticatedRequest,
+  MemberParams,
+  WorkspaceParams,
+} from '../types/express';
+import { getParam } from '../utils/params.util';
 
 export class WorkspaceController {
   static async createWorkspace(req: AuthenticatedRequest, res: Response) {
@@ -19,9 +24,8 @@ export class WorkspaceController {
   }
 
   static async getWorkspace(req: AuthenticatedRequest, res: Response) {
-    const result = await WorkspaceService.getWorkspace(
-      req.params.workspaceId as string
-    );
+    const workspaceId = getParam(req.params.workspaceId, 'workspaceId');
+    const result = await WorkspaceService.getWorkspace(workspaceId);
 
     const workspace = { ...result, role: req.workspace?.role };
 
@@ -39,9 +43,11 @@ export class WorkspaceController {
   }
 
   static async updateWorkspace(req: AuthenticatedRequest, res: Response) {
+    const workspaceId = getParam(req.params.workspaceId, 'workspaceId');
+
     const updatedWorkspace = await WorkspaceService.updateWorkspace(
       req.body.name,
-      req.params.workspaceId as string
+      workspaceId
     );
 
     res.json(
@@ -50,33 +56,33 @@ export class WorkspaceController {
   }
 
   static async deleteWorkspace(req: AuthenticatedRequest, res: Response) {
-    await WorkspaceService.deleteWorkspace(
-      req.user.id,
-      req.params.workspaceId as string
-    );
+    const workspaceId = getParam(req.params.workspaceId, 'workspaceId');
+
+    await WorkspaceService.deleteWorkspace(req.user.id, workspaceId);
 
     res.json(new ApiResponse(200, 'Workspace successfully deleted'));
   }
 
   static async getMembers(req: AuthenticatedRequest, res: Response) {
-    const members = await WorkspaceService.getMembers(
-      req.user.id,
-      req.params.workspaceId as string
-    );
+    const workspaceId = getParam(req.params.workspaceId, 'workspaceId');
+
+    const members = await WorkspaceService.getMembers(req.user.id, workspaceId);
 
     res.json(new ApiResponse(200, 'Members successfully retrieved', members));
   }
 
   static async removeMember(req: AuthenticatedRequest, res: Response) {
-    await WorkspaceService.removeMember(
-      req.params.memberId as string,
-      req.params.workspaceId as string
-    );
+    const workspaceId = getParam(req.params.workspaceId, 'workspaceId');
+    const memberId = getParam(req.params.memberId, 'memberId');
+
+    await WorkspaceService.removeMember(memberId, workspaceId);
 
     res.json(new ApiResponse(200, 'Member successfully removed'));
   }
 
   static async sendInvitation(req: AuthenticatedRequest, res: Response) {
+    const workspaceId = getParam(req.params.workspaceId, 'workspaceId');
+
     const inviterName = req.user.firstName;
     const workspaceName = req.workspace?.workspaceName;
 
@@ -87,7 +93,7 @@ export class WorkspaceController {
     await WorkspaceService.sendInvitation(
       req.user.id,
       req.body.email,
-      req.params.workspaceId as string,
+      workspaceId,
       inviterName,
       workspaceName
     );

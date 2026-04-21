@@ -7,7 +7,7 @@ import {
   uniqueIndex,
 } from 'drizzle-orm/pg-core';
 import { workspacesTable } from './workspaces.schema';
-import { tasksTable } from './tasks.schema';
+import { cardsTable } from './cards.schema';
 
 export const labelsTable = pgTable(
   'labels',
@@ -29,7 +29,7 @@ export const cardLabelsTable = pgTable(
     id: uuid('id').primaryKey().defaultRandom(),
     cardId: uuid('card_id')
       .notNull()
-      .references(() => tasksTable.id, { onDelete: 'cascade' }),
+      .references(() => cardsTable.id, { onDelete: 'cascade' }),
     labelId: uuid('label_id')
       .notNull()
       .references(() => labelsTable.id, { onDelete: 'cascade' }),

@@ -21,8 +21,8 @@ export const priorityEnum = pgEnum('priority', [
   'urgent',
 ]);
 
-export const tasksTable = pgTable(
-  'tasks',
+export const cardsTable = pgTable(
+  'cards',
   {
     id: uuid('id').primaryKey().defaultRandom(),
     columnId: uuid('column_id')
@@ -41,7 +41,10 @@ export const tasksTable = pgTable(
       .notNull()
       .references(() => usersTable.id),
     createdAt: timestamp('created_at').notNull().defaultNow(),
-    updatedAt: timestamp('updated_at').notNull().defaultNow(),
+    updatedAt: timestamp('updated_at')
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
   },
   (t) => [
     index('cards_board_id_idx').on(t.boardId),
@@ -49,19 +52,19 @@ export const tasksTable = pgTable(
   ]
 );
 
-export const taskAssigneesTable = pgTable(
-  'task_assignees',
+export const cardAssigneesTable = pgTable(
+  'card_assignees',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    taskId: uuid('card_id')
+    cardId: uuid('card_id')
       .notNull()
-      .references(() => tasksTable.id, { onDelete: 'cascade' }),
+      .references(() => cardsTable.id, { onDelete: 'cascade' }),
     userId: uuid('user_id')
       .notNull()
       .references(() => usersTable.id, { onDelete: 'cascade' }),
   },
   (t) => [
-    uniqueIndex('ca_card_user_idx').on(t.taskId, t.userId),
-    index('ca_card_id_idx').on(t.taskId),
+    uniqueIndex('ca_card_user_idx').on(t.cardId, t.userId),
+    index('ca_card_id_idx').on(t.cardId),
   ]
 );

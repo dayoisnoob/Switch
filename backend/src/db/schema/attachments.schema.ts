@@ -7,7 +7,7 @@ import {
   timestamp,
   index,
 } from 'drizzle-orm/pg-core';
-import { tasksTable } from './tasks.schema';
+import { cardsTable } from './cards.schema';
 import { usersTable } from './users.schema';
 
 export const attachmentsTable = pgTable(
@@ -16,7 +16,7 @@ export const attachmentsTable = pgTable(
     id: uuid('id').primaryKey().defaultRandom(),
     cardId: uuid('card_id')
       .notNull()
-      .references(() => tasksTable.id, { onDelete: 'cascade' }),
+      .references(() => cardsTable.id, { onDelete: 'cascade' }),
     userId: uuid('user_id')
       .notNull()
       .references(() => usersTable.id),

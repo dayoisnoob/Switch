@@ -1,5 +1,5 @@
 import type { NextFunction, Request, Response } from 'express';
-import type { AuthenticatedRequest } from '../types/auth.types';
+import type { AuthenticatedRequest } from '../types/express';
 
 type AsyncRequestHandler = (
   req: Request,

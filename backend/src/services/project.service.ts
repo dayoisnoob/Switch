@@ -7,21 +7,14 @@ import {
   workspaceMembershipsTable,
 } from '../db';
 import { ApiError } from '../utils/api-response';
-import type { ProjectDetailType } from '../validations/project.validation';
 
 export class ProjectService {
   static async createProject(
     userId: string,
     workspaceId: string,
-    projectDetail: ProjectDetailType
+    name: string,
+    description: string
   ) {
-    const { name, description } = projectDetail;
-    const member = await ProjectService.checkMembership(userId, workspaceId);
-
-    if (!member) {
-      throw new ApiError(403, 'You do not have access to this workspace');
-    }
-
     const { project, board } = await db.transaction(async (tx) => {
       const [project] = await tx
         .insert(projectsTable)
@@ -51,9 +44,9 @@ export class ProjectService {
       await tx
         .insert(columnsTable)
         .values([
-          { boardId: board.id, name: 'To Do', order: 1000 },
-          { boardId: board.id, name: 'In Progress', order: 2000 },
-          { boardId: board.id, name: 'Done', order: 3000 },
+          { boardId: board.id, name: 'To Do', order: 1.0 },
+          { boardId: board.id, name: 'In Progress', order: 2.0 },
+          { boardId: board.id, name: 'Done', order: 3.0 },
         ])
         .returning();
 
@@ -63,14 +56,60 @@ export class ProjectService {
     return { project, board };
   }
 
-  static async getAllProjects(userId: string, workspaceId: string) {
-    const member = await ProjectService.checkMembership(userId, workspaceId);
-
-    if (!member) {
-      throw new ApiError(403, 'You do not have access to this workspace');
-    }
-
+  static async getAllProjects(workspaceId: string) {
     const projects = await db
+      .select()
+      .from(projectsTable)
+      .where(eq(projectsTable.workspaceId, workspaceId));
+
+    return projects;
+  }
+
+  static async getProject(workspaceId: string, projectId: string) {
+    const project = await ProjectService.verifyProject(workspaceId, projectId);
+
+    return project;
+  }
+
+  static async updateProject(
+    workspaceId: string,
+    projectId: string,
+    name: string,
+    description: string
+  ) {
+    const project = await ProjectService.verifyProject(workspaceId, projectId);
+
+    const [updatedProject] = await db
+      .update(projectsTable)
+      .set({
+        ...(name && { name }),
+        ...(description && { description }),
+      })
+      .where(eq(projectsTable.id, project.id))
+      .returning();
+
+    if (!updatedProject)
+      throw new ApiError(500, 'Error updating project, Please try again');
+
+    return updatedProject;
+  }
+
+  static async deleteProject(workspaceId: string, projectId: string) {
+    const project = await ProjectService.verifyProject(workspaceId, projectId);
+
+    const [deletedProject] = await db
+      .delete(projectsTable)
+      .where(eq(projectsTable.id, project.id))
+      .returning();
+
+    if (!deletedProject)
+      throw new ApiError(500, 'Error deleting project, Please try again');
+
+    return deletedProject;
+  }
+
+  private static async verifyProject(workspaceId: string, projectId: string) {
+    const [project] = await db
       .select({
         id: projectsTable.id,
         name: projectsTable.name,
@@ -78,23 +117,18 @@ export class ProjectService {
         createdBy: projectsTable.createdBy,
       })
       .from(projectsTable)
-      .where(eq(projectsTable.workspaceId, workspaceId));
-
-    return projects;
-  }
-
-  static async checkMembership(userId: string, workspaceId: string) {
-    const [member] = await db
-      .select()
-      .from(workspaceMembershipsTable)
       .where(
         and(
-          eq(workspaceMembershipsTable.workspaceId, workspaceId),
-          eq(workspaceMembershipsTable.userId, userId)
+          eq(projectsTable.id, projectId),
+          eq(projectsTable.workspaceId, workspaceId)
         )
       )
       .limit(1);
 
-    return member;
+    if (!project) {
+      throw new ApiError(404, 'Project not found');
+    }
+
+    return project;
   }
 }

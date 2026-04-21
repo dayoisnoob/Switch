@@ -1,36 +1,71 @@
-import type { Request, Response } from 'express';
-import { WorkspaceService } from '../services/workspace.service';
-import { ApiResponse } from '../utils/api-response';
+import type { Response } from 'express';
 import { ProjectService } from '../services/project.service';
+import { ApiError, ApiResponse } from '../utils/api-response';
+import type {
+  AuthenticatedRequest,
+  ProjectParams,
+  WorkspaceParams,
+} from '../types/express';
+import { getParam } from '../utils/params.util';
 
 export class ProjectController {
-  static async createProject(req: Request, res: Response) {
-    const userId = req.user!.id;
-    const { workspaceId } = req.params;
+  static async createProject(req: AuthenticatedRequest, res: Response) {
+    const userId = req.user.id;
+    const workspaceId = getParam(req.params.workspaceId, 'workspaceId');
+    const { name, description } = req.body;
 
     const { project, board } = await ProjectService.createProject(
       userId,
-      workspaceId as string as string,
-      req.body
+      workspaceId,
+      name,
+      description
     );
 
     res.status(201).json(
-      new ApiResponse(201, 'Project successfully created', {
+      new ApiResponse(201, 'Project created successfully', {
         project,
         board,
       })
     );
   }
 
-  static async getAllProjects(req: Request, res: Response) {
-    const userId = req.user!.id;
-    const { workspaceId } = req.params;
+  static async getAllProjects(req: AuthenticatedRequest, res: Response) {
+    const workspaceId = getParam(req.params.workspaceId, 'workspaceId');
+    const projects = await ProjectService.getAllProjects(workspaceId);
 
-    const projects = await ProjectService.getAllProjects(
-      userId,
-      workspaceId as string
+    res.json(new ApiResponse(200, 'Projects retrieved successfully', projects));
+  }
+
+  static async getProject(req: AuthenticatedRequest, res: Response) {
+    const projectId = getParam(req.params.projectId, 'projectId');
+    const workspaceId = req.workspace?.workspaceId as string;
+
+    const project = await ProjectService.getProject(workspaceId, projectId);
+
+    res.json(new ApiResponse(200, 'Project retrieved successfully', project));
+  }
+
+  static async updateProject(req: AuthenticatedRequest, res: Response) {
+    const projectId = getParam(req.params.projectId, 'projectId');
+    const workspaceId = req.workspace?.workspaceId as string;
+
+    const { name, description } = req.body;
+    const project = await ProjectService.updateProject(
+      workspaceId,
+      projectId,
+      name,
+      description
     );
 
-    res.json(new ApiResponse(200, 'Projects successfully retrieved', projects));
+    res.json(new ApiResponse(200, 'Project updated successfully', project));
+  }
+
+  static async deleteProject(req: AuthenticatedRequest, res: Response) {
+    const projectId = getParam(req.params.projectId, 'projectId');
+    const workspaceId = req.workspace?.workspaceId as string;
+
+    const project = await ProjectService.deleteProject(workspaceId, projectId);
+
+    res.json(new ApiResponse(200, 'Project deleted successfully', project));
   }
 }

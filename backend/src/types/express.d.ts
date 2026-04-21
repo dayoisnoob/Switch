@@ -1,3 +1,5 @@
+import type { Request } from 'express';
+
 declare global {
   namespace Express {
     interface Request {
@@ -6,6 +8,14 @@ declare global {
         workspaceName: string;
         role: 'owner' | 'admin' | 'member';
       };
+
+      resolvedProject?: { id: string; workspaceId: string; name: string };
+      resolvedBoard?: { id: string; projectId: string };
+      resolvedColumn?: { id: string; boardId: string };
+      resolvedColumn?: { id: string; boardId: string };
+      resolvedCard?: { id: string; boardId: string; columnId: string };
+      resolvedLabel?: { workspaceId: string };
+      resolvedComment?: { id: string; userId: string; cardId: string };
     }
     interface User {
       // Always present
@@ -25,3 +35,24 @@ declare global {
 }
 
 export {};
+
+export type WorkspaceParams = { workspaceId: string };
+export type ProjectParams = { projectId: string };
+export type MemberParams = { workspaceId: string; memberId: string };
+export type BoardParams = { boardId: string };
+export type ColumnParams = { columnId: string };
+export type CardParams = { cardId: string };
+export type InvitationParams = { token: string };
+
+export interface AuthenticatedUser {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string | null;
+  role: 'user' | 'admin';
+  isActive: boolean;
+}
+
+export interface AuthenticatedRequest extends Request {
+  user: AuthenticatedUser;
+}

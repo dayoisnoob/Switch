@@ -1,17 +1,14 @@
-import type { Request, Response } from 'express';
+import type { Response } from 'express';
 import { BoardService } from '../services/board.service';
+import type { AuthenticatedRequest } from '../types/express';
 import { ApiResponse } from '../utils/api-response';
+import { getParam } from '../utils/params.util';
 
 export class BoardController {
-  static async getBoardState(req: Request, res: Response) {
-    const userId = req.user!.id;
-    const { workspaceId, projectId } = req.params;
+  static async getBoardState(req: AuthenticatedRequest, res: Response) {
+    const projectId = getParam(req.params.projectId, 'projectId');
 
-    const boardState = await BoardService.getBoardState(
-      userId,
-      workspaceId as string,
-      projectId as string
-    );
+    const boardState = await BoardService.getBoardState(projectId);
 
     res.json(new ApiResponse(200, 'Board successfully retrieved', boardState));
   }

@@ -3,10 +3,8 @@ import { env } from '../config/env';
 import { COOKIE_OPTIONS } from '../constants';
 import { AuthService } from '../services/auth.service';
 import { ApiError, ApiResponse } from '../utils/api-response';
-import type {
-  AuthenticatedRequest,
-  OAuthProfileInput,
-} from '../types/auth.types';
+import type { OAuthProfileInput } from '../types/auth.types';
+import type { AuthenticatedRequest } from '../types/express';
 
 export class AuthController {
   static async OAuthCallback(req: Request, res: Response) {

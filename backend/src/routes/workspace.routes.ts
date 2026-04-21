@@ -2,19 +2,20 @@ import { Router } from 'express';
 import { authenticate, requireAdmin } from '../middleware/auth.middleware';
 
 import { WorkspaceController } from '../controllers/workspace.controller';
-import { asyncHandler } from '../utils/async-handler';
-import { validateInput } from '../middleware/validation.middleware';
 import {
-  createWorkspaceSchema,
-  sendInvitationSchema,
-} from '../validations/workspace.validation';
-import { createProjectSchema } from '../validations/project.validation';
-import { ProjectController } from '../controllers/project.controller';
-import { BoardController } from '../controllers/board.controller';
+  validateInput,
+  validateUrlParams,
+} from '../middleware/validation.middleware';
 import {
   requireWorkspaceMember,
   requireWorkspaceRole,
 } from '../middleware/workspace.middleware';
+import { asyncHandler } from '../utils/async-handler';
+import { paramsSchema } from '../validations/urlParams.validation';
+import {
+  createWorkspaceSchema,
+  sendInvitationSchema,
+} from '../validations/workspace.validation';
 
 const router = Router();
 
@@ -26,68 +27,58 @@ router.post(
 );
 
 router.get(
-  '/:workspaceId',
-  asyncHandler(requireWorkspaceMember),
-  asyncHandler(WorkspaceController.getWorkspace)
-);
-
-router.get(
   '/',
   requireAdmin,
   asyncHandler(WorkspaceController.getAllWorkspaces)
 );
 
+router.get(
+  '/:workspaceId',
+  validateUrlParams(paramsSchema),
+  requireWorkspaceMember,
+  asyncHandler(WorkspaceController.getWorkspace)
+);
+
 router.patch(
   '/:workspaceId',
-  asyncHandler(requireWorkspaceMember),
-  asyncHandler(requireWorkspaceRole(['admin', 'owner'])),
+  validateUrlParams(paramsSchema),
+  requireWorkspaceMember,
+  requireWorkspaceRole(['admin', 'owner']),
   asyncHandler(WorkspaceController.updateWorkspace)
 );
 
 router.delete(
   '/:workspaceId',
-  asyncHandler(requireWorkspaceMember),
-  asyncHandler(requireWorkspaceRole(['owner'])),
+  validateUrlParams(paramsSchema),
+  requireWorkspaceMember,
+  requireWorkspaceRole(['owner']),
   asyncHandler(WorkspaceController.deleteWorkspace)
 );
 
 // Membership
 router.get(
   '/:workspaceId/members',
-  asyncHandler(requireWorkspaceMember),
+  validateUrlParams(paramsSchema),
+  requireWorkspaceMember,
   asyncHandler(WorkspaceController.getMembers)
 );
 
 router.delete(
   '/:workspaceId/members/:memberId',
-  asyncHandler(requireWorkspaceMember),
-  asyncHandler(requireWorkspaceRole(['owner', 'admin'])),
+  validateUrlParams(paramsSchema),
+  requireWorkspaceMember,
+  requireWorkspaceRole(['owner', 'admin']),
   asyncHandler(WorkspaceController.removeMember)
 );
 
 // Invitations
 router.post(
   '/:workspaceId/invitations',
+  validateUrlParams(paramsSchema),
   validateInput(sendInvitationSchema),
-  asyncHandler(requireWorkspaceMember),
-  asyncHandler(requireWorkspaceRole(['owner', 'admin'])),
+  requireWorkspaceMember,
+  requireWorkspaceRole(['owner', 'admin']),
   asyncHandler(WorkspaceController.sendInvitation)
-);
-
-router.post(
-  '/:workspaceId/projects',
-  validateInput(createProjectSchema),
-  asyncHandler(ProjectController.createProject)
-);
-
-router.get(
-  '/:workspaceId/projects',
-  asyncHandler(ProjectController.getAllProjects)
-);
-
-router.get(
-  '/:workspaceId/projects/:projectId/board',
-  asyncHandler(BoardController.getBoardState)
 );
 
 export default router;

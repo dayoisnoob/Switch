@@ -1,30 +1,21 @@
 import { eq } from 'drizzle-orm';
 import { db } from '../config/db';
-import { boardsTable, projectsTable } from '../db';
+import { boardsTable } from '../db';
 import { ApiError } from '../utils/api-response';
-import { ProjectService } from './project.service';
 
 export class BoardService {
-  static async getBoardState(
-    userId: string,
-    workspaceId: string,
-    projectId: string
-  ) {
-    const isMember = await ProjectService.checkMembership(userId, workspaceId);
-    if (!isMember) {
-      throw new ApiError(403, 'You do not have access to this workspace');
-    }
-
+  static async getBoardState(projectId: string) {
     const boardState = await db.query.boardsTable.findFirst({
       where: eq(boardsTable.projectId, projectId),
       with: {
         columns: {
           orderBy: (cols, { asc }) => [asc(cols.order)],
           with: {
-            tasks: {
-              orderBy: (tasks, { asc }) => [asc(tasks.order)],
+            cards: {
+              orderBy: (cards, { asc }) => [asc(cards.order)],
               with: {
                 assignees: true,
+                labels: true,
               },
             },
           },
@@ -36,16 +27,16 @@ export class BoardService {
       throw new ApiError(404, 'Board not found');
     }
 
-    const [project] = await db
-      .select({ workspaceId: projectsTable.workspaceId })
-      .from(projectsTable)
-      .where(eq(projectsTable.id, boardState.projectId))
-      .limit(1);
-
-    if (project?.workspaceId !== workspaceId) {
-      throw new ApiError(404, 'Board not found in this workspace');
-    }
-
     return boardState;
   }
 }
+
+//  const [project] = await db
+//    .select({ workspaceId: projectsTable.workspaceId })
+//    .from(projectsTable)
+//    .where(eq(projectsTable.id, boardState.projectId))
+//    .limit(1);
+
+//  if (project?.workspaceId !== workspaceId) {
+//    throw new ApiError(404, 'Board not found in this workspace');
+//  }

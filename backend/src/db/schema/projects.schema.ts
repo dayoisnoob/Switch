@@ -22,7 +22,10 @@ export const projectsTable = pgTable(
       .notNull()
       .references(() => usersTable.id),
     createdAt: timestamp('created_at').notNull().defaultNow(),
-    updatedAt: timestamp('updated_at').notNull().defaultNow(),
+    updatedAt: timestamp('updated_at')
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
   },
   (t) => [index('projects_workspace_id_idx').on(t.workspaceId)]
 );

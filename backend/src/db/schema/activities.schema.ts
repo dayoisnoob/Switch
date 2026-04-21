@@ -6,7 +6,7 @@ import {
   index,
   pgEnum,
 } from 'drizzle-orm/pg-core';
-import { tasksTable } from './tasks.schema';
+import { cardsTable } from './cards.schema';
 import { projectsTable } from './projects.schema';
 import { usersTable } from './users.schema';
 
@@ -33,7 +33,7 @@ export const activitiesTable = pgTable(
   'activities',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    cardId: uuid('card_id').references(() => tasksTable.id, {
+    cardId: uuid('card_id').references(() => cardsTable.id, {
       onDelete: 'cascade',
     }),
     projectId: uuid('project_id')
