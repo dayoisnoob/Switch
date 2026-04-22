@@ -16,4 +16,11 @@ export interface JwtPayload {
   purpose?: string;
 }
 
+export interface UserType {
+  id: string;
+  firstName: string | null;
+  isActive: boolean;
+  role: 'user' | 'admin';
+}
+
 export type WorkspaceRoles = 'member' | 'admin' | 'owner';

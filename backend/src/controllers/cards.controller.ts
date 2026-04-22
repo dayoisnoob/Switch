@@ -6,9 +6,9 @@ import { ApiResponse } from '../utils/api-response';
 export class CardsController {
   static async createCard(req: AuthenticatedRequest, res: Response) {
     const userId = req.user.id;
-    const boardId = req.resolvedColumn?.boardId!;
-    const projectId = req.resolvedColumn?.projectId!;
-    const workspaceId = req.workspace?.workspaceId!;
+    const boardId = req.resolvedColumn!.boardId;
+    const projectId = req.resolvedColumn!.projectId;
+    const workspaceId = req.workspace!.workspaceId;
     const columnId = req.params.columnId as string;
 
     const card = await CardsService.createCard(
@@ -34,7 +34,7 @@ export class CardsController {
 
   static async updateCard(req: AuthenticatedRequest, res: Response) {
     const userId = req.user.id;
-    const projectId = req.resolvedColumn?.projectId!;
+    const projectId = req.resolvedCard!.projectId;
     const cardId = req.params.cardId as string;
 
     const card = await CardsService.updateCard(
@@ -49,7 +49,7 @@ export class CardsController {
 
   static async deleteCard(req: AuthenticatedRequest, res: Response) {
     const userId = req.user.id;
-    const projectId = req.resolvedColumn?.projectId!;
+    const projectId = req.resolvedCard!.projectId;
     const cardId = req.params.cardId as string;
     const card = await CardsService.deleteCard(userId, projectId, cardId);
 
@@ -58,7 +58,7 @@ export class CardsController {
 
   static async moveCard(req: AuthenticatedRequest, res: Response) {
     const userId = req.user.id;
-    const projectId = req.resolvedColumn?.projectId!;
+    const projectId = req.resolvedCard!.projectId;
     const cardId = req.params.cardId as string;
     const card = await CardsService.moveCard(
       userId,
@@ -72,7 +72,7 @@ export class CardsController {
 
   static async assignUser(req: AuthenticatedRequest, res: Response) {
     const cardId = req.params.cardId as string;
-    const projectId = req.resolvedColumn?.projectId!;
+    const projectId = req.resolvedCard!.projectId;
 
     const user = await CardsService.assignUser(
       projectId,
@@ -86,7 +86,7 @@ export class CardsController {
   static async unassignUser(req: AuthenticatedRequest, res: Response) {
     const cardId = req.params.cardId as string;
     const userId = req.params.userId as string;
-    const projectId = req.resolvedColumn?.projectId!;
+    const projectId = req.resolvedCard!.projectId;
 
     const user = await CardsService.unassignUser(projectId, cardId, userId);
 
@@ -96,7 +96,7 @@ export class CardsController {
   static async attachLabel(req: AuthenticatedRequest, res: Response) {
     const userId = req.user.id;
     const cardId = req.params.cardId as string;
-    const projectId = req.resolvedColumn?.projectId!;
+    const projectId = req.resolvedCard!.projectId;
 
     const label = await CardsService.attachLabel(
       userId,
@@ -113,7 +113,7 @@ export class CardsController {
     const labelId = req.params.labelId as string;
 
     const userId = req.user.id;
-    const projectId = req.resolvedColumn?.projectId!;
+    const projectId = req.resolvedCard!.projectId;
 
     const label = await CardsService.detatchLabel(
       userId,

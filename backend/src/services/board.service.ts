@@ -14,8 +14,21 @@ export class BoardService {
             cards: {
               orderBy: (cards, { asc }) => [asc(cards.order)],
               with: {
-                assignees: true,
-                labels: true,
+                assignees: {
+                  with: {
+                    user: {
+                      columns: {
+                        id: true,
+                        firstName: true,
+                        lastName: true,
+                        avatarUrl: true,
+                      },
+                    },
+                  },
+                },
+                labels: {
+                  with: { label: true },
+                },
               },
             },
           },
@@ -30,13 +43,3 @@ export class BoardService {
     return boardState;
   }
 }
-
-//  const [project] = await db
-//    .select({ workspaceId: projectsTable.workspaceId })
-//    .from(projectsTable)
-//    .where(eq(projectsTable.id, boardState.projectId))
-//    .limit(1);
-
-//  if (project?.workspaceId !== workspaceId) {
-//    throw new ApiError(404, 'Board not found in this workspace');
-//  }

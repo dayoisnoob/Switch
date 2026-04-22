@@ -5,8 +5,7 @@ import { ApiError } from '../utils/api-response';
 import type { CreateCommentType } from '../validations/comments.validation';
 import { ActivityService } from './activity.service';
 import { emitBoardEvent } from '../socket/emitter';
-import { queueNotification } from '../queues/notification.queue';
-import { logger } from '../config/logger';
+import { NotificationService } from './notification.service';
 
 export class CommentService {
   static async createComment(
@@ -50,18 +49,14 @@ export class CommentService {
     for (const assignee of assignees) {
       if (assignee.userId === userId) continue;
 
-      try {
-        await queueNotification({
-          type: 'comment_added',
-          userId: assignee.userId,
-          title: 'New comment on your card',
-          body: data.content.slice(0, 100),
-          entityId: cardId,
-          entityType: 'card',
-        });
-      } catch (err) {
-        logger.error({ err }, 'Failed to queue comment notification');
-      }
+      await NotificationService.create({
+        type: 'comment_added',
+        userId: assignee.userId,
+        title: 'New comment on your card',
+        body: `Someone commented on a card you're assigned to.`,
+        entityId: cardId,
+        entityType: 'card',
+      });
     }
 
     return comment;

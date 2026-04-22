@@ -18,3 +18,8 @@ export const generateSecureOtp = () => {
   const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
   return { otp, hashedOtp, expiresAt };
 };
+
+export const getResourceType = (mimeType: string): 'image' | 'raw' => {
+  if (mimeType.startsWith('image/')) return 'image';
+  return 'raw';
+};

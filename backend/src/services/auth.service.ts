@@ -168,7 +168,11 @@ export class AuthService {
     code: string;
   }) {
     const { email, code } = data;
-    const existing = await AuthService.findUserByIdentifier(email);
+    const existing = await AuthService.findUserByIdentifier(
+      email,
+      'email',
+      true
+    );
 
     if (!existing) {
       throw new ApiError(404, 'User does not exist');
@@ -204,7 +208,11 @@ export class AuthService {
 
   static async completeReg(userData: SignupInput) {
     const { firstName, lastName, email, password } = userData;
-    const existing = await AuthService.findUserByIdentifier(email);
+    const existing = await AuthService.findUserByIdentifier(
+      email,
+      'email',
+      true
+    );
 
     if (!existing?.emailVerified) {
       throw new ApiError(403, 'Please verify your email');
@@ -254,7 +262,11 @@ export class AuthService {
   static async login(credentials: LoginInput) {
     const { email, password } = credentials;
 
-    const existing = await AuthService.findUserByIdentifier(email);
+    const existing = await AuthService.findUserByIdentifier(
+      email,
+      'email',
+      true
+    );
 
     if (!existing) {
       throw new ApiError(401, 'Invalid credentials');
@@ -395,8 +407,7 @@ export class AuthService {
     await db
       .update(refreshTokensTable)
       .set({ isRevoked: true, revokedAt: new Date() })
-      .where(eq(refreshTokensTable.userId, userId))
-      .returning({ userId: refreshTokensTable.userId });
+      .where(eq(refreshTokensTable.userId, userId));
 
     logger.info(
       {
@@ -409,7 +420,11 @@ export class AuthService {
   }
 
   static async forgotPassword(email: string) {
-    const existing = await AuthService.findUserByIdentifier(email);
+    const existing = await AuthService.findUserByIdentifier(
+      email,
+      'email',
+      true
+    );
 
     if (!existing) {
       logger.info({ email }, 'Password reset requested for unregistered email');
@@ -518,7 +533,7 @@ export class AuthService {
   static async changePassword(userId: string, data: changePasswordInput) {
     const { currentPassword, newPassword } = data;
 
-    const existing = await AuthService.findUserByIdentifier(userId, 'id');
+    const existing = await AuthService.findUserByIdentifier(userId, 'id', true);
 
     if (!existing) {
       throw new ApiError(401, 'User not found');
@@ -700,11 +715,25 @@ export class AuthService {
 
   static async findUserByIdentifier(
     identifier: string,
-    field: 'id' | 'email' = 'email'
+    field: 'id' | 'email' = 'email',
+    passwordRequired: boolean = false
   ) {
     const column = { email: usersTable.email, id: usersTable.id };
     const [user] = await db
-      .select()
+      .select({
+        id: usersTable.id,
+        email: usersTable.email,
+        firstName: usersTable.firstName,
+        lastName: usersTable.lastName,
+        role: usersTable.role,
+        ...(passwordRequired && { passwordHash: usersTable.passwordHash }),
+        avatarUrl: usersTable.avatarUrl,
+        authProvider: usersTable.authProvider,
+        providerId: usersTable.providerId,
+        emailVerified: usersTable.emailVerified,
+        isActive: usersTable.isActive,
+        lastLogin: usersTable.lastLogin,
+      })
       .from(usersTable)
       .where(eq(column[field], identifier))
       .limit(1);

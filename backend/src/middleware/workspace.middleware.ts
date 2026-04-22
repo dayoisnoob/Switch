@@ -16,14 +16,15 @@ import {
 import type { WorkspaceRoles } from '../types/auth.types';
 import { ApiError } from '../utils/api-response';
 import { asyncHandler } from '../utils/async-handler';
+import type { AuthenticatedRequest } from '../types/express';
 
 export const requireWorkspaceMember = asyncHandler(
-  async (req: Request, res: Response, next: NextFunction) => {
-    if (!req.user?.id) {
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    const userId = req.user.id;
+    if (!userId) {
       throw new ApiError(401, 'Authentication required. Please sign in.');
     }
 
-    const userId = req.user.id;
     let workspaceId = req.params.workspaceId;
 
     if (!workspaceId) {

@@ -49,5 +49,3 @@ export const usersTable = pgTable(
   ]
 );
 //circle back to unique index on nullable column
-
-export type UserType = InferSelectModel<typeof usersTable>;

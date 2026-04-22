@@ -14,8 +14,7 @@ import type {
 } from '../validations/cards.validation';
 import { ActivityService } from './activity.service';
 import { emitBoardEvent } from '../socket/emitter';
-import { queueNotification } from '../queues/notification.queue';
-import { logger } from '../config/logger';
+import { NotificationService } from './notification.service';
 
 export class CardsService {
   static async createCard(
@@ -62,8 +61,6 @@ export class CardsService {
         metadata: { title: card.title },
       });
 
-      emitBoardEvent(boardId, 'card:created', { card: newCard });
-
       if (assignees && assignees.length > 0) {
         const members = await tx
           .select({ userId: workspaceMembershipsTable.userId })
@@ -92,6 +89,8 @@ export class CardsService {
 
       return card;
     });
+    emitBoardEvent(boardId, 'card:created', { card: newCard });
+
     return newCard;
   }
 
@@ -258,18 +257,14 @@ export class CardsService {
       metadata: { userId: assignee.userId },
     });
 
-    try {
-      await queueNotification({
-        type: 'card_assigned',
-        userId: assignee.userId,
-        title: 'You were assigned to a card',
-        body: `You have been assigned to a card.`,
-        entityId: cardId,
-        entityType: 'card',
-      });
-    } catch (err) {
-      logger.error({ err }, 'Failed to queue assignment notification');
-    }
+    await NotificationService.create({
+      type: 'card_assigned',
+      userId: assignee.userId,
+      title: 'You were assigned to a card',
+      body: `You have been assigned to a card.`,
+      entityId: cardId,
+      entityType: 'card',
+    });
 
     return assignee;
   }

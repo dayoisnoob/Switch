@@ -167,7 +167,12 @@ export class WorkspaceService {
 
     const [deletedMember] = await db
       .delete(workspaceMembershipsTable)
-      .where(eq(workspaceMembershipsTable.userId, userId))
+      .where(
+        and(
+          eq(workspaceMembershipsTable.workspaceId, workspaceId),
+          eq(workspaceMembershipsTable.userId, userId)
+        )
+      )
       .returning();
 
     if (!deletedMember) {
@@ -254,72 +259,5 @@ export class WorkspaceService {
       workspaceName,
       link: `${env.FRONTEND_URL}/invite/accept?token=${token}`,
     });
-  }
-
-  static async acceptInvitation(token: string) {
-    const tokenHash = cryptoHash(token);
-
-    const [validToken] = await db
-      .select({
-        acceptedAt: workspaceInvitationsTable.acceptedAt,
-        email: workspaceInvitationsTable.email,
-        workspaceId: workspaceInvitationsTable.workspaceId,
-      })
-      .from(workspaceInvitationsTable)
-      .where(
-        and(
-          eq(workspaceInvitationsTable.tokenHash, tokenHash),
-          gt(workspaceInvitationsTable.expiresAt, new Date())
-        )
-      )
-      .limit(1);
-
-    if (!validToken) {
-      throw new ApiError(
-        403,
-        'You have used an invalid or expired link. Please request a new invite.'
-      );
-    }
-    if (validToken.acceptedAt) {
-      throw new ApiError(409, 'You have already accepted this invitation.');
-    }
-
-    const existing = await AuthService.findUserByIdentifier(
-      validToken.email,
-      'email'
-    );
-
-    if (!existing) {
-      return {
-        message: 'Invitee does now own an account. Please register first.',
-        token,
-      };
-    }
-
-    await db.transaction(async (tx) => {
-      const [membership] = await tx
-        .insert(workspaceMembershipsTable)
-        .values({
-          workspaceId: validToken.workspaceId,
-          userId: existing.id,
-        })
-        .returning();
-
-      if (!membership) {
-        throw new ApiError(
-          500,
-          'Error creating workspace membership, please try again'
-        );
-      }
-
-      await tx
-        .update(workspaceInvitationsTable)
-        .set({
-          acceptedAt: new Date(),
-        })
-        .returning();
-    });
-
-    return;
   }
 }

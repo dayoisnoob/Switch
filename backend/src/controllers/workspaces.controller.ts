@@ -94,10 +94,4 @@ export class WorkspaceController {
 
     res.json(new ApiResponse(200, 'Invitation sent successfully'));
   }
-
-  static async acceptInvitation(req: Request, res: Response) {
-    await WorkspaceService.acceptInvitation(req.body.token);
-
-    res.json(new ApiResponse(200, 'Invitation sent successfully'));
-  }
 }

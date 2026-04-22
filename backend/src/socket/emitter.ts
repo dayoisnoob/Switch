@@ -1,3 +1,4 @@
+import { logger } from '../config/logger';
 import { getIO } from './index';
 
 type BoardEvent =
@@ -21,6 +22,19 @@ export const emitBoardEvent = (
   try {
     getIO().to(`board:${boardId}`).emit(event, payload);
   } catch (err) {
-    console.error('Socket emit failed:', err);
+    logger.error({ err }, 'Socket emit failed:');
+  }
+};
+
+// socket/emitter.ts
+export const emitToUser = (
+  userId: string,
+  event: string,
+  payload: Record<string, unknown>
+) => {
+  try {
+    getIO().to(`user:${userId}`).emit(event, payload);
+  } catch (err) {
+    logger.error({ err }, 'User emit failed');
   }
 };

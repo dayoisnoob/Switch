@@ -4,6 +4,7 @@ import { db } from '../config/db';
 import { attachmentsTable } from '../db';
 import { ApiError } from '../utils/api-response';
 import { ActivityService } from './activity.service';
+import { getResourceType } from '../utils/helpers';
 
 export class AttachmentsService {
   static async uploadAttachment(
@@ -34,10 +35,7 @@ export class AttachmentsService {
       stream.end(file.buffer);
     });
 
-    const getResourceType = (mimeType: string): 'image' | 'raw' => {
-      if (mimeType.startsWith('image/')) return 'image';
-      return 'raw';
-    };
+    const resourceType = getResourceType(file.mimetype);
 
     const [attachment] = await db
       .insert(attachmentsTable)
@@ -46,7 +44,7 @@ export class AttachmentsService {
         userId,
         fileName: file.originalname,
         fileUrl: uploaded.secure_url,
-        resourceType: getResourceType(file.mimetype),
+        resourceType,
         publicId: uploaded.public_id,
         fileSize: uploaded.bytes,
         mimeType: file.mimetype,

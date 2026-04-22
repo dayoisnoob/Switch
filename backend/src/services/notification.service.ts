@@ -2,15 +2,37 @@ import { and, desc, eq } from 'drizzle-orm';
 import { db } from '../config/db';
 import { notificationsTable } from '../db';
 import { ApiError } from '../utils/api-response';
+import { logger } from '../config/logger';
+import { emitToUser } from '../socket/emitter';
 
 export class NotificationService {
-  static async getNotifications(userId: string) {
+  static async create(data: {
+    type: 'card_assigned' | 'comment_added' | 'card_due_soon' | 'mentioned';
+    userId: string;
+    title: string;
+    body: string;
+    entityId?: string;
+    entityType?: string;
+  }) {
+    try {
+      const [notification] = await db
+        .insert(notificationsTable)
+        .values(data)
+        .returning();
+
+      emitToUser(data.userId, 'notification:new', { notification });
+    } catch (err) {
+      logger.error({ err }, 'Failed to create notification');
+    }
+  }
+  static async getNotifications(userId: string, limit = 20, offset = 0) {
     const notifications = await db
       .select()
       .from(notificationsTable)
       .where(eq(notificationsTable.userId, userId))
       .orderBy(desc(notificationsTable.createdAt))
-      .limit(20);
+      .limit(limit)
+      .offset(offset);
 
     return notifications;
   }

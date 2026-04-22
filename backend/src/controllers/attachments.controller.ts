@@ -6,8 +6,8 @@ import { ApiError, ApiResponse } from '../utils/api-response';
 export class AttachmentsController {
   static async uploadAttachment(req: AuthenticatedRequest, res: Response) {
     const userId = req.user.id;
-    const cardId = req.resolvedCard?.id!;
-    const projectId = req.resolvedAttachment?.projectId!;
+    const cardId = req.resolvedCard!.id;
+    const projectId = req.resolvedCard!.projectId;
 
     if (!req.file) throw new ApiError(400, 'No file provided.');
 

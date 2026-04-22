@@ -22,7 +22,6 @@ export class ApiResponse<T = any> {
 export class ApiError extends Error {
   success: boolean;
   statusCode: number;
-  details?: [];
   errors?: { field: string; message: string }[];
   isOperational: boolean;
 
@@ -36,7 +35,6 @@ export class ApiError extends Error {
     this.success = false;
     this.statusCode = statusCode;
     this.message = message;
-    this.details = details;
     this.errors = errors;
     this.isOperational = true;
 

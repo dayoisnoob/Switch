@@ -2,10 +2,10 @@ import 'dotenv/config';
 import { app } from './app';
 import { env } from './config/env';
 import { logger } from './config/logger';
-import { registerCleanupJobs } from './jobs/cleanup.';
 import { emailWorker } from './queues/email.queue';
 import { initSocket } from './socket';
 import { createServer } from 'http';
+import { registerCleanupJobs } from './jobs/cleanup';
 
 const PORT = env.PORT || 7000;
 const NODE_ENV = env.NODE_ENV;
@@ -20,22 +20,17 @@ server.listen(PORT, () => {
   registerCleanupJobs();
 });
 
-process.on('SIGTERM', async () => {
-  logger.info('Sigterm received, shutting down gracefully');
+const shutdown = async (signal: string) => {
+  logger.info(`${signal} received, shutting down gracefully`);
   await emailWorker.close();
   server.close(() => {
     logger.info('Process terminated');
     process.exit(0);
   });
-});
+};
 
-process.on('SIGINT', () => {
-  logger.info('SigIntreceived, shutting down gracefully');
-  server.close(() => {
-    logger.info('Process terminated');
-    process.exit(0);
-  });
-});
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+process.on('SIGINT', () => shutdown('SIGINT'));
 
 process.on('unhandledRejection', (err) => {
   logger.error('UNHANDLED REJECTION! 💥 Shutting down...');

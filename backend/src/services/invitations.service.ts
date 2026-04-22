@@ -7,7 +7,6 @@ import {
 } from '../db';
 import { ApiError } from '../utils/api-response';
 import { cryptoHash } from '../utils/hash.util';
-import { AuthService } from './auth.service';
 
 export class InvitationsService {
   static async acceptInvitation(token: string) {

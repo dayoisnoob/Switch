@@ -1,7 +1,7 @@
 import crypto from 'crypto';
 import { db } from '../config/db';
-import { refreshTokensTable, type UserType } from '../db';
-import type { JwtPayload, TokenGenType } from '../types/auth.types';
+import { refreshTokensTable } from '../db';
+import type { JwtPayload, UserType } from '../types/auth.types';
 import { cryptoHash, randomBytes } from './hash.util';
 import { jwtToken } from './jwt.util';
 

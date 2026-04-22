@@ -22,7 +22,7 @@ export class AuthController {
       .cookie('__auth.refresh', refreshToken, COOKIE_OPTIONS)
       .cookie('__auth.access', accessToken, {
         ...COOKIE_OPTIONS,
-        httpOnly: true,
+        httpOnly: false,
       })
       .redirect(`${env.FRONTEND_URL}/auth/callback`);
   }
