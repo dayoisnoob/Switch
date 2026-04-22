@@ -1,11 +1,10 @@
 import type { Request, Response } from 'express';
 import { InvitationsService } from '../services/invitations.service';
 import { ApiResponse } from '../utils/api-response';
-import { getParam } from '../utils/params.util';
 
 export class InvitationsController {
   static async acceptInvitation(req: Request, res: Response) {
-    const token = getParam(req.params.token, 'token');
+    const token = req.params.token as string;
 
     const result = await InvitationsService.acceptInvitation(token);
 

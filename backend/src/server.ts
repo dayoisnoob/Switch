@@ -4,11 +4,17 @@ import { env } from './config/env';
 import { logger } from './config/logger';
 import { registerCleanupJobs } from './jobs/cleanup.';
 import { emailWorker } from './queues/email.queue';
+import { initSocket } from './socket';
+import { createServer } from 'http';
 
 const PORT = env.PORT || 7000;
 const NODE_ENV = env.NODE_ENV;
 
-const server = app.listen(PORT, () => {
+const server = createServer(app);
+
+initSocket(server);
+
+server.listen(PORT, () => {
   logger.info(`Server listening on port ${PORT}`);
   logger.info(`Working environment: ${NODE_ENV}`);
   registerCleanupJobs();

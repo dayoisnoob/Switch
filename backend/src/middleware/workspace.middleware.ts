@@ -61,6 +61,7 @@ export const requireWorkspaceMember = asyncHandler(
           .select({
             id: columnsTable.id,
             boardId: columnsTable.boardId,
+            projectId: projectsTable.id,
             workspaceId: projectsTable.workspaceId,
           })
           .from(columnsTable)
@@ -71,13 +72,18 @@ export const requireWorkspaceMember = asyncHandler(
 
         if (!column) throw new ApiError(404, 'Column not found.');
         workspaceId = column.workspaceId;
-        req.resolvedColumn = { id: column.id, boardId: column.boardId };
+        req.resolvedColumn = {
+          id: column.id,
+          boardId: column.boardId,
+          projectId: column.projectId,
+        };
       } else if (req.params.cardId) {
         const [card] = await db
           .select({
             id: cardsTable.id,
             boardId: cardsTable.boardId,
             columnId: cardsTable.columnId,
+            projectId: projectsTable.id,
             workspaceId: projectsTable.workspaceId,
           })
           .from(cardsTable)
@@ -92,6 +98,7 @@ export const requireWorkspaceMember = asyncHandler(
           id: card.id,
           boardId: card.boardId,
           columnId: card.columnId,
+          projectId: card.projectId,
         };
       } else if (req.params.labelId) {
         const [label] = await db
@@ -109,6 +116,8 @@ export const requireWorkspaceMember = asyncHandler(
             id: commentsTable.id,
             userId: commentsTable.userId,
             cardId: commentsTable.cardId,
+            boardId: boardsTable.id,
+            projectId: projectsTable.id,
             workspaceId: projectsTable.workspaceId,
           })
           .from(commentsTable)
@@ -124,10 +133,16 @@ export const requireWorkspaceMember = asyncHandler(
           id: comment.id,
           userId: comment.userId,
           cardId: comment.cardId,
+          boardId: comment.boardId,
+          projectId: comment.projectId,
         };
       } else if (req.params.attachmentId) {
         const [attachment] = await db
-          .select({ workspaceId: projectsTable.workspaceId })
+          .select({
+            workspaceId: projectsTable.workspaceId,
+            projectId: projectsTable.id,
+            cardId: cardsTable.id,
+          })
           .from(attachmentsTable)
           .innerJoin(cardsTable, eq(attachmentsTable.cardId, cardsTable.id))
           .innerJoin(boardsTable, eq(cardsTable.boardId, boardsTable.id))
@@ -137,6 +152,10 @@ export const requireWorkspaceMember = asyncHandler(
 
         if (!attachment) throw new ApiError(404, 'Attachment not found');
         workspaceId = attachment.workspaceId;
+        req.resolvedAttachment = {
+          projectId: attachment.projectId,
+          cardId: attachment.cardId,
+        };
       }
     }
 

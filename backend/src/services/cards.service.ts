@@ -12,6 +12,10 @@ import type {
   MoveCardType,
   UpdateCardType,
 } from '../validations/cards.validation';
+import { ActivityService } from './activity.service';
+import { emitBoardEvent } from '../socket/emitter';
+import { queueNotification } from '../queues/notification.queue';
+import { logger } from '../config/logger';
 
 export class CardsService {
   static async createCard(
@@ -19,6 +23,7 @@ export class CardsService {
     workspaceId: string,
     columnId: string,
     boardId: string,
+    projectId: string,
     data: CardDataType
   ) {
     const { title, description, assignees } = data;
@@ -48,6 +53,16 @@ export class CardsService {
       if (!card) {
         throw new ApiError(500, 'Error creating card. Please try again');
       }
+
+      await ActivityService.log({
+        type: 'card_created',
+        userId,
+        projectId,
+        cardId: card.id,
+        metadata: { title: card.title },
+      });
+
+      emitBoardEvent(boardId, 'card:created', { card: newCard });
 
       if (assignees && assignees.length > 0) {
         const members = await tx
@@ -108,7 +123,12 @@ export class CardsService {
     return card;
   }
 
-  static async updateCard(cardId: string, data: UpdateCardType) {
+  static async updateCard(
+    userId: string,
+    projectId: string,
+    cardId: string,
+    data: UpdateCardType
+  ) {
     const { title, description, priority, dueDate } = data;
     const [updatedCard] = await db
       .update(cardsTable)
@@ -124,10 +144,30 @@ export class CardsService {
     if (!updatedCard)
       throw new ApiError(500, 'Error updating card. Please try again.');
 
+    await ActivityService.log({
+      type: 'card_updated',
+      userId,
+      projectId,
+      cardId: updatedCard.id,
+      metadata: {
+        ...(title !== undefined && { title: updatedCard.title }),
+        ...(description !== undefined && {
+          description: updatedCard.description,
+        }),
+        ...(priority !== undefined && { to: updatedCard.priority }),
+        ...(dueDate !== undefined && { dueDate: updatedCard.dueDate }),
+      },
+    });
+
+    emitBoardEvent(updatedCard.boardId, 'card:updated', {
+      cardId,
+      changes: data,
+    });
+
     return updatedCard;
   }
 
-  static async deleteCard(cardId: string) {
+  static async deleteCard(userId: string, projectId: string, cardId: string) {
     const [deletedCard] = await db
       .delete(cardsTable)
       .where(eq(cardsTable.id, cardId))
@@ -136,10 +176,28 @@ export class CardsService {
     if (!deletedCard)
       throw new ApiError(500, 'Error deleting card. Please try again.');
 
+    await ActivityService.log({
+      type: 'card_deleted',
+      userId,
+      projectId,
+      cardId,
+      metadata: { title: deletedCard.title },
+    });
+
+    emitBoardEvent(deletedCard.boardId, 'card:deleted', {
+      cardId,
+      columnId: deletedCard.columnId,
+    });
+
     return deletedCard;
   }
 
-  static async moveCard(cardId: string, data: MoveCardType) {
+  static async moveCard(
+    userId: string,
+    projectId: string,
+    cardId: string,
+    data: MoveCardType
+  ) {
     const { columnId, order } = data;
 
     const [updatedCard] = await db
@@ -152,10 +210,24 @@ export class CardsService {
       throw new ApiError(404, 'Card not found');
     }
 
+    await ActivityService.log({
+      type: 'card_moved',
+      userId,
+      projectId,
+      cardId,
+      metadata: { columnId: updatedCard.columnId },
+    });
+
+    emitBoardEvent(updatedCard.boardId, 'card:moved', {
+      cardId,
+      columnId: updatedCard.columnId,
+      order: updatedCard.order,
+    });
+
     return updatedCard;
   }
 
-  static async assignUser(cardId: string, userId: string) {
+  static async assignUser(projectId: string, cardId: string, userId: string) {
     const [existing] = await db
       .select({ id: cardAssigneesTable.id })
       .from(cardAssigneesTable)
@@ -178,10 +250,31 @@ export class CardsService {
     if (!assignee)
       throw new ApiError(500, 'Error assigning user. Please try again.');
 
+    await ActivityService.log({
+      type: 'assignee_added',
+      userId,
+      projectId,
+      cardId,
+      metadata: { userId: assignee.userId },
+    });
+
+    try {
+      await queueNotification({
+        type: 'card_assigned',
+        userId: assignee.userId,
+        title: 'You were assigned to a card',
+        body: `You have been assigned to a card.`,
+        entityId: cardId,
+        entityType: 'card',
+      });
+    } catch (err) {
+      logger.error({ err }, 'Failed to queue assignment notification');
+    }
+
     return assignee;
   }
 
-  static async unassignUser(cardId: string, userId: string) {
+  static async unassignUser(projectId: string, cardId: string, userId: string) {
     const [assignee] = await db
       .delete(cardAssigneesTable)
       .where(
@@ -193,10 +286,24 @@ export class CardsService {
       .returning();
 
     if (!assignee) throw new ApiError(404, 'Assignee not found.');
+
+    await ActivityService.log({
+      type: 'assignee_removed',
+      userId,
+      projectId,
+      cardId,
+      metadata: { userId: assignee.userId },
+    });
+
     return assignee;
   }
 
-  static async attachLabel(cardId: string, labelId: string) {
+  static async attachLabel(
+    userId: string,
+    projectId: string,
+    cardId: string,
+    labelId: string
+  ) {
     const [existing] = await db
       .select({ id: cardLabelsTable.id })
       .from(cardLabelsTable)
@@ -219,10 +326,23 @@ export class CardsService {
     if (!label)
       throw new ApiError(500, 'Error attaching label. Please try again.');
 
+    await ActivityService.log({
+      type: 'label_added',
+      userId,
+      projectId,
+      cardId,
+      metadata: { labelId },
+    });
+
     return label;
   }
 
-  static async detatchLabel(cardId: string, labelId: string) {
+  static async detatchLabel(
+    userId: string,
+    projectId: string,
+    cardId: string,
+    labelId: string
+  ) {
     const [label] = await db
       .delete(cardLabelsTable)
       .where(
@@ -235,6 +355,14 @@ export class CardsService {
 
     if (!label)
       throw new ApiError(500, 'Error removing label. Please try again.');
+
+    await ActivityService.log({
+      type: 'label_removed',
+      userId,
+      projectId,
+      cardId,
+      metadata: { labelId },
+    });
 
     return { message: 'Label removed successfully', label };
   }

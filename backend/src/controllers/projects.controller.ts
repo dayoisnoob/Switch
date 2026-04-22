@@ -2,12 +2,11 @@ import type { Response } from 'express';
 import { ProjectService } from '../services/projects.service';
 import type { AuthenticatedRequest } from '../types/express';
 import { ApiResponse } from '../utils/api-response';
-import { getParam } from '../utils/params.util';
 
 export class ProjectController {
   static async createProject(req: AuthenticatedRequest, res: Response) {
     const userId = req.user.id;
-    const workspaceId = getParam(req.params.workspaceId, 'workspaceId');
+    const workspaceId = req.workspace?.workspaceId!;
     const { name, description } = req.body;
 
     const { project, board } = await ProjectService.createProject(
@@ -26,14 +25,14 @@ export class ProjectController {
   }
 
   static async getAllProjects(req: AuthenticatedRequest, res: Response) {
-    const workspaceId = getParam(req.params.workspaceId, 'workspaceId');
+    const workspaceId = req.workspace?.workspaceId!;
     const projects = await ProjectService.getAllProjects(workspaceId);
 
     res.json(new ApiResponse(200, 'Projects retrieved successfully', projects));
   }
 
   static async getProject(req: AuthenticatedRequest, res: Response) {
-    const projectId = getParam(req.params.projectId, 'projectId');
+    const projectId = req.params.projectId as string;
     const workspaceId = req.workspace?.workspaceId as string;
 
     const project = await ProjectService.getProject(workspaceId, projectId);
@@ -42,7 +41,7 @@ export class ProjectController {
   }
 
   static async updateProject(req: AuthenticatedRequest, res: Response) {
-    const projectId = getParam(req.params.projectId, 'projectId');
+    const projectId = req.params.projectId as string;
     const workspaceId = req.workspace?.workspaceId as string;
 
     const { name, description } = req.body;
@@ -57,7 +56,7 @@ export class ProjectController {
   }
 
   static async deleteProject(req: AuthenticatedRequest, res: Response) {
-    const projectId = getParam(req.params.projectId, 'projectId');
+    const projectId = req.params.projectId as string;
     const workspaceId = req.workspace?.workspaceId as string;
 
     const project = await ProjectService.deleteProject(workspaceId, projectId);

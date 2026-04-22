@@ -2,11 +2,11 @@ import type { Response } from 'express';
 import { ColumnsService } from '../services/columns.service';
 import type { AuthenticatedRequest } from '../types/express';
 import { ApiResponse } from '../utils/api-response';
-import { getParam } from '../utils/params.util';
 
 export class ColumnsController {
   static async createColumn(req: AuthenticatedRequest, res: Response) {
-    const boardId = getParam(req.params.boardId, 'boardId');
+    const boardId = req.params.boardId as string;
+
     const { name } = req.body;
 
     const column = await ColumnsService.createColumn(boardId, name);
@@ -16,7 +16,7 @@ export class ColumnsController {
   }
 
   static async updateColumnName(req: AuthenticatedRequest, res: Response) {
-    const columnId = getParam(req.params.columnId, 'columnId');
+    const columnId = req.params.columnId as string;
 
     const { name } = req.body;
     const column = await ColumnsService.updateColumnName(columnId, name);
@@ -25,7 +25,7 @@ export class ColumnsController {
   }
 
   static async updateColumnOrder(req: AuthenticatedRequest, res: Response) {
-    const columnId = getParam(req.params.columnId, 'columnId');
+    const columnId = req.params.columnId as string;
 
     const { order } = req.body;
     const column = await ColumnsService.updateColumnOrder(columnId, order);
@@ -34,7 +34,7 @@ export class ColumnsController {
   }
 
   static async deleteColumn(req: AuthenticatedRequest, res: Response) {
-    const columnId = getParam(req.params.columnId, 'columnId');
+    const columnId = req.params.columnId as string;
 
     const column = await ColumnsService.deleteColumn(columnId);
 

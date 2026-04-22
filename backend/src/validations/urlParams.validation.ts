@@ -10,4 +10,5 @@ export const paramsSchema = z.object({
   labelId: z.string().uuid('Invalid label ID').optional(),
   commentId: z.string().uuid('Invalid comment ID').optional(),
   attachmentId: z.string().uuid('Invalid attachment ID').optional(),
+  notificationId: z.string().uuid('Invalid notification ID').optional(),
 });

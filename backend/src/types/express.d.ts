@@ -11,10 +11,22 @@ declare global {
 
       resolvedProject?: { id: string; workspaceId: string; name: string };
       resolvedBoard?: { id: string; projectId: string };
-      resolvedColumn?: { id: string; boardId: string };
-      resolvedCard?: { id: string; boardId: string; columnId: string };
+      resolvedColumn?: { id: string; boardId: string; projectId: string };
+      resolvedCard?: {
+        id: string;
+        boardId: string;
+        columnId: string;
+        projectId: string;
+      };
       resolvedLabel?: { id: string; workspaceId: string };
-      resolvedComment?: { id: string; userId: string; cardId: string };
+      resolvedComment?: {
+        id: string;
+        userId: string;
+        cardId: string;
+        boardId: string;
+        projectId: string;
+      };
+      resolvedAttachment?: { projectId: string; cardId: string };
     }
     interface User {
       // Always present

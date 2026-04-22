@@ -2,6 +2,7 @@ import { desc, eq } from 'drizzle-orm';
 import { db } from '../config/db';
 import { cardsTable, columnsTable } from '../db';
 import { ApiError } from '../utils/api-response';
+import { emitBoardEvent } from '../socket/emitter';
 
 export class ColumnsService {
   static async createColumn(boardId: string, name: string) {
@@ -25,6 +26,11 @@ export class ColumnsService {
     if (!column)
       throw new ApiError(500, 'Error creating column. Please try again.');
 
+    emitBoardEvent(boardId, 'column:created', {
+      columnId: column.id,
+      name: column.name,
+    });
+
     return column;
   }
 
@@ -38,6 +44,11 @@ export class ColumnsService {
     if (!updatedColumn)
       throw new ApiError(500, 'Error updating column, Please try again');
 
+    emitBoardEvent(updatedColumn.boardId, 'column:updated', {
+      columnId: updatedColumn.id,
+      name: updatedColumn.name,
+    });
+
     return updatedColumn;
   }
 
@@ -50,6 +61,11 @@ export class ColumnsService {
 
     if (!updatedColumn)
       throw new ApiError(500, 'Error updating column, Please try again');
+
+    emitBoardEvent(updatedColumn.boardId, 'column:reordered', {
+      columnId: updatedColumn.id,
+      order: updatedColumn.order,
+    });
 
     return updatedColumn;
   }
@@ -75,6 +91,11 @@ export class ColumnsService {
 
     if (!deletedColumn)
       throw new ApiError(500, 'Error deleting column, Please try again');
+
+    emitBoardEvent(deletedColumn.boardId, 'column:deleted', {
+      columnId: deletedColumn.id,
+      name: deletedColumn.name,
+    });
 
     return deletedColumn;
   }

@@ -1,14 +1,19 @@
 import { and, eq } from 'drizzle-orm';
 import { db } from '../config/db';
-import { commentsTable, labelsTable } from '../db';
+import { cardAssigneesTable, commentsTable } from '../db';
 import { ApiError } from '../utils/api-response';
 import type { CreateCommentType } from '../validations/comments.validation';
-import type { UpdateLabelType } from '../validations/labels.validation';
+import { ActivityService } from './activity.service';
+import { emitBoardEvent } from '../socket/emitter';
+import { queueNotification } from '../queues/notification.queue';
+import { logger } from '../config/logger';
 
 export class CommentService {
   static async createComment(
     userId: string,
+    projectId: string,
     cardId: string,
+    boardId: string,
     data: CreateCommentType
   ) {
     const [comment] = await db
@@ -23,13 +28,51 @@ export class CommentService {
     if (!comment)
       throw new ApiError(500, 'Error creating comment. Please try again.');
 
+    await ActivityService.log({
+      type: 'comment_added',
+      userId,
+      projectId,
+      cardId,
+      metadata: { content: comment.content },
+    });
+
+    emitBoardEvent(boardId, 'comment:created', {
+      commentId: comment.id,
+      cardId,
+      content: comment.content,
+    });
+
+    const assignees = await db
+      .select({ userId: cardAssigneesTable.userId })
+      .from(cardAssigneesTable)
+      .where(eq(cardAssigneesTable.cardId, cardId));
+
+    for (const assignee of assignees) {
+      if (assignee.userId === userId) continue;
+
+      try {
+        await queueNotification({
+          type: 'comment_added',
+          userId: assignee.userId,
+          title: 'New comment on your card',
+          body: data.content.slice(0, 100),
+          entityId: cardId,
+          entityType: 'card',
+        });
+      } catch (err) {
+        logger.error({ err }, 'Failed to queue comment notification');
+      }
+    }
+
     return comment;
   }
 
   static async editComment(
     userId: string,
+    projectId: string,
     commentId: string,
     cardId: string,
+    boardId: string,
     data: CreateCommentType
   ) {
     const comment = await CommentService.fetchComment(commentId, cardId);
@@ -48,13 +91,29 @@ export class CommentService {
     if (!editedComment)
       throw new ApiError(500, 'Error updating comment. Please try again.');
 
+    await ActivityService.log({
+      type: 'comment_edited',
+      userId,
+      projectId,
+      cardId,
+      metadata: { content: editedComment.content },
+    });
+
+    emitBoardEvent(boardId, 'comment:updated', {
+      commentId,
+      cardId,
+      content: editedComment.content,
+    });
+
     return editedComment;
   }
 
   static async deleteComment(
     userId: string,
+    projectId: string,
     commentId: string,
     cardId: string,
+    boardId: string,
     role: string
   ) {
     const comment = await CommentService.fetchComment(commentId, cardId);
@@ -73,6 +132,19 @@ export class CommentService {
 
     if (!deletedComment)
       throw new ApiError(500, 'Error deleting comment. Please try again.');
+
+    await ActivityService.log({
+      type: 'comment_deleted',
+      userId,
+      projectId,
+      cardId,
+      metadata: { id: deletedComment.id },
+    });
+
+    emitBoardEvent(boardId, 'comment:deleted', {
+      commentId,
+      cardId,
+    });
 
     return deletedComment;
   }

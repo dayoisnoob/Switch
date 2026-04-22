@@ -28,7 +28,7 @@ router.post(
 
 router.get(
   '/',
-  requireAdmin,
+  // requireAdmin,
   asyncHandler(WorkspaceController.getAllWorkspaces)
 );
 

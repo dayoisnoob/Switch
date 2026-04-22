@@ -24,6 +24,7 @@ import columnsRouter from './routes/columns.routes.ts';
 import labelsRouter from './routes/labels.routes.ts';
 import commentsRouter from './routes/comments.routes.ts';
 import attachmentsRouter from './routes/attachments.routes.ts';
+import notificationsRouter from './routes/notifications.routes.ts';
 
 const swaggerDocument = JSON.parse(
   readFileSync(join(process.cwd(), 'swagger-output.json'), 'utf8')
@@ -60,7 +61,7 @@ app.use(passport.initialize());
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 app.use('/api/v1/auth', authRouter);
-app.use('/api/v1/workspace', workspacesRouter);
+app.use('/api/v1/workspaces', workspacesRouter);
 app.use('/api/v1/invitations', invitationsRouter);
 
 app.use('/api/v1/columns/:columnId/cards', cardsRouter);
@@ -82,6 +83,8 @@ app.use('/api/v1/comments', commentsRouter);
 
 app.use('/api/v1/cards/:cardId/attachments', attachmentsRouter);
 app.use('/api/v1/attachments', attachmentsRouter);
+
+app.use('/api/v1/notifications', notificationsRouter);
 
 app.use(notFoundError);
 app.use(globalErrorHandler);

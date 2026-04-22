@@ -1,17 +1,18 @@
 import type { Response } from 'express';
-import type { AuthenticatedRequest } from '../types/express';
-import { ApiResponse, ApiError } from '../utils/api-response';
 import { AttachmentsService } from '../services/attachments.service';
-import { getParam } from '../utils/params.util';
+import type { AuthenticatedRequest } from '../types/express';
+import { ApiError, ApiResponse } from '../utils/api-response';
 
 export class AttachmentsController {
   static async uploadAttachment(req: AuthenticatedRequest, res: Response) {
     const userId = req.user.id;
     const cardId = req.resolvedCard?.id!;
+    const projectId = req.resolvedAttachment?.projectId!;
 
     if (!req.file) throw new ApiError(400, 'No file provided.');
 
     const attachment = await AttachmentsService.uploadAttachment(
+      projectId,
       cardId,
       userId,
       req.file
@@ -23,11 +24,16 @@ export class AttachmentsController {
   }
 
   static async deleteAttachment(req: AuthenticatedRequest, res: Response) {
-    const attachmentId = getParam(req.params.attachmentId, 'attachmentId');
     const userId = req.user.id;
     const role = req.workspace?.role!;
 
+    const attachmentId = req.params.attachmentId as string;
+    const projectId = req.resolvedAttachment?.projectId!;
+    const cardId = req.resolvedAttachment?.cardId!;
+
     const result = await AttachmentsService.deleteAttachment(
+      projectId,
+      cardId,
       attachmentId,
       userId,
       role

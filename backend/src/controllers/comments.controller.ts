@@ -7,10 +7,14 @@ export class CommentController {
   static async createComment(req: AuthenticatedRequest, res: Response) {
     const userId = req.user.id!;
     const cardId = req.resolvedCard?.id!;
+    const projectId = req.resolvedCard?.projectId!;
+    const boardId = req.resolvedCard?.boardId!;
 
     const comment = await CommentService.createComment(
       userId,
+      projectId,
       cardId,
+      boardId,
       req.body
     );
 
@@ -20,14 +24,19 @@ export class CommentController {
   }
 
   static async editComment(req: AuthenticatedRequest, res: Response) {
+    const userId = req.user.id;
+
     const commentId = req.resolvedComment?.id!;
     const cardId = req.resolvedComment?.cardId!;
-    const userId = req.user.id;
+    const projectId = req.resolvedComment?.projectId!;
+    const boardId = req.resolvedComment?.boardId!;
 
     const comment = await CommentService.editComment(
       userId,
+      projectId,
       commentId,
       cardId,
+      boardId,
       req.body
     );
 
@@ -35,15 +44,19 @@ export class CommentController {
   }
 
   static async deleteComment(req: AuthenticatedRequest, res: Response) {
+    const userId = req.user.id;
     const commentId = req.resolvedComment?.id!;
-    const userId = req.resolvedComment?.userId!;
     const cardId = req.resolvedComment?.cardId!;
+    const projectId = req.resolvedComment?.projectId!;
+    const boardId = req.resolvedComment?.boardId!;
     const role = req.workspace?.role!;
 
     const comment = await CommentService.deleteComment(
       userId,
+      projectId,
       commentId,
       cardId,
+      boardId,
       role
     );
 
