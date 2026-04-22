@@ -16,7 +16,7 @@ interface WorkspaceWithProjects extends Workspace {
 }
 
 export default async function WorkspacePage() {
-  const res = await fetchApi("/workspace");
+  const res = await fetchApi("/workspaces");
 
   if (!res.ok) {
     return (
