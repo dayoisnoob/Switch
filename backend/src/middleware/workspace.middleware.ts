@@ -3,6 +3,7 @@ import type { NextFunction, Request, Response } from 'express';
 import { and, eq } from 'drizzle-orm';
 import { db } from '../config/db';
 import {
+  attachmentsTable,
   boardsTable,
   cardsTable,
   columnsTable,
@@ -94,14 +95,14 @@ export const requireWorkspaceMember = asyncHandler(
         };
       } else if (req.params.labelId) {
         const [label] = await db
-          .select({ workspaceId: labelsTable.workspaceId })
+          .select({ id: labelsTable.id, workspaceId: labelsTable.workspaceId })
           .from(labelsTable)
           .where(eq(labelsTable.id, req.params.labelId as string))
           .limit(1);
 
         if (!label) throw new ApiError(404, 'Label not found.');
         workspaceId = label.workspaceId;
-        req.resolvedLabel = { workspaceId: label.workspaceId };
+        req.resolvedLabel = { id: label.id, workspaceId: label.workspaceId };
       } else if (req.params.commentId) {
         const [comment] = await db
           .select({
@@ -124,6 +125,18 @@ export const requireWorkspaceMember = asyncHandler(
           userId: comment.userId,
           cardId: comment.cardId,
         };
+      } else if (req.params.attachmentId) {
+        const [attachment] = await db
+          .select({ workspaceId: projectsTable.workspaceId })
+          .from(attachmentsTable)
+          .innerJoin(cardsTable, eq(attachmentsTable.cardId, cardsTable.id))
+          .innerJoin(boardsTable, eq(cardsTable.boardId, boardsTable.id))
+          .innerJoin(projectsTable, eq(boardsTable.projectId, projectsTable.id))
+          .where(eq(attachmentsTable.id, req.params.attachmentId as string))
+          .limit(1);
+
+        if (!attachment) throw new ApiError(404, 'Attachment not found');
+        workspaceId = attachment.workspaceId;
       }
     }
 

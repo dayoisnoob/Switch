@@ -16,13 +16,14 @@ import {
 import { globalLimiter } from './middleware/rate-limit.middleware.ts';
 import authRouter from './routes/auth.routes.ts';
 import cardsRouter from './routes/cards.routes.ts';
-import workspaceRouter from './routes/workspace.routes.ts';
+import workspacesRouter from './routes/workspaces.routes.ts';
 import invitationsRouter from './routes/invitations.routes.ts';
 import projectsRouter from './routes/projects.routes.ts';
 import boardsRouter from './routes/boards.routes.ts';
 import columnsRouter from './routes/columns.routes.ts';
-import labelRouter from './routes/label.routes.ts';
-import commentRouter from './routes/comment.routes.ts';
+import labelsRouter from './routes/labels.routes.ts';
+import commentsRouter from './routes/comments.routes.ts';
+import attachmentsRouter from './routes/attachments.routes.ts';
 
 const swaggerDocument = JSON.parse(
   readFileSync(join(process.cwd(), 'swagger-output.json'), 'utf8')
@@ -59,7 +60,7 @@ app.use(passport.initialize());
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 app.use('/api/v1/auth', authRouter);
-app.use('/api/v1/workspace', workspaceRouter);
+app.use('/api/v1/workspace', workspacesRouter);
 app.use('/api/v1/invitations', invitationsRouter);
 
 app.use('/api/v1/columns/:columnId/cards', cardsRouter);
@@ -73,11 +74,14 @@ app.use('/api/v1/projects/:projectId/board', boardsRouter);
 app.use('/api/v1/workspaces/:workspaceId/projects', projectsRouter);
 app.use('/api/v1/projects', projectsRouter);
 
-app.use('/api/v1/workspaces/:workspaceId/labels', labelRouter);
-app.use('/api/v1/labels', labelRouter);
+app.use('/api/v1/workspaces/:workspaceId/labels', labelsRouter);
+app.use('/api/v1/labels', labelsRouter);
 
-app.use('/api/v1/card/:cardId/comments', commentRouter);
-app.use('/api/v1/comments', commentRouter);
+app.use('/api/v1/cards/:cardId/comments', commentsRouter);
+app.use('/api/v1/comments', commentsRouter);
+
+app.use('/api/v1/cards/:cardId/attachments', attachmentsRouter);
+app.use('/api/v1/attachments', attachmentsRouter);
 
 app.use(notFoundError);
 app.use(globalErrorHandler);

@@ -1,11 +1,7 @@
 import type { Response } from 'express';
-import { ProjectService } from '../services/project.service';
-import { ApiError, ApiResponse } from '../utils/api-response';
-import type {
-  AuthenticatedRequest,
-  ProjectParams,
-  WorkspaceParams,
-} from '../types/express';
+import { ProjectService } from '../services/projects.service';
+import type { AuthenticatedRequest } from '../types/express';
+import { ApiResponse } from '../utils/api-response';
 import { getParam } from '../utils/params.util';
 
 export class ProjectController {

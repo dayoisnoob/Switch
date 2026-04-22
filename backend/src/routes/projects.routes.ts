@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { authenticate } from '../middleware/auth.middleware';
 
-import { ProjectController } from '../controllers/project.controller';
+import { ProjectController } from '../controllers/projects.controller';
 import {
   validateInput,
   validateUrlParams,
@@ -11,7 +11,7 @@ import {
   requireWorkspaceRole,
 } from '../middleware/workspace.middleware';
 import { asyncHandler } from '../utils/async-handler';
-import { projectInputSchema } from '../validations/project.validation';
+import { projectInputSchema } from '../validations/projects.validation';
 import { paramsSchema } from '../validations/urlParams.validation';
 
 const router = Router({ mergeParams: true });

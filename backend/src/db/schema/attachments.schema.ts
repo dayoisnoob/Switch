@@ -22,6 +22,9 @@ export const attachmentsTable = pgTable(
       .references(() => usersTable.id),
     fileName: varchar('file_name', { length: 255 }).notNull(),
     fileUrl: text('file_url').notNull(),
+    resourceType: varchar('resource_type', { length: 10 })
+      .notNull()
+      .default('image'),
     publicId: text('public_id').notNull(),
     fileSize: integer('file_size').notNull(),
     mimeType: varchar('mime_type', { length: 100 }).notNull(),

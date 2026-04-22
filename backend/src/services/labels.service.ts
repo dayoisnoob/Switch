@@ -1,11 +1,11 @@
-import { and, eq } from 'drizzle-orm';
+import { and, eq, ne } from 'drizzle-orm';
 import { db } from '../config/db';
 import { labelsTable } from '../db';
 import { ApiError } from '../utils/api-response';
 import type {
   CreateLabelType,
   UpdateLabelType,
-} from '../validations/label.validation';
+} from '../validations/labels.validation';
 
 export class LabelService {
   static async createLabel(workspaceId: string, data: CreateLabelType) {
@@ -71,7 +71,8 @@ export class LabelService {
         .where(
           and(
             eq(labelsTable.name, name),
-            eq(labelsTable.workspaceId, workspaceId)
+            eq(labelsTable.workspaceId, workspaceId),
+            ne(labelsTable.id, labelId)
           )
         )
         .limit(1);
@@ -89,12 +90,7 @@ export class LabelService {
         ...(name !== undefined && { name }),
         ...(color !== undefined && { color }),
       })
-      .where(
-        and(
-          eq(labelsTable.id, labelId),
-          eq(labelsTable.workspaceId, workspaceId)
-        )
-      )
+      .where(eq(labelsTable.id, labelId))
       .returning();
 
     if (!updatedLabel)
@@ -103,15 +99,10 @@ export class LabelService {
     return updatedLabel;
   }
 
-  static async deleteLabel(workspaceId: string, labelId: string) {
+  static async deleteLabel(labelId: string) {
     const [deletedlabel] = await db
       .delete(labelsTable)
-      .where(
-        and(
-          eq(labelsTable.id, labelId),
-          eq(labelsTable.workspaceId, workspaceId)
-        )
-      )
+      .where(eq(labelsTable.id, labelId))
       .returning();
 
     if (!deletedlabel)

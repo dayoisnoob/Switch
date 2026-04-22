@@ -2,8 +2,8 @@ import { and, eq } from 'drizzle-orm';
 import { db } from '../config/db';
 import { commentsTable, labelsTable } from '../db';
 import { ApiError } from '../utils/api-response';
-import type { CreateCommentType } from '../validations/comment.validation';
-import type { UpdateLabelType } from '../validations/label.validation';
+import type { CreateCommentType } from '../validations/comments.validation';
+import type { UpdateLabelType } from '../validations/labels.validation';
 
 export class CommentService {
   static async createComment(
@@ -72,7 +72,7 @@ export class CommentService {
       .returning();
 
     if (!deletedComment)
-      throw new ApiError(500, 'Error deleting label. Please try again.');
+      throw new ApiError(500, 'Error deleting comment. Please try again.');
 
     return deletedComment;
   }

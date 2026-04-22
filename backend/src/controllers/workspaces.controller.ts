@@ -1,11 +1,7 @@
 import type { Request, Response } from 'express';
-import { WorkspaceService } from '../services/workspace.service';
+import { WorkspaceService } from '../services/workspaces.service';
+import type { AuthenticatedRequest } from '../types/express';
 import { ApiError, ApiResponse } from '../utils/api-response';
-import type {
-  AuthenticatedRequest,
-  MemberParams,
-  WorkspaceParams,
-} from '../types/express';
 import { getParam } from '../utils/params.util';
 
 export class WorkspaceController {
@@ -73,9 +69,9 @@ export class WorkspaceController {
 
   static async removeMember(req: AuthenticatedRequest, res: Response) {
     const workspaceId = getParam(req.params.workspaceId, 'workspaceId');
-    const memberId = getParam(req.params.memberId, 'memberId');
+    const userId = getParam(req.params.userId, 'userId');
 
-    await WorkspaceService.removeMember(memberId, workspaceId);
+    await WorkspaceService.removeMember(userId, workspaceId);
 
     res.json(new ApiResponse(200, 'Member successfully removed'));
   }

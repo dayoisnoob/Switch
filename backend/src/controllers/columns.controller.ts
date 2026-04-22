@@ -1,10 +1,6 @@
-import type { Request, Response } from 'express';
+import type { Response } from 'express';
 import { ColumnsService } from '../services/columns.service';
-import type {
-  AuthenticatedRequest,
-  BoardParams,
-  ColumnParams,
-} from '../types/express';
+import type { AuthenticatedRequest } from '../types/express';
 import { ApiResponse } from '../utils/api-response';
 import { getParam } from '../utils/params.util';
 

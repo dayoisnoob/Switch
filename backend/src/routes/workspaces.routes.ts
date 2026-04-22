@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { authenticate, requireAdmin } from '../middleware/auth.middleware';
 
-import { WorkspaceController } from '../controllers/workspace.controller';
+import { WorkspaceController } from '../controllers/workspaces.controller';
 import {
   validateInput,
   validateUrlParams,
@@ -15,7 +15,7 @@ import { paramsSchema } from '../validations/urlParams.validation';
 import {
   createWorkspaceSchema,
   sendInvitationSchema,
-} from '../validations/workspace.validation';
+} from '../validations/workspaces.validation';
 
 const router = Router();
 
@@ -64,7 +64,7 @@ router.get(
 );
 
 router.delete(
-  '/:workspaceId/members/:memberId',
+  '/:workspaceId/members/:userId',
   validateUrlParams(paramsSchema),
   requireWorkspaceMember,
   requireWorkspaceRole(['owner', 'admin']),

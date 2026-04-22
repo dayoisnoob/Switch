@@ -14,7 +14,7 @@ import {
   createCardSchema,
   moveCardSchema,
   updateCardSchema,
-} from '../validations/card.validation';
+} from '../validations/cards.validation';
 import { paramsSchema } from '../validations/urlParams.validation';
 
 const router = Router();

@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { authenticate } from '../middleware/auth.middleware';
 
-import { LabelController } from '../controllers/label.controller';
+import { LabelController } from '../controllers/labels.controller';
 import {
   validateInput,
   validateUrlParams,
@@ -14,7 +14,7 @@ import { asyncHandler } from '../utils/async-handler';
 import {
   createLabelSchema,
   updateLabelSchema,
-} from '../validations/label.validation';
+} from '../validations/labels.validation';
 import { paramsSchema } from '../validations/urlParams.validation';
 
 const router = Router({ mergeParams: true });

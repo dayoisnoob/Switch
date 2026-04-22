@@ -11,7 +11,7 @@ import type {
   CardDataType,
   MoveCardType,
   UpdateCardType,
-} from '../validations/card.validation';
+} from '../validations/cards.validation';
 
 export class CardsService {
   static async createCard(

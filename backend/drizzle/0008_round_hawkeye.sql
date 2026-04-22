@@ -1,0 +1,1 @@
+ALTER TABLE "attachments" ADD COLUMN "resource_type" varchar(10) DEFAULT 'image' NOT NULL;

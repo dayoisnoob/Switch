@@ -14,7 +14,7 @@ import { asyncHandler } from '../utils/async-handler';
 import {
   columnOrderSchema,
   createColumnSchema,
-} from '../validations/project.validation';
+} from '../validations/projects.validation';
 import { paramsSchema } from '../validations/urlParams.validation';
 
 const router = Router();

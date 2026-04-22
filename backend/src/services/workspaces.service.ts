@@ -146,14 +146,14 @@ export class WorkspaceService {
     return members;
   }
 
-  static async removeMember(memberId: string, workspaceId: string) {
+  static async removeMember(userId: string, workspaceId: string) {
     const [member] = await db
       .select()
       .from(workspaceMembershipsTable)
       .where(
         and(
           eq(workspaceMembershipsTable.workspaceId, workspaceId),
-          eq(workspaceMembershipsTable.userId, memberId)
+          eq(workspaceMembershipsTable.userId, userId)
         )
       );
 
@@ -167,7 +167,7 @@ export class WorkspaceService {
 
     const [deletedMember] = await db
       .delete(workspaceMembershipsTable)
-      .where(eq(workspaceMembershipsTable.userId, memberId))
+      .where(eq(workspaceMembershipsTable.userId, userId))
       .returning();
 
     if (!deletedMember) {

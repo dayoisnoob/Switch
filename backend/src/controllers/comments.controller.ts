@@ -1,9 +1,7 @@
 import type { Response } from 'express';
-import { LabelService } from '../services/label.service';
+import { CommentService } from '../services/comments.service';
 import type { AuthenticatedRequest } from '../types/express';
 import { ApiResponse } from '../utils/api-response';
-import { getParam } from '../utils/params.util';
-import { CommentService } from '../services/comment.service';
 
 export class CommentController {
   static async createComment(req: AuthenticatedRequest, res: Response) {
@@ -23,8 +21,8 @@ export class CommentController {
 
   static async editComment(req: AuthenticatedRequest, res: Response) {
     const commentId = req.resolvedComment?.id!;
-    const userId = req.resolvedComment?.userId!;
     const cardId = req.resolvedComment?.cardId!;
+    const userId = req.user.id;
 
     const comment = await CommentService.editComment(
       userId,
@@ -49,8 +47,6 @@ export class CommentController {
       role
     );
 
-    res
-      .status(201)
-      .json(new ApiResponse(200, 'Comment deleted successfully', comment));
+    res.json(new ApiResponse(200, 'Comment deleted successfully', comment));
   }
 }

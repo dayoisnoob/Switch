@@ -12,9 +12,8 @@ declare global {
       resolvedProject?: { id: string; workspaceId: string; name: string };
       resolvedBoard?: { id: string; projectId: string };
       resolvedColumn?: { id: string; boardId: string };
-      resolvedColumn?: { id: string; boardId: string };
       resolvedCard?: { id: string; boardId: string; columnId: string };
-      resolvedLabel?: { workspaceId: string };
+      resolvedLabel?: { id: string; workspaceId: string };
       resolvedComment?: { id: string; userId: string; cardId: string };
     }
     interface User {
@@ -38,7 +37,7 @@ export {};
 
 export type WorkspaceParams = { workspaceId: string };
 export type ProjectParams = { projectId: string };
-export type MemberParams = { workspaceId: string; memberId: string };
+export type MemberParams = { userId: string };
 export type BoardParams = { boardId: string };
 export type ColumnParams = { columnId: string };
 export type CardParams = { cardId: string };
