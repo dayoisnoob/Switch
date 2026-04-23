@@ -4,6 +4,7 @@ import {
   cardAssigneesTable,
   cardLabelsTable,
   cardsTable,
+  columnsTable,
   workspaceMembershipsTable,
 } from '../db';
 import { ApiError } from '../utils/api-response';
@@ -53,14 +54,6 @@ export class CardsService {
         throw new ApiError(500, 'Error creating card. Please try again');
       }
 
-      await ActivityService.log({
-        type: 'card_created',
-        userId,
-        projectId,
-        cardId: card.id,
-        metadata: { title: card.title },
-      });
-
       if (assignees && assignees.length > 0) {
         const members = await tx
           .select({ userId: workspaceMembershipsTable.userId })
@@ -88,6 +81,14 @@ export class CardsService {
       }
 
       return card;
+    });
+
+    await ActivityService.log({
+      type: 'card_created',
+      userId,
+      projectId,
+      cardId: newCard.id,
+      metadata: { title: newCard.title },
     });
     emitBoardEvent(boardId, 'card:created', { card: newCard });
 
@@ -179,7 +180,6 @@ export class CardsService {
       type: 'card_deleted',
       userId,
       projectId,
-      cardId,
       metadata: { title: deletedCard.title },
     });
 
@@ -198,6 +198,15 @@ export class CardsService {
     data: MoveCardType
   ) {
     const { columnId, order } = data;
+
+    const [column] = await db
+      .select({ id: columnsTable.id })
+      .from(columnsTable)
+      .where(eq(columnsTable.id, columnId))
+      .limit(1);
+
+    if (!column)
+      throw new ApiError(404, 'This column does not exist in this workspace.');
 
     const [updatedCard] = await db
       .update(cardsTable)

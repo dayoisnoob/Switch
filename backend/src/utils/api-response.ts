@@ -28,7 +28,6 @@ export class ApiError extends Error {
   constructor(
     statusCode: number = 500,
     message: string = 'Something went wrong',
-    details?: any,
     errors?: { field: string; message: string }[]
   ) {
     super(message);

@@ -21,9 +21,8 @@ import type { AuthenticatedRequest } from '../types/express';
 export const requireWorkspaceMember = asyncHandler(
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     const userId = req.user.id;
-    if (!userId) {
+    if (!userId)
       throw new ApiError(401, 'Authentication required. Please sign in.');
-    }
 
     let workspaceId = req.params.workspaceId;
 
@@ -160,9 +159,8 @@ export const requireWorkspaceMember = asyncHandler(
       }
     }
 
-    if (!workspaceId) {
+    if (!workspaceId)
       throw new ApiError(400, 'Cannot determine workspace from request.');
-    }
 
     const [member] = await db
       .select({
@@ -183,9 +181,8 @@ export const requireWorkspaceMember = asyncHandler(
       )
       .limit(1);
 
-    if (!member) {
+    if (!member)
       throw new ApiError(403, 'You do not have access to this workspace.');
-    }
 
     req.workspace = member;
     next();
@@ -195,19 +192,17 @@ export const requireWorkspaceMember = asyncHandler(
 export const requireWorkspaceRole = (roles: WorkspaceRoles[]) => {
   return asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
-      if (!req.workspace) {
+      if (!req.workspace)
         throw new ApiError(
           403,
           'You do not have permission to perform this action'
         );
-      }
 
-      if (!roles.includes(req.workspace?.role)) {
+      if (!roles.includes(req.workspace?.role))
         throw new ApiError(
           403,
           'You do not have permission to perform this action'
         );
-      }
 
       next();
     }

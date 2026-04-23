@@ -61,7 +61,9 @@ app.use(passport.initialize());
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 app.use('/api/v1/auth', authRouter);
+
 app.use('/api/v1/workspaces', workspacesRouter);
+
 app.use('/api/v1/invitations', invitationsRouter);
 
 app.use('/api/v1/columns/:columnId/cards', cardsRouter);

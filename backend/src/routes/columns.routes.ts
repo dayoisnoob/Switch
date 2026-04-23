@@ -17,7 +17,7 @@ import {
 } from '../validations/projects.validation';
 import { paramsSchema } from '../validations/urlParams.validation';
 
-const router = Router();
+const router = Router({ mergeParams: true });
 
 router.use(authenticate);
 

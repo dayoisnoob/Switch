@@ -80,9 +80,7 @@ export class WorkspaceController {
     const inviterName = req.user.firstName;
     const workspaceName = req.workspace?.workspaceName;
 
-    if (!workspaceName) {
-      throw new ApiError(500, 'Workspace context missing');
-    }
+    if (!workspaceName) throw new ApiError(500, 'Workspace context missing');
 
     await WorkspaceService.sendInvitation(
       req.user.id,

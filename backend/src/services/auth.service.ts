@@ -27,12 +27,11 @@ export class AuthService {
     );
 
     if (existingUser) {
-      if (!existingUser?.isActive) {
+      if (!existingUser?.isActive)
         throw new ApiError(
           403,
           'Your account has been suspended. Please contact support.'
         );
-      }
 
       const [userToLogin] = await db
         .update(usersTable)
@@ -68,12 +67,11 @@ export class AuthService {
       })
       .returning();
 
-    if (!newUser) {
+    if (!newUser)
       throw new ApiError(
         500,
         'Registration failed. Please try again or contact support.'
       );
-    }
 
     logger.info({ userId: newUser?.id }, 'New user registered via auth');
 
@@ -97,12 +95,11 @@ export class AuthService {
   static async init(email: string) {
     const existing = await AuthService.findUserByIdentifier(email);
 
-    if (existing && existing.emailVerified) {
+    if (existing && existing.emailVerified)
       throw new ApiError(
         409,
         'An account with this email already exists. Please sign in.'
       );
-    }
 
     if (existing && !existing.emailVerified) {
       await AuthService.sendOtp(
@@ -121,9 +118,8 @@ export class AuthService {
       })
       .returning();
 
-    if (!newUser) {
+    if (!newUser)
       throw new ApiError(500, 'Could not register new user. Please try again');
-    }
 
     await AuthService.sendOtp(newUser.id, newUser.email, 'email_verification');
 
@@ -134,9 +130,7 @@ export class AuthService {
     const { email, code } = data;
     const existing = await AuthService.findUserByIdentifier(email);
 
-    if (!existing) {
-      throw new ApiError(404, 'User does not exist');
-    }
+    if (!existing) throw new ApiError(404, 'User does not exist');
 
     const { otpId } = await AuthService.verifyOtp(
       existing.id,
@@ -174,9 +168,7 @@ export class AuthService {
       true
     );
 
-    if (!existing) {
-      throw new ApiError(404, 'User does not exist');
-    }
+    if (!existing) throw new ApiError(404, 'User does not exist');
 
     const { otpId } = await AuthService.verifyOtp(
       existing.id,
@@ -214,16 +206,14 @@ export class AuthService {
       true
     );
 
-    if (!existing?.emailVerified) {
+    if (!existing?.emailVerified)
       throw new ApiError(403, 'Please verify your email');
-    }
 
-    if (existing.passwordHash) {
+    if (existing.passwordHash)
       throw new ApiError(
         409,
         'Registration already completed. Please sign in.'
       );
-    }
 
     const passwordHash = await bcryptHash(password);
 
@@ -268,37 +258,28 @@ export class AuthService {
       true
     );
 
-    if (!existing) {
-      throw new ApiError(401, 'Invalid credentials');
-    }
+    if (!existing) throw new ApiError(401, 'Invalid email or password');
 
-    if (!existing.emailVerified) {
+    if (!existing.isActive)
+      throw new ApiError(
+        403,
+        'Account not found. Please contact support for assistance.'
+      );
+
+    if (!existing.emailVerified)
       throw new ApiError(
         403,
         'Please verify your email address before signing in'
       );
-    }
-    if (!existing.isActive) {
-      throw new ApiError(
-        403,
-        'Your account has been suspended. Please contact support for assistance.'
-      );
-    }
 
-    if (!existing.passwordHash) {
-      throw new ApiError(
-        403,
-        'This account uses OAuth. Please sign in with Google or GitHub.'
-      );
-    }
+    if (!existing.passwordHash)
+      throw new ApiError(403, 'Invalid email or password.');
 
     const isPasswordValid = await bcryptCompare(
       password,
       existing.passwordHash as string
     );
-    if (!isPasswordValid) {
-      throw new ApiError(401, 'Invalid credentials');
-    }
+    if (!isPasswordValid) throw new ApiError(401, 'Invalid credentials');
 
     await AuthService.updateLastLogin(existing.id);
 
@@ -310,9 +291,8 @@ export class AuthService {
   }
 
   static async refreshAccessToken(refreshToken: string) {
-    if (!refreshToken) {
+    if (!refreshToken)
       throw new ApiError(401, 'Authentication required. Please sign in.');
-    }
 
     const hashedToken = cryptoHash(refreshToken);
 
@@ -328,9 +308,8 @@ export class AuthService {
       )
       .limit(1);
 
-    if (!storedToken) {
+    if (!storedToken)
       throw new ApiError(401, 'Session expired. Please sign in again.');
-    }
 
     if (storedToken.rotatedAt) {
       logger.warn(
@@ -453,12 +432,11 @@ export class AuthService {
 
   static async resetPassword(data: resetPasswordInput) {
     const { token, newPassword } = data;
-    if (!token) {
+    if (!token)
       throw new ApiError(
         403,
         'This password reset link is invalid. Please request a new one.'
       );
-    }
 
     const peek = jwtDecode(token);
 
@@ -471,37 +449,33 @@ export class AuthService {
       .where(and(eq(usersTable.id, peek.id), eq(usersTable.isActive, true)))
       .limit(1);
 
-    if (!user) {
+    if (!user)
       throw new ApiError(
         403,
         'This password reset link is no longer valid. Please request a new one.'
       );
-    }
 
-    if (!user.passwordHash) {
+    if (!user.passwordHash)
       throw new ApiError(
         403,
         'This account uses OAuth. Password reset is not available.'
       );
-    }
 
     const decoded = jwtVerify(
       token,
       `${env.RESET_TOKEN_SECRET}${user.passwordHash}`
     );
 
-    if (decoded.purpose !== 'password_reset') {
+    if (decoded.purpose !== 'password_reset')
       throw new ApiError(403, 'Invalid reset token.');
-    }
 
     const isSamePassword = await bcryptCompare(newPassword, user.passwordHash);
 
-    if (isSamePassword) {
+    if (isSamePassword)
       throw new ApiError(
         422,
         'Your new password cannot be the same as your old password.'
       );
-    }
 
     const hashedPassword = await bcryptHash(newPassword);
 
@@ -534,10 +508,7 @@ export class AuthService {
     const { currentPassword, newPassword } = data;
 
     const existing = await AuthService.findUserByIdentifier(userId, 'id', true);
-
-    if (!existing) {
-      throw new ApiError(401, 'User not found');
-    }
+    if (!existing) throw new ApiError(404, 'User not found');
 
     if (!existing.passwordHash) {
       logger.info(
@@ -552,9 +523,8 @@ export class AuthService {
       existing.passwordHash
     );
 
-    if (!iscurrentPasswordCorrect) {
+    if (!iscurrentPasswordCorrect)
       throw new ApiError(401, 'Your current password is incorrect');
-    }
 
     const newPasswordHash = await bcryptHash(newPassword);
 
@@ -587,6 +557,9 @@ export class AuthService {
   }
 
   static async updateUser(userId: string, data: updateInput) {
+    const existing = await AuthService.findUserByIdentifier(userId, 'id');
+    if (!existing) throw new ApiError(404, 'User not found');
+
     const [updatedUser] = await db
       .update(usersTable)
       .set(data)
@@ -598,27 +571,23 @@ export class AuthService {
         createdAt: usersTable.createdAt,
       });
 
-    if (!updatedUser) {
-      throw new ApiError(500, 'Error updating user');
-    }
+    if (!updatedUser) throw new ApiError(500, 'Error updating user');
 
     return updatedUser;
   }
 
-  static async deleteUser(userId: string) {
-    const [existing] = await db
-      .select({
-        id: usersTable.id,
-        email: usersTable.email,
-        firstName: usersTable.firstName,
-      })
-      .from(usersTable)
-      .where(eq(usersTable.id, userId))
-      .limit(1);
+  static async deleteUser(userId: string, password: string) {
+    const existing = await AuthService.findUserByIdentifier(userId, 'id', true);
 
-    if (!existing) {
-      throw new ApiError(404, 'User not found');
-    }
+    if (!existing) throw new ApiError(404, 'User not found');
+
+    const isPasswordValid = await bcryptCompare(
+      password,
+      existing.passwordHash as string
+    );
+
+    if (!isPasswordValid)
+      throw new ApiError(401, `You've entered an incorrect password.`);
 
     const deletedUser = await db.transaction(async (tx) => {
       const [deletedUser] = await tx
@@ -638,9 +607,8 @@ export class AuthService {
       return deletedUser;
     });
 
-    if (!deletedUser) {
-      throw new ApiError(500, 'Error deleting user');
-    }
+    if (!deletedUser) throw new ApiError(500, 'Error deleting user');
+
     const link = `${env.FRONTEND_URL}/`;
 
     await queueEmail({
@@ -763,19 +731,17 @@ export class AuthService {
       )
       .limit(1);
 
-    if (!otp) {
+    if (!otp)
       throw new ApiError(
         403,
         'Code is invalid or has expired. Please request a new one.'
       );
-    }
 
-    if (otp.attempts >= 3) {
+    if (otp.attempts >= 3)
       throw new ApiError(
         429,
         'Too many incorrect attempts. Please request a new code.'
       );
-    }
 
     const hashedCode = cryptoHash(code);
 

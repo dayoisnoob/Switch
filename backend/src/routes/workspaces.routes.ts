@@ -26,11 +26,7 @@ router.post(
   asyncHandler(WorkspaceController.createWorkspace)
 );
 
-router.get(
-  '/',
-  // requireAdmin,
-  asyncHandler(WorkspaceController.getAllWorkspaces)
-);
+router.get('/', asyncHandler(WorkspaceController.getAllWorkspaces));
 
 router.get(
   '/:workspaceId',

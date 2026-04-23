@@ -6,14 +6,9 @@ import { env } from '../config/env';
 import passport from '../config/passport';
 import {
   changePasswordLimiter,
-  forgotPasswordHourlyLimiter,
-  forgotPasswordRecentLimiter,
-  loginEmailLimiter,
-  loginIpLimiter,
   refreshTokenLimiter,
   registerIpLimiter,
   resendVerificationLimiter,
-  resetPasswordLimiter,
 } from '../middleware/rate-limit.middleware';
 import { validateInput } from '../middleware/validation.middleware';
 import { asyncHandler } from '../utils/async-handler';
@@ -28,7 +23,6 @@ import {
   updateUserSchema,
   verifyOtpSchema,
 } from '../validations/auth.validation';
-import { sendMail } from '../config/email';
 
 const router = Router();
 

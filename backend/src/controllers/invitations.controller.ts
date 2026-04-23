@@ -12,7 +12,10 @@ export class InvitationsController {
       return res
         .status(200)
         .json(
-          new ApiResponse(200, 'Please register to accept this invitation.')
+          new ApiResponse(
+            200,
+            'Please signup on Switch to accept this invitation.'
+          )
         );
     }
 

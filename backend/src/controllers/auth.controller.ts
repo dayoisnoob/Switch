@@ -91,9 +91,8 @@ export class AuthController {
   static async refreshAccessToken(req: Request, res: Response) {
     const refreshToken = req.cookies['__auth.refresh'];
 
-    if (!refreshToken.trim()) {
+    if (!refreshToken.trim())
       throw new ApiError(401, 'Authentication required. Please sign in.');
-    }
 
     const result = await AuthService.refreshAccessToken(refreshToken);
 
@@ -109,9 +108,8 @@ export class AuthController {
   static async logout(req: AuthenticatedRequest, res: Response) {
     const refreshToken = req.cookies['__auth.refresh'];
 
-    if (!refreshToken) {
+    if (!refreshToken)
       throw new ApiError(401, 'Authentication required. Please sign in.');
-    }
 
     const result = await AuthService.logout(refreshToken);
 
@@ -145,13 +143,13 @@ export class AuthController {
   static async resetPassword(req: Request, res: Response) {
     await AuthService.resetPassword(req.body);
 
-    res.json(new ApiResponse(200, 'Password reset was successfully'));
+    res.json(new ApiResponse(200, 'Password was successfully reset.'));
   }
 
   static async changePassword(req: AuthenticatedRequest, res: Response) {
     await AuthService.changePassword(req.user.id, req.body);
 
-    res.json(new ApiResponse(200, 'Password successfully changed'));
+    res.json(new ApiResponse(200, 'Password was successfully reset.'));
   }
 
   static async updateUser(req: AuthenticatedRequest, res: Response) {
@@ -162,11 +160,11 @@ export class AuthController {
   }
 
   static async deleteUser(req: AuthenticatedRequest, res: Response) {
-    await AuthService.deleteUser(req.user.id);
+    await AuthService.deleteUser(req.user.id, req.body.password);
 
     res.clearCookie('__auth.refresh', COOKIE_OPTIONS);
     res.json(
-      new ApiResponse(200, 'Your account has been deleted successfully')
+      new ApiResponse(200, 'Your account has been deleted successfully.')
     );
   }
 }
