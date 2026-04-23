@@ -29,7 +29,6 @@ declare global {
       resolvedAttachment?: { projectId: string; cardId: string };
     }
     interface User {
-      // Always present
       email?: string;
       firstName?: string;
       lastName?: string | null;
@@ -46,14 +45,6 @@ declare global {
 }
 
 export {};
-
-export type WorkspaceParams = { workspaceId: string };
-export type ProjectParams = { projectId: string };
-export type MemberParams = { userId: string };
-export type BoardParams = { boardId: string };
-export type ColumnParams = { columnId: string };
-export type CardParams = { cardId: string };
-export type InvitationParams = { token: string };
 
 export interface AuthenticatedUser {
   id: string;
