@@ -25,14 +25,12 @@ export const globalErrorHandler = (
     message: error.message,
     path: req.originalUrl,
     method: req.method,
-    ip: req.ip,
     stack: !error.isOperational ? error.stack : undefined,
   });
 
   const response: any = {
     success: false,
     message: error.isOperational ? error.message : 'Internal server error',
-    details: error.details,
     errors: error.errors,
   };
 
