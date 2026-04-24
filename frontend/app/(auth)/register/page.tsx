@@ -1,13 +1,31 @@
+"use client";
+
 import {
   AuthCard,
   SocialButton,
   AuthFooter,
   GoogleIcon,
   GithubIcon,
-  Mail,
+  AuthDivider,
 } from "@/components/auth/auth-components";
 
+import { Mail } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+
 export default function RegisterPage() {
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
+
+  const handleEmailSubmit = async () => {
+    setLoading(true);
+    router.push("/register/initialise");
+  };
+
+  const handleSocialAuth = (provider: "google" | "github") => {
+    window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/auth/${provider}`;
+  };
+
   return (
     <AuthCard>
       <h1 className="text-[32px] font-bold mb-3 font-display tracking-tight text-white">
@@ -18,12 +36,30 @@ export default function RegisterPage() {
         The minimal Kanban board for focused teams.
       </p>
 
-      <div className="w-full px-8">
-        <SocialButton icon={Mail}>Use phone or email</SocialButton>
+      <div className="w-full ">
+        <SocialButton
+          icon={GoogleIcon}
+          onClick={() => handleSocialAuth("google")}
+        >
+          Continue with Google
+        </SocialButton>
 
-        <SocialButton icon={GoogleIcon}>Continue with Google</SocialButton>
+        <SocialButton
+          icon={GithubIcon}
+          onClick={() => handleSocialAuth("github")}
+        >
+          Continue with GitHub
+        </SocialButton>
 
-        <SocialButton icon={GithubIcon}>Continue with GitHub</SocialButton>
+        <AuthDivider />
+
+        <SocialButton
+          icon={Mail}
+          onClick={handleEmailSubmit}
+          disabled={loading}
+        >
+          Continue with Email
+        </SocialButton>
       </div>
 
       <AuthFooter />
