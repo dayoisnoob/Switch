@@ -19,10 +19,9 @@ import { paramsSchema } from '../validations/urlParams.validation';
 
 const router = Router({ mergeParams: true });
 
-router.use(authenticate);
-
 router.post(
   '/',
+  authenticate,
   validateUrlParams(paramsSchema),
   validateInput(createColumnSchema),
   requireWorkspaceMember,
@@ -32,6 +31,7 @@ router.post(
 
 router.patch(
   '/:columnId/',
+  authenticate,
   validateUrlParams(paramsSchema),
   validateInput(createColumnSchema),
   requireWorkspaceMember,
@@ -41,6 +41,7 @@ router.patch(
 
 router.patch(
   '/:columnId/order',
+  authenticate,
   validateUrlParams(paramsSchema),
   validateInput(columnOrderSchema),
   requireWorkspaceMember,
@@ -50,6 +51,7 @@ router.patch(
 
 router.delete(
   '/:columnId',
+  authenticate,
   validateUrlParams(paramsSchema),
   requireWorkspaceMember,
   requireWorkspaceRole(['owner', 'admin']),

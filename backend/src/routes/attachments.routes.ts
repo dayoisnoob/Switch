@@ -10,10 +10,9 @@ import { paramsSchema } from '../validations/urlParams.validation';
 
 const router = Router({ mergeParams: true });
 
-router.use(authenticate);
-
 router.post(
   '/',
+  authenticate,
   upload.single('file'),
   multerErrorHandler,
   requireWorkspaceMember,
@@ -22,6 +21,7 @@ router.post(
 
 router.delete(
   '/:attachmentId',
+  authenticate,
   validateUrlParams(paramsSchema),
   requireWorkspaceMember,
   asyncHandler(AttachmentsController.deleteAttachment)

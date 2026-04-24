@@ -3,7 +3,7 @@ import { ApiError } from '../utils/api-response';
 import { logger } from '../config/logger';
 
 export const notFoundError = (req: Request, res: Response) => {
-  throw new ApiError(404, `Route: ${req.originalUrl} not found`);
+  throw new ApiError(404, 'The requested resorce was not found');
 };
 
 export const globalErrorHandler = (
@@ -30,7 +30,9 @@ export const globalErrorHandler = (
 
   const response: any = {
     success: false,
-    message: error.isOperational ? error.message : 'Internal server error',
+    message: error.isOperational
+      ? error.message
+      : 'Something went wrong. Please try again.',
     errors: error.errors,
   };
 

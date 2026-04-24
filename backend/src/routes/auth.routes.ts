@@ -30,14 +30,14 @@ const router = Router();
 
 router.get(
   '/google',
-  registerIpLimiter,
+  // registerIpLimiter,
   passport.authenticate('google', {
     session: false,
   })
 );
 router.get(
   '/google/callback',
-  registerIpLimiter,
+  // registerIpLimiter,
   passport.authenticate('google', {
     session: false,
     failureRedirect: `${env.FRONTEND_URL}/login?error=google_failed`,
@@ -48,14 +48,14 @@ router.get(
 
 router.get(
   '/github',
-  registerIpLimiter,
+  // registerIpLimiter,
   passport.authenticate('github', {
     session: false,
   })
 );
 router.get(
   '/github/callback',
-  registerIpLimiter,
+  // registerIpLimiter,
   passport.authenticate('github', {
     session: false,
     failureRedirect: `${env.FRONTEND_URL}/login?error=github_failed`,
@@ -138,19 +138,23 @@ router.post(
 
 // Authenticated Routes
 
-router.use(authenticate);
-
-router.post('/logout', asyncHandler(AuthController.logout));
-router.post('/logout-all', asyncHandler(AuthController.logoutAll));
+router.post('/logout', authenticate, asyncHandler(AuthController.logout));
+router.post(
+  '/logout-all',
+  authenticate,
+  asyncHandler(AuthController.logoutAll)
+);
 
 router.patch(
   '/profile',
+  authenticate,
   validateInput(updateUserSchema),
   asyncHandler(AuthController.updateUser)
 );
 
 router.patch(
   '/change-password',
+  authenticate,
   changePasswordLimiter,
   validateInput(changePasswordSchema),
   asyncHandler(AuthController.changePassword)
@@ -158,6 +162,7 @@ router.patch(
 
 router.delete(
   '/delete',
+  authenticate,
   validateInput(deleteAccountSchema),
   asyncHandler(AuthController.deleteUser)
 );

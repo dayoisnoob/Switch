@@ -42,6 +42,7 @@ router.get(
 
 router.patch(
   '/:projectId',
+  authenticate,
   validateUrlParams(paramsSchema),
   validateInput(projectInputSchema),
   requireWorkspaceMember,
@@ -51,6 +52,7 @@ router.patch(
 
 router.delete(
   '/:projectId',
+  authenticate,
   validateUrlParams(paramsSchema),
   requireWorkspaceMember,
   requireWorkspaceRole(['owner']),

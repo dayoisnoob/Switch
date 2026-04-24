@@ -19,10 +19,9 @@ import { paramsSchema } from '../validations/urlParams.validation';
 
 const router = Router({ mergeParams: true });
 
-router.use(authenticate);
-
 router.post(
   '/',
+  authenticate,
   validateUrlParams(paramsSchema),
   validateInput(createLabelSchema),
   requireWorkspaceMember,
@@ -32,6 +31,7 @@ router.post(
 
 router.get(
   '/',
+  authenticate,
   validateUrlParams(paramsSchema),
   requireWorkspaceMember,
   asyncHandler(LabelController.listLabels)
@@ -39,6 +39,7 @@ router.get(
 
 router.patch(
   '/:labelId',
+  authenticate,
   validateUrlParams(paramsSchema),
   validateInput(updateLabelSchema),
   requireWorkspaceMember,
@@ -48,6 +49,7 @@ router.patch(
 
 router.delete(
   '/:labelId',
+  authenticate,
   validateUrlParams(paramsSchema),
   requireWorkspaceMember,
   requireWorkspaceRole(['owner', 'admin']),

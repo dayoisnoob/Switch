@@ -19,10 +19,9 @@ import { paramsSchema } from '../validations/urlParams.validation';
 
 const router = Router({ mergeParams: true });
 
-router.use(authenticate);
-
 router.post(
   '/',
+  authenticate,
   validateUrlParams(paramsSchema),
   validateInput(createCardSchema),
   requireWorkspaceMember,
@@ -31,6 +30,7 @@ router.post(
 
 router.get(
   '/:cardId',
+  authenticate,
   validateUrlParams(paramsSchema),
   requireWorkspaceMember,
   asyncHandler(CardsController.getCard)
@@ -38,6 +38,7 @@ router.get(
 
 router.patch(
   '/:cardId',
+  authenticate,
   validateUrlParams(paramsSchema),
   validateInput(updateCardSchema),
   requireWorkspaceMember,
@@ -46,6 +47,7 @@ router.patch(
 
 router.delete(
   '/:cardId',
+  authenticate,
   validateUrlParams(paramsSchema),
   requireWorkspaceMember,
   asyncHandler(CardsController.deleteCard)
@@ -53,6 +55,7 @@ router.delete(
 
 router.patch(
   '/:cardId/move',
+  authenticate,
   validateUrlParams(paramsSchema),
   validateInput(moveCardSchema),
   requireWorkspaceMember,
@@ -61,6 +64,7 @@ router.patch(
 
 router.post(
   '/:cardId/assignees',
+  authenticate,
   validateUrlParams(paramsSchema),
   validateInput(assignUserSchema),
   requireWorkspaceMember,
@@ -69,6 +73,7 @@ router.post(
 
 router.delete(
   '/:cardId/assignees/:userId',
+  authenticate,
   validateUrlParams(paramsSchema),
   requireWorkspaceMember,
   asyncHandler(CardsController.unassignUser)
@@ -76,6 +81,7 @@ router.delete(
 
 router.post(
   '/:cardId/labels',
+  authenticate,
   validateUrlParams(paramsSchema),
   validateInput(attachLabelSchema),
   requireWorkspaceMember,
@@ -84,6 +90,7 @@ router.post(
 
 router.delete(
   '/:cardId/labels/:labelId',
+  authenticate,
   validateUrlParams(paramsSchema),
   requireWorkspaceMember,
   asyncHandler(CardsController.detatchLabel)

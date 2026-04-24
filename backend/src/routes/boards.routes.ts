@@ -8,10 +8,9 @@ import { cacheMiddleware } from '../middleware/cache.middleware';
 
 const router = Router({ mergeParams: true });
 
-router.use(authenticate);
-
 router.get(
   '/',
+  authenticate,
   requireWorkspaceMember,
   cacheMiddleware(300),
   asyncHandler(BoardController.getBoardState)

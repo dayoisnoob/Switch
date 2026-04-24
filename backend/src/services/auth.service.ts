@@ -128,6 +128,9 @@ export class AuthService {
 
   static async verifyOtpForLogin(data: { email: string; code: string }) {
     const { email, code } = data;
+
+    console.log('Verifying');
+    console.log(email, code);
     const existing = await AuthService.findUserByIdentifier(email);
 
     if (!existing) throw new ApiError(404, 'User does not exist');
@@ -737,25 +740,30 @@ export class AuthService {
         'Code is invalid or has expired. Please request a new one.'
       );
 
-    if (otp.attempts >= 3)
-      throw new ApiError(
-        429,
-        'Too many incorrect attempts. Please request a new code.'
-      );
-
     const hashedCode = cryptoHash(code);
 
     if (hashedCode !== otp.hashed) {
+      const attemptsUsed = otp.attempts + 1;
+      const attemptsLeft = 3 - attemptsUsed;
+
       await db
         .update(otpTable)
-        .set({ attempts: sql`${otpTable.attempts} + 1` })
-        .where(eq(otpTable.id, otp.id))
-        .returning();
+        .set({ attempts: attemptsUsed })
+        .where(eq(otpTable.id, otp.id));
 
-      throw new ApiError(
-        401,
-        `Incorrect code. ${3 - otp.attempts - 1} attempt(s) remaining.`
-      );
+      if (attemptsLeft <= 0) {
+        throw new ApiError(
+          400,
+          'Too many incorrect attempts. Please request a new code.'
+        );
+      }
+
+      const formattedText =
+        attemptsLeft <= 1
+          ? `${attemptsLeft} attempt`
+          : `${attemptsLeft} attempt(s)`;
+
+      throw new ApiError(400, `Incorrect code. ${formattedText} remaining.`);
     }
 
     return { hashedCode, otpId: otp.id };

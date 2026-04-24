@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { authenticate, requireAdmin } from '../middleware/auth.middleware';
+import { authenticate } from '../middleware/auth.middleware';
 
 import { WorkspaceController } from '../controllers/workspaces.controller';
 import {
@@ -19,17 +19,22 @@ import {
 
 const router = Router();
 
-router.use(authenticate);
 router.post(
   '/',
+  authenticate,
   validateInput(createWorkspaceSchema),
   asyncHandler(WorkspaceController.createWorkspace)
 );
 
-router.get('/', asyncHandler(WorkspaceController.getAllWorkspaces));
+router.get(
+  '/',
+  authenticate,
+  asyncHandler(WorkspaceController.getAllWorkspaces)
+);
 
 router.get(
   '/:workspaceId',
+  authenticate,
   validateUrlParams(paramsSchema),
   requireWorkspaceMember,
   asyncHandler(WorkspaceController.getWorkspace)
@@ -37,6 +42,7 @@ router.get(
 
 router.patch(
   '/:workspaceId',
+  authenticate,
   validateUrlParams(paramsSchema),
   requireWorkspaceMember,
   requireWorkspaceRole(['admin', 'owner']),
@@ -45,6 +51,7 @@ router.patch(
 
 router.delete(
   '/:workspaceId',
+  authenticate,
   validateUrlParams(paramsSchema),
   requireWorkspaceMember,
   requireWorkspaceRole(['owner']),
@@ -54,6 +61,7 @@ router.delete(
 // Membership
 router.get(
   '/:workspaceId/members',
+  authenticate,
   validateUrlParams(paramsSchema),
   requireWorkspaceMember,
   asyncHandler(WorkspaceController.getMembers)
@@ -61,6 +69,7 @@ router.get(
 
 router.delete(
   '/:workspaceId/members/:userId',
+  authenticate,
   validateUrlParams(paramsSchema),
   requireWorkspaceMember,
   requireWorkspaceRole(['owner', 'admin']),
@@ -70,6 +79,7 @@ router.delete(
 // Invitations
 router.post(
   '/:workspaceId/invitations',
+  authenticate,
   validateUrlParams(paramsSchema),
   validateInput(sendInvitationSchema),
   requireWorkspaceMember,

@@ -9,16 +9,16 @@ import { paramsSchema } from '../validations/urlParams.validation';
 
 const router = Router();
 
-router.use(authenticate);
-
 router.get(
   '/',
+  authenticate,
   requireWorkspaceMember,
   asyncHandler(NotificationController.getNotifications)
 );
 
 router.patch(
   '/:NotificationId/read',
+  authenticate,
   validateUrlParams(paramsSchema),
   requireWorkspaceMember,
   asyncHandler(NotificationController.markRead)
@@ -26,6 +26,7 @@ router.patch(
 
 router.patch(
   '/read-all',
+  authenticate,
   requireWorkspaceMember,
   asyncHandler(NotificationController.markAllRead)
 );

@@ -13,10 +13,9 @@ import { paramsSchema } from '../validations/urlParams.validation';
 
 const router = Router({ mergeParams: true });
 
-router.use(authenticate);
-
 router.post(
   '/',
+  authenticate,
   validateUrlParams(paramsSchema),
   validateInput(createCommentSchema),
   requireWorkspaceMember,
@@ -25,6 +24,7 @@ router.post(
 
 router.patch(
   '/:commentId',
+  authenticate,
   validateUrlParams(paramsSchema),
   validateInput(createCommentSchema),
   requireWorkspaceMember,
@@ -33,6 +33,7 @@ router.patch(
 
 router.delete(
   '/:commentId',
+  authenticate,
   validateUrlParams(paramsSchema),
   requireWorkspaceMember,
   asyncHandler(CommentController.deleteComment)
