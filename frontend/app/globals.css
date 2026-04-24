@@ -1,1 +1,89 @@
+@import url("https://fonts.googleapis.com/css2?family=Syne:wght@600;700&family=Geist:wght@300;400;500&display=swap");
 @import "tailwindcss";
+
+@layer base {
+  :root {
+    /* Pure dark palette */
+    --base: #000000;
+    --surface: #121212;
+    --card: #161616;
+    --overlay: #252525;
+
+    /* Subtle borders */
+    --border: #2f2f2f;
+    --border-md: #3f3f3f;
+
+    /* Text - High contrast */
+    --text-primary: #ffffff;
+    --text-secondary: #a7a7a7;
+    --text-muted: #757575;
+
+    /* Brand - Monochrome with subtle accent */
+    --accent: #ffffff;
+    --accent-dim: #2f2f2f;
+
+    --danger: #ff4d4d;
+  }
+}
+
+@layer components {
+  /* Typography */
+  .font-display {
+    font-family: "Syne", sans-serif;
+  }
+
+  /* Focus ring — consistent across all interactive elements */
+  .focus-ring {
+    @apply outline-none ring-0;
+    @apply focus-visible:ring-2 focus-visible:ring-[--accent] focus-visible:ring-offset-1 focus-visible:ring-offset-[--base];
+  }
+}
+
+@layer utilities {
+  /* Surface shorthands — use these instead of raw bg colors */
+  .bg-base {
+    background-color: var(--base);
+  }
+  .bg-surface {
+    background-color: var(--surface);
+  }
+  .bg-card {
+    background-color: var(--card);
+  }
+  .bg-overlay {
+    background-color: var(--overlay);
+  }
+
+  /* Text shorthands */
+  .text-primary {
+    color: var(--text-primary);
+  }
+  .text-secondary {
+    color: var(--text-secondary);
+  }
+  .text-muted {
+    color: var(--text-muted);
+  }
+
+  /* Border shorthands */
+  .border-base {
+    border-color: var(--border);
+  }
+  .border-md {
+    border-color: var(--border-md);
+  }
+  .border-lg {
+    border-color: var(--border-lg);
+  }
+
+  /* Accent */
+  .text-accent {
+    color: var(--accent);
+  }
+  .bg-accent {
+    background-color: var(--accent);
+  }
+  .bg-accent-dim {
+    background-color: var(--accent-dim);
+  }
+}
