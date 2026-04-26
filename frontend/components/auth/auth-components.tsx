@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { LucideIcon, Mail } from "lucide-react";
+import { LucideIcon } from "lucide-react";
 import Link from "next/link";
 
 type IconType = LucideIcon | React.FC<React.SVGProps<SVGSVGElement>>;
@@ -16,14 +16,14 @@ export const AuthInput = (
 ) => (
   <input
     {...props}
-    className="w-full h-11.5 px-4 bg-[#161616] border border-white/6 rounded-sm text-white placeholder:text-[#555] focus:outline-none focus:border-white/20 transition-all text-[14px]"
+    className="bg-[#0b0e14] border border-[#30363d] rounded-lg px-4 py-3 flex items-center gap-2 w-full placeholder:text-[#555] focus:bg-white/75 focus:outline-none focus:border-white/20 transition-all text-[14px]"
   />
 );
 
 export const AuthCard = ({ children }: { children: React.ReactNode }) => (
-  <div className="min-h-screen bg-black flex flex-col items-center justify-center p-4">
-    <div className="w-full max-w-[440px] bg-[#121212] border border-white/[0.05] rounded-xl p-8 md:p-10 shadow-2xl">
-      <div className="w-full flex flex-col items-center">{children}</div>
+  <div className="min-h-screen bg-[#0b0e14] flex items-center justify-center p-4">
+    <div className="w-full max-w-100 bg-[#11141a] border border-[#1e222b] rounded-lg p-6">
+      <div className="w-full flex flex-col">{children}</div>
     </div>
   </div>
 );
@@ -35,7 +35,7 @@ export const PrimaryButton = ({
 }: React.ButtonHTMLAttributes<HTMLButtonElement> & { loading?: boolean }) => (
   <button
     {...props}
-    className="w-full h-[46px] bg-white text-black font-bold rounded-sm hover:bg-[#e1e1e1] transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-[15px] mt-2 active:scale-[0.98]"
+    className="w-full h-11.5 bg-white text-black font-bold rounded-sm hover:bg-[#e1e1e1] transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-[15px] mt-2 active:scale-[0.98]"
   >
     {loading ? "Please wait..." : children}
   </button>
@@ -51,7 +51,7 @@ export const SocialButton = ({
     onClick={onClick}
     disabled={disabled}
     className={cn(
-      "w-full h-11.5 bg-[#161616] hover:bg-[#1f1f1f]",
+      "w-full h-11.5 bg-black/20 hover:bg-[#1f1f1f]",
       "border border-white/6 transition-all duration-200",
       "flex items-center px-4 mb-2.5 group active:scale-[0.98]",
       "disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100",
@@ -70,7 +70,7 @@ export const AuthDivider = () => (
   <div className="flex items-center gap-4 w-full my-6">
     <div className="h-px flex-1 bg-white/15" />
     <span className="text-[12px] font-bold text-[#555] uppercase tracking-widest">
-      or sign up with email
+      or use your email
     </span>
     <div className="h-px flex-1 bg-white/15" />
   </div>
@@ -87,6 +87,12 @@ export const AuthFooter = () => (
         Log in
       </Link>
     </p>
+  </div>
+);
+
+export const ServerError = ({ message }: { message: string }) => (
+  <div>
+    <p className="text-xs text-red-400 text-center font-medium">*{message}</p>
   </div>
 );
 

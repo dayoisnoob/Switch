@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import { Toaster } from "sonner";
 import "./globals.css";
+import QueryProvider from "@/components/QueryProviders";
 
 export const metadata: Metadata = {
   title: { default: "Switch", template: "%s · Switch" },
@@ -16,7 +18,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body>{children}</body>
+      <body>
+        <QueryProvider>{children}</QueryProvider>
+        <Toaster richColors />
+      </body>
     </html>
   );
 }

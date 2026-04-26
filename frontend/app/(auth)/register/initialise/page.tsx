@@ -1,15 +1,16 @@
 "use client";
 
-import { useState } from "react";
-import { ChevronLeft } from "lucide-react";
-import { useRouter } from "next/navigation";
 import {
   AuthCard,
   AuthInput,
   PrimaryButton,
+  ServerError,
 } from "@/components/auth/auth-components";
-import { api } from "@/lib/api";
+import { AuthService } from "@/services/auth.service";
 import { useAuthStore } from "@/store/auth.store";
+import { ChevronLeft } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 export default function InitRegister() {
   const router = useRouter();
@@ -27,10 +28,12 @@ export default function InitRegister() {
     setLoading(true);
 
     try {
-      await api.post("/auth/register/initialise", { email });
+      const res = await AuthService.initialiseRegistration(email);
       setUserMail(email);
 
-      router.push(`/register/verify`);
+      router.push(
+        `/register/verify?email=${encodeURIComponent(email)}&status=${res.status}`,
+      );
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
@@ -69,11 +72,7 @@ export default function InitRegister() {
             disabled={loading}
           />
 
-          {error && (
-            <p className="text-xs text-red-500 font-medium animate-in fade-in slide-in-from-top-1">
-              {error}
-            </p>
-          )}
+          {error && <ServerError message={error} />}
 
           <PrimaryButton
             type="submit"

@@ -45,12 +45,16 @@ api.interceptors.response.use(
     return response.data?.data ?? response.data;
   },
   (error) => {
-    if (isAxiosError(error) && error.response?.status === 401) {
+    const isAuthRoute = error.config?.url?.startsWith("/auth/");
+
+    if (isAxiosError(error) && error.response?.status === 401 && !isAuthRoute) {
       window.location.href = "/login";
       return Promise.reject(new Error("Session expired"));
     }
+    const data = error.response?.data;
 
-    const message = error.response?.data?.message ?? "Something went wrong";
+    const message =
+      data?.errors?.[0]?.message ?? data?.message ?? "Something went wrong";
     return Promise.reject(new Error(message));
   },
 );

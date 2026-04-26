@@ -28,13 +28,15 @@ export default function RegisterPage() {
 
   return (
     <AuthCard>
-      <h1 className="text-[32px] font-bold mb-3 font-display tracking-tight text-white">
-        Sign up for Switch
-      </h1>
+      <div className="flex-column justify-center text-center">
+        <h1 className="text-[32px] font-bold mb-3 font-display tracking-tight text-white">
+          Sign up for Switch
+        </h1>
 
-      <p className="text-[#a7a7a7] text-center mb-10 px-10 text-[15px] leading-snug">
-        The minimal Kanban board for focused teams.
-      </p>
+        <p className="text-[#a7a7a7] text-center mb-10 px-10 text-[15px] leading-snug">
+          The minimal Kanban board for focused teams.
+        </p>
+      </div>
 
       <div className="w-full ">
         <SocialButton

@@ -1,18 +1,40 @@
 import { ApiError } from "@/lib/ApiError";
-import { getBoard } from "@/lib/boardApi";
-import { BoardState } from "@/types/board";
-import { useQuery } from "@tanstack/react-query";
+import { BoardService } from "@/services/board.service";
+import { CardService } from "@/services/card.service";
+import { ColumnService } from "@/services/columns.service";
+import { BoardState } from "@/types/board.types";
+import { useMutation, useQuery } from "@tanstack/react-query";
 
-export const useBoard = (workspaceId: string, projectId: string) => {
+export const useBoard = (projectSlug: string) => {
   return useQuery<BoardState, ApiError>({
-    queryKey: ["board", workspaceId, projectId],
-    queryFn: () => getBoard(workspaceId, projectId),
+    queryKey: ["board", projectSlug],
+    queryFn: () => BoardService.getBoard(projectSlug),
     select: (data) => ({
       ...data,
       columns: [...(data.columns ?? [])].sort((a, b) => a.order - b.order),
     }),
 
-    // Don't fetch if we are missing IDs
-    enabled: !!workspaceId && !!projectId,
+    enabled: !!projectSlug,
   });
 };
+
+export function useReorderColumn() {
+  return useMutation({
+    mutationFn: ({ columnId, order }: { columnId: string; order: number }) =>
+      ColumnService.updateColumnOrder(columnId, order),
+  });
+}
+
+export function useMoveCard() {
+  return useMutation({
+    mutationFn: ({
+      cardId,
+      columnId,
+      order,
+    }: {
+      cardId: string;
+      columnId: string;
+      order: number;
+    }) => CardService.moveCard(cardId, columnId, order),
+  });
+}

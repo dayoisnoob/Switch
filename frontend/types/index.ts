@@ -23,7 +23,6 @@ export interface Workspace {
   slug: string;
   ownerId: string;
   role: WorkspaceRole;
-  createdAt: string;
 }
 
 export interface Project {
@@ -33,12 +32,6 @@ export interface Project {
   description: string | null;
   createdBy: string;
   createdAt: string;
-}
-
-export interface Board {
-  id: string;
-  projectId: string;
-  columns: Column[];
 }
 
 export interface Column {
@@ -126,4 +119,5 @@ export interface ApiResponse<T = unknown> {
   statusCode: number;
   message: string;
   data?: T;
+  status?: string;
 }
