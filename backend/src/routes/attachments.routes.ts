@@ -1,4 +1,3 @@
-// routes/attachments.routes.ts
 import { Router } from 'express';
 import { authenticate } from '../middleware/auth.middleware';
 import { requireWorkspaceMember } from '../middleware/workspace.middleware';

@@ -41,7 +41,7 @@ router.get(
 );
 
 router.patch(
-  '/:workspaceId',
+  '/:workspaceSlug',
   authenticate,
   validateUrlParams(paramsSchema),
   requireWorkspaceMember,
@@ -50,7 +50,7 @@ router.patch(
 );
 
 router.delete(
-  '/:workspaceId',
+  '/:workspaceSlug',
   authenticate,
   validateUrlParams(paramsSchema),
   requireWorkspaceMember,
@@ -60,7 +60,7 @@ router.delete(
 
 // Membership
 router.get(
-  '/:workspaceId/members',
+  '/:workspaceSlug/members',
   authenticate,
   validateUrlParams(paramsSchema),
   requireWorkspaceMember,
@@ -68,7 +68,7 @@ router.get(
 );
 
 router.delete(
-  '/:workspaceId/members/:userId',
+  '/:workspaceSlug/members/:userId',
   authenticate,
   validateUrlParams(paramsSchema),
   requireWorkspaceMember,
@@ -78,7 +78,7 @@ router.delete(
 
 // Invitations
 router.post(
-  '/:workspaceId/invitations',
+  '/:workspaceSlug/invitations',
   authenticate,
   validateUrlParams(paramsSchema),
   validateInput(sendInvitationSchema),

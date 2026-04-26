@@ -12,7 +12,7 @@ router.get(
   '/',
   authenticate,
   requireWorkspaceMember,
-  cacheMiddleware(300),
+  // cacheMiddleware(300),
   asyncHandler(BoardController.getBoardState)
 );
 

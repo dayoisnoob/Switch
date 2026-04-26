@@ -67,7 +67,11 @@ export class ColumnsService {
       order: updatedColumn.order,
     });
 
-    return updatedColumn;
+    return {
+      id: updatedColumn.id,
+      name: updatedColumn.name,
+      order: updatedColumn.order,
+    };
   }
 
   static async deleteColumn(columnId: string) {

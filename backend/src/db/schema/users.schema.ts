@@ -30,6 +30,7 @@ export const usersTable = pgTable(
 
     passwordHash: text('password_hash'),
     emailVerified: boolean('email_verified').default(false),
+    hasRegistered: boolean('has_registered').notNull().default(false),
 
     isActive: boolean('is_active').default(true).notNull(),
     lastLogin: timestamp('last_login'),

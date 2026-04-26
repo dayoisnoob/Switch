@@ -34,7 +34,7 @@ router.get(
 );
 
 router.get(
-  '/:projectId',
+  '/:projectSlug',
   validateUrlParams(paramsSchema),
   requireWorkspaceMember,
   asyncHandler(ProjectController.getProject)

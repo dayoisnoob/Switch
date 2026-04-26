@@ -60,14 +60,9 @@ export class CardsController {
     const userId = req.user.id;
     const projectId = req.resolvedCard!.projectId;
     const cardId = req.params.cardId as string;
-    const card = await CardsService.moveCard(
-      userId,
-      projectId,
-      cardId,
-      req.body
-    );
+    await CardsService.moveCard(userId, projectId, cardId, req.body);
 
-    res.json(new ApiResponse(200, 'Card moved successfully', card));
+    res.json(new ApiResponse(200, 'Card moved successfully'));
   }
 
   static async assignUser(req: AuthenticatedRequest, res: Response) {

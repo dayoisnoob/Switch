@@ -82,13 +82,13 @@ router.post(
 
 router.post(
   '/register/resend-otp',
-  resendVerificationLimiter,
+  // resendVerificationLimiter,
   validateInput(sendOtpSchema),
   asyncHandler(AuthController.init)
 );
 
-router.post(
-  '/register/complete',
+router.patch(
+  '/register/onboarding',
   // registerIpLimiter,
   validateInput(completeRegSchema),
   asyncHandler(AuthController.completeReg)
@@ -137,6 +137,8 @@ router.post(
 );
 
 // Authenticated Routes
+
+router.get('/me', authenticate, asyncHandler(AuthController.getMe));
 
 router.post('/logout', authenticate, asyncHandler(AuthController.logout));
 router.post(

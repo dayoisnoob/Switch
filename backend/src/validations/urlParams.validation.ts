@@ -2,8 +2,8 @@ import z from 'zod';
 
 export const paramsSchema = z.object({
   userId: z.string().uuid('Invalid user ID').optional(),
-  workspaceId: z.string().uuid('Invalid workspace ID').optional(),
-  projectId: z.string().uuid('Invalid project ID').optional(),
+  workspaceSlug: z.string().min(2).optional(),
+  projectSlug: z.string().min(2).optional(),
   boardId: z.string().uuid('Invalid board ID').optional(),
   columnId: z.string().uuid('Invalid column ID').optional(),
   cardId: z.string().uuid('Invalid card ID').optional(),

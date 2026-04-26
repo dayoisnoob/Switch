@@ -64,6 +64,20 @@
       "when": 1776819131402,
       "tag": "0008_round_hawkeye",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1777044023894,
+      "tag": "0009_deep_quasar",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1777123340815,
+      "tag": "0010_colorful_dorian_gray",
+      "breakpoints": true
     }
   ]
 }

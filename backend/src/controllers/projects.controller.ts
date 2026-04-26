@@ -9,19 +9,16 @@ export class ProjectController {
     const workspaceId = req.workspace?.workspaceId!;
     const { name, description } = req.body;
 
-    const { project, board } = await ProjectService.createProject(
+    const project = await ProjectService.createProject(
       userId,
       workspaceId,
       name,
       description
     );
 
-    res.status(201).json(
-      new ApiResponse(201, 'Project created successfully', {
-        project,
-        board,
-      })
-    );
+    res
+      .status(201)
+      .json(new ApiResponse(201, 'Project created successfully', project));
   }
 
   static async getAllProjects(req: AuthenticatedRequest, res: Response) {
@@ -32,10 +29,10 @@ export class ProjectController {
   }
 
   static async getProject(req: AuthenticatedRequest, res: Response) {
-    const projectId = req.params.projectId as string;
+    const slug = req.params.projectSlug as string;
     const workspaceId = req.workspace?.workspaceId as string;
 
-    const project = await ProjectService.getProject(workspaceId, projectId);
+    const project = await ProjectService.getProject(workspaceId, slug);
 
     res.json(new ApiResponse(200, 'Project retrieved successfully', project));
   }

@@ -1,8 +1,9 @@
 import { z } from 'zod';
+import { capitalize } from '../utils/helpers';
 
 export const updateUserSchema = z.object({
-  firstName: z.string().min(1).trim().optional(),
-  lastName: z.string().min(1).trim().optional(),
+  firstName: z.string().min(1).trim().transform(capitalize).optional(),
+  lastName: z.string().min(1).trim().transform(capitalize).optional(),
 });
 
 export const deleteAccountSchema = z.object({
@@ -12,8 +13,8 @@ export const deleteAccountSchema = z.object({
 export const completeRegSchema = z
   .object({
     email: z.string().email().trim().toLowerCase(),
-    firstName: z.string().min(2).trim(),
-    lastName: z.string().min(2).trim().optional(),
+    firstName: z.string().min(2).trim().transform(capitalize),
+    lastName: z.string().min(2).trim().transform(capitalize).optional(),
     password: z
       .string()
       .min(8, 'password must be at least 8 characters')

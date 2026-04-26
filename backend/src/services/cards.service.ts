@@ -98,8 +98,20 @@ export class CardsService {
   static async getCard(cardId: string) {
     const card = await db.query.cardsTable.findFirst({
       where: eq(cardsTable.id, cardId),
+      columns: {
+        id: true,
+        title: true,
+        description: true,
+        priority: true,
+        dueDate: true,
+        coverImageUrl: true,
+        order: true,
+        createdBy: true,
+        updatedAt: true,
+      },
       with: {
         assignees: {
+          columns: {},
           with: {
             user: {
               columns: {
@@ -112,15 +124,27 @@ export class CardsService {
           },
         },
         labels: {
+          columns: {},
           with: {
-            label: true,
+            label: {
+              columns: {
+                id: true,
+                name: true,
+                color: true,
+              },
+            },
           },
         },
       },
     });
 
     if (!card) throw new ApiError(404, 'Card not found.');
-    return card;
+
+    return {
+      ...card,
+      assignees: card.assignees.map((a) => a.user),
+      labels: card.labels.map((l) => l.label),
+    };
   }
 
   static async updateCard(
@@ -199,6 +223,9 @@ export class CardsService {
   ) {
     const { columnId, order } = data;
 
+    console.log(cardId);
+    console.log(data);
+
     const [column] = await db
       .select({ id: columnsTable.id })
       .from(columnsTable)
@@ -232,7 +259,7 @@ export class CardsService {
       order: updatedCard.order,
     });
 
-    return updatedCard;
+    return;
   }
 
   static async assignUser(projectId: string, cardId: string, userId: string) {

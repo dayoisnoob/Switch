@@ -95,19 +95,19 @@ export class AuthService {
   static async init(email: string) {
     const existing = await AuthService.findUserByIdentifier(email);
 
-    if (existing && existing.emailVerified)
+    if (existing?.hasRegistered)
       throw new ApiError(
         409,
-        'An account with this email already exists. Please sign in.'
+        'An account with this email already exists. Please login.'
       );
 
-    if (existing && !existing.emailVerified) {
+    if (existing) {
       await AuthService.sendOtp(
         existing.id,
         existing.email,
         'email_verification'
       );
-      return { email: existing.email };
+      return { email: existing.email, status: 'resuming_registration' };
     }
 
     const [newUser] = await db
@@ -115,6 +115,7 @@ export class AuthService {
       .values({
         email,
         emailVerified: false,
+        hasRegistered: false,
       })
       .returning();
 
@@ -123,14 +124,12 @@ export class AuthService {
 
     await AuthService.sendOtp(newUser.id, newUser.email, 'email_verification');
 
-    return { email: newUser.email };
+    return { email: newUser.email, status: 'new_registration' };
   }
 
   static async verifyOtpForLogin(data: { email: string; code: string }) {
     const { email, code } = data;
 
-    console.log('Verifying');
-    console.log(email, code);
     const existing = await AuthService.findUserByIdentifier(email);
 
     if (!existing) throw new ApiError(404, 'User does not exist');
@@ -282,7 +281,7 @@ export class AuthService {
       password,
       existing.passwordHash as string
     );
-    if (!isPasswordValid) throw new ApiError(401, 'Invalid credentials');
+    if (!isPasswordValid) throw new ApiError(401, 'Invalid email or password');
 
     await AuthService.updateLastLogin(existing.id);
 
@@ -291,6 +290,24 @@ export class AuthService {
     logger.info({ userId: existing.id, email }, 'User logged in');
 
     return { email, ...tokens };
+  }
+
+  static async getMe(userId: string) {
+    const [user] = await db
+      .select({
+        id: usersTable.id,
+        firstName: usersTable.firstName,
+        lastName: usersTable.lastName,
+        email: usersTable.email,
+        avatarUrl: usersTable.avatarUrl,
+      })
+      .from(usersTable)
+      .where(eq(usersTable.id, userId))
+      .limit(1);
+
+    if (!user) throw new ApiError(404, 'User not found');
+
+    return user;
   }
 
   static async refreshAccessToken(refreshToken: string) {
@@ -699,6 +716,7 @@ export class AuthService {
         role: usersTable.role,
         ...(passwordRequired && { passwordHash: usersTable.passwordHash }),
         avatarUrl: usersTable.avatarUrl,
+        hasRegistered: usersTable.hasRegistered,
         authProvider: usersTable.authProvider,
         providerId: usersTable.providerId,
         emailVerified: usersTable.emailVerified,

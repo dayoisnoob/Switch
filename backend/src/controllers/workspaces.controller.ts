@@ -5,17 +5,14 @@ import { ApiError, ApiResponse } from '../utils/api-response';
 
 export class WorkspaceController {
   static async createWorkspace(req: AuthenticatedRequest, res: Response) {
-    const { workspace, membership } = await WorkspaceService.createWorkspace(
+    const data = await WorkspaceService.createWorkspace(
       req.user.id,
       req.body.name
     );
 
-    res.status(201).json(
-      new ApiResponse(201, 'Workspace successfully created', {
-        workspace,
-        membership,
-      })
-    );
+    res
+      .status(201)
+      .json(new ApiResponse(201, 'Workspace successfully created', data));
   }
 
   static async getWorkspace(req: AuthenticatedRequest, res: Response) {

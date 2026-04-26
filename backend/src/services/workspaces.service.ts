@@ -1,22 +1,20 @@
 import { and, eq, gt, isNull } from 'drizzle-orm';
 import { db } from '../config/db';
+import { env } from '../config/env';
 import {
   usersTable,
   workspaceInvitationsTable,
   workspaceMembershipsTable,
   workspacesTable,
 } from '../db';
-import { workspaceSlugGen } from '../utils/helpers';
-import { ApiError } from '../utils/api-response';
-import { tempTokens } from '../utils/tokens.util';
 import { queueEmail } from '../queues/email.queue';
-import { env } from '../config/env';
-import { cryptoHash } from '../utils/hash.util';
-import { AuthService } from './auth.service';
+import { ApiError } from '../utils/api-response';
+import { slugGen } from '../utils/helpers';
+import { tempTokens } from '../utils/tokens.util';
 
 export class WorkspaceService {
   static async createWorkspace(userId: string, name: string) {
-    const slug = workspaceSlugGen(name);
+    const slug = slugGen(name, 'workspace');
 
     const { workspace, membership } = await db.transaction(async (tx) => {
       const [workspace] = await tx
@@ -51,7 +49,15 @@ export class WorkspaceService {
       return { workspace, membership };
     });
 
-    return { workspace, membership };
+    const flattenedData = {
+      id: workspace.id,
+      name: workspace.name,
+      slug: workspace.slug,
+      ownerId: workspace.ownerId,
+      role: membership.role,
+    };
+
+    return flattenedData;
   }
 
   static async getWorkspace(workspaceId: string) {
@@ -62,8 +68,13 @@ export class WorkspaceService {
         slug: workspacesTable.slug,
         ownerId: workspacesTable.ownerId,
         createdAt: workspacesTable.createdAt,
+        role: workspaceMembershipsTable.role,
       })
       .from(workspacesTable)
+      .innerJoin(
+        workspaceMembershipsTable,
+        eq(workspacesTable.id, workspaceMembershipsTable.workspaceId)
+      )
       .where(eq(workspacesTable.id, workspaceId))
       .limit(1);
 

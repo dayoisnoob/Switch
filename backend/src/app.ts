@@ -72,12 +72,12 @@ app.use('/api/v1/cards', cardsRouter);
 app.use('/api/v1/boards/:boardId/columns', columnsRouter);
 app.use('/api/v1/columns', columnsRouter);
 
-app.use('/api/v1/projects/:projectId/board', boardsRouter);
+app.use('/api/v1/projects/:projectSlug/board', boardsRouter);
 
-app.use('/api/v1/workspaces/:workspaceId/projects', projectsRouter);
+app.use('/api/v1/workspaces/:workspaceSlug/projects', projectsRouter);
 app.use('/api/v1/projects', projectsRouter);
 
-app.use('/api/v1/workspaces/:workspaceId/labels', labelsRouter);
+app.use('/api/v1/workspaces/:workspaceSlug/labels', labelsRouter);
 app.use('/api/v1/labels', labelsRouter);
 
 app.use('/api/v1/cards/:cardId/comments', commentsRouter);

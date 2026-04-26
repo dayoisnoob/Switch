@@ -1,14 +1,15 @@
 import crypto from 'crypto';
 import { cryptoHash } from './hash.util';
 
-export const workspaceSlugGen = (str: string) => {
+export const slugGen = (str: string, type: string = 'project') => {
   const slug = str
     .toLowerCase()
+    .trim()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '');
 
   const hash = crypto.randomBytes(2).toString('hex');
-  return `${slug}-${hash}`;
+  return type === 'workspace' ? `${slug}-${hash}` : slug;
 };
 
 export const generateSecureOtp = () => {
@@ -23,3 +24,6 @@ export const getResourceType = (mimeType: string): 'image' | 'raw' => {
   if (mimeType.startsWith('image/')) return 'image';
   return 'raw';
 };
+
+export const capitalize = (value: string) =>
+  value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
