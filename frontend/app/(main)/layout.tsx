@@ -82,8 +82,6 @@ export default function MainLayout({ children }: { children: ReactNode }) {
   //   );
   // }
 
-  console.log(user);
-
   return (
     <div className="flex h-screen bg-[#0b0e14] overflow-hidden text-[#c9d1d9] font-sans">
       <aside className="w-60 shrink-0 bg-[#0d1117] border-r border-[#1e222b] flex flex-col">

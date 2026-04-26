@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import { GripHorizontal, MoreHorizontal, Plus } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useCallback, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 
 import {
   useBoard,
@@ -40,6 +41,7 @@ import { CSS } from "@dnd-kit/utilities";
 
 import { BoardCard, BoardColumn, BoardState } from "@/types/board.types";
 import { CreateInput } from "@/components/board/CreateInput";
+import { CardDetailModal } from "@/components/modals/CardDetailModal";
 
 function findColumnInSnapshot(
   id: string,
@@ -64,10 +66,12 @@ const collisionDetection: CollisionDetection = (args) => {
 };
 
 export default function KanbanBoardPage() {
-  const { projectSlug } = useParams() as {
+  const { workspaceSlug, projectSlug } = useParams() as {
     workspaceSlug: string;
     projectSlug: string;
   };
+
+  const router = useRouter();
 
   const { data: project } = useProjectBySlug(projectSlug);
   const { data: board, isLoading: isBoardLoading } = useBoard(projectSlug);
@@ -77,6 +81,7 @@ export default function KanbanBoardPage() {
   const { mutateAsync: createColumn } = useCreateColumn();
 
   const [columns, setColumns] = useState<BoardColumn[]>([]);
+  //   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
   const [activeDragColumn, setActiveDragColumn] = useState<BoardColumn | null>(
     null,
   );
@@ -313,14 +318,21 @@ export default function KanbanBoardPage() {
                     >
                       <div className="flex flex-col gap-3 px-3 min-h-12.5">
                         {column.cards.map((card) => (
-                          <SortableCard key={card.id} card={card} />
+                          <SortableCard
+                            key={card.id}
+                            card={card}
+                            onClick={() =>
+                              router.push(
+                                `/${workspaceSlug}/${projectSlug}/c/${card.id}`,
+                              )
+                            }
+                          />
                         ))}
                       </div>
                     </SortableContext>
                   </SortableColumn>
                 ))}
 
-                {/* On success: append the returned column to `columns` state */}
                 <CreateInput
                   isColumn
                   buttonText="Add Column"
@@ -476,7 +488,13 @@ function ColumnContent({
   );
 }
 
-function SortableCard({ card }: { card: BoardCard }) {
+function SortableCard({
+  card,
+  onClick,
+}: {
+  card: BoardCard;
+  onClick: () => void;
+}) {
   const {
     setNodeRef,
     attributes,
@@ -503,7 +521,7 @@ function SortableCard({ card }: { card: BoardCard }) {
       {...listeners}
       className="outline-none"
     >
-      <CardContent card={card} isDragging={isDragging} />
+      <CardContent card={card} isDragging={isDragging} onClick={onClick} />
     </div>
   );
 }
@@ -511,15 +529,19 @@ function SortableCard({ card }: { card: BoardCard }) {
 function CardContent({
   card,
   isDragging,
+  onClick,
 }: {
   card: BoardCard;
   isDragging?: boolean;
+  onClick?: () => void;
 }) {
   return (
     // TODO: onClick (non-drag click) → navigate to card detail or open card detail modal
     // Route suggestion: /board/:projectSlug/card/:cardId  (parallel route or modal route)
     // Make sure to suppress click during drag — check isDragging or use a pointerUp delta guard
+
     <div
+      onClick={onClick}
       className={cn(
         "group bg-[#161b22] border rounded-lg p-3.5 cursor-grab active:cursor-grabbing transition-colors",
         isDragging
