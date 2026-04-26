@@ -92,7 +92,18 @@ export class CardsService {
     });
     emitBoardEvent(boardId, 'card:created', { card: newCard });
 
-    return newCard;
+    return {
+      id: newCard.id,
+      title: newCard.title,
+      description: newCard.description,
+      priority: newCard.priority,
+      dueDate: newCard.dueDate,
+      coverImageUrl: newCard.coverImageUrl,
+      order: newCard.order,
+      createdBy: newCard.createdBy,
+      assignees: [],
+      labels: [],
+    };
   }
 
   static async getCard(cardId: string) {

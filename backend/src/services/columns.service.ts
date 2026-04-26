@@ -31,7 +31,12 @@ export class ColumnsService {
       name: column.name,
     });
 
-    return column;
+    return {
+      id: column.id,
+      name: column.name,
+      order: column.order,
+      cards: [],
+    };
   }
 
   static async updateColumnName(columnId: string, name: string) {
