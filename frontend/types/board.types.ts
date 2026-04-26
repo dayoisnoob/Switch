@@ -14,10 +14,12 @@ interface BoardAssignee {
 export interface BoardCard {
   id: string;
   title: string;
+  description: string;
   priority: "none" | "low" | "medium" | "high" | "urgent";
   dueDate: string | null;
   coverImageUrl: string | null;
   order: number;
+  createdBy: string;
   assignees: BoardAssignee[];
   labels: BoardLabel[];
 }

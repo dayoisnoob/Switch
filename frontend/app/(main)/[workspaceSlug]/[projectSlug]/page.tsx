@@ -5,7 +5,13 @@ import { GripHorizontal, MoreHorizontal, Plus } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useCallback, useRef, useState } from "react";
 
-import { useBoard, useMoveCard, useReorderColumn } from "@/hooks/useBoard";
+import {
+  useBoard,
+  useCreateCard,
+  useCreateColumn,
+  useMoveCard,
+  useReorderColumn,
+} from "@/hooks/useBoard";
 import { useProjectBySlug } from "@/hooks/useProjects";
 import {
   CollisionDetection,
@@ -68,16 +74,13 @@ export default function KanbanBoardPage() {
 
   const { mutate: moveCard } = useMoveCard();
   const { mutate: reorderColumn } = useReorderColumn();
+  const { mutateAsync: createColumn } = useCreateColumn();
 
   const [columns, setColumns] = useState<BoardColumn[]>([]);
-
-  console.log(columns);
-
   const [activeDragColumn, setActiveDragColumn] = useState<BoardColumn | null>(
     null,
   );
   const [activeDragCard, setActiveDragCard] = useState<BoardCard | null>(null);
-
   const [lastSyncedBoard, setLastSyncedBoard] = useState<BoardState | null>(
     null,
   );
@@ -298,7 +301,11 @@ export default function KanbanBoardPage() {
             >
               <div className="flex gap-5 items-start w-max min-h-full">
                 {columns.map((column) => (
-                  <SortableColumn key={column.id} column={column}>
+                  <SortableColumn
+                    key={column.id}
+                    column={column}
+                    setColumns={setColumns}
+                  >
                     <SortableContext
                       id={column.id}
                       items={column.cards.map((c) => c.id)}
@@ -319,8 +326,13 @@ export default function KanbanBoardPage() {
                   buttonText="Add Column"
                   placeholder="e.g. In Review"
                   onSubmit={async (title) => {
-                    // Assuming you have a hook like useCreateColumn
-                    // await createColumn({ projectId: project.id, name: title });
+                    if (!board) return;
+                    const newCol = await createColumn({
+                      boardId: board.id,
+                      name: title,
+                    });
+
+                    setColumns((prev) => [...prev, newCol]);
                   }}
                 />
               </div>
@@ -349,9 +361,11 @@ export default function KanbanBoardPage() {
 
 function SortableColumn({
   column,
+  setColumns,
   children,
 }: {
   column: BoardColumn;
+  setColumns: React.Dispatch<React.SetStateAction<BoardColumn[]>>;
   children: React.ReactNode;
 }) {
   const {
@@ -365,6 +379,8 @@ function SortableColumn({
     id: column.id,
     data: { type: "Column", column },
   });
+
+  const { mutateAsync: createCard } = useCreateCard();
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -409,13 +425,25 @@ function SortableColumn({
       {children}
 
       <div className="px-3 pt-3 mt-1">
-        {/* TODO: onClick → open an inline input or modal to create a card */}
-        {/* TODO: POST /projects/:projectSlug/columns/:columnId/cards */}
-        {/* Body: { title: string } */}
-        {/* On success: append the returned card to this column's cards in `columns` state */}
-        <button className="w-full flex items-center justify-center gap-2 py-2 text-sm font-medium text-[#8b949e] hover:text-[#f0f6fc] hover:bg-[#1c2128] rounded-md transition-colors">
-          <Plus size={16} /> Add Card
-        </button>
+        <CreateInput
+          buttonText="Add Card"
+          placeholder="What needs to be done?"
+          onSubmit={async (title) => {
+            const newCard = await createCard({ columnId: column.id, title });
+
+            setColumns((prev) =>
+              prev.map((col) => {
+                if (col.id === column.id) {
+                  return {
+                    ...col,
+                    cards: [...col.cards, newCard],
+                  };
+                }
+                return col;
+              }),
+            );
+          }}
+        />
       </div>
     </div>
   );

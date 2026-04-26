@@ -21,7 +21,7 @@ export const useBoard = (projectSlug: string) => {
 export function useReorderColumn() {
   return useMutation({
     mutationFn: ({ columnId, order }: { columnId: string; order: number }) =>
-      ColumnService.updateColumnOrder(columnId, order),
+      ColumnService.updateOrder(columnId, order),
   });
 }
 
@@ -36,5 +36,19 @@ export function useMoveCard() {
       columnId: string;
       order: number;
     }) => CardService.moveCard(cardId, columnId, order),
+  });
+}
+
+export function useCreateColumn() {
+  return useMutation({
+    mutationFn: ({ boardId, name }: { boardId: string; name: string }) =>
+      ColumnService.create(boardId, name),
+  });
+}
+
+export function useCreateCard() {
+  return useMutation({
+    mutationFn: ({ columnId, title }: { columnId: string; title: string }) =>
+      CardService.create(columnId, title),
   });
 }

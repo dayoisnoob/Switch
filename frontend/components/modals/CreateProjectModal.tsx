@@ -47,16 +47,15 @@ export default function CreateProjectModal({
     setError("");
 
     try {
-      const response = await ProjectService.createProject({
+      const response = await ProjectService.create({
         name: data.name,
-        description: data.description, // Now correctly pulling from form
+        description: data.description,
         workspaceSlug: activeWorkspace.slug,
       });
 
       reset();
       onClose();
 
-      // 3. Redirect using the Clean Slugs routing we discussed
       router.push(`/${activeWorkspace.slug}/${response.slug}`);
     } catch (err) {
       setError(getErrorMessage(err));
@@ -66,7 +65,7 @@ export default function CreateProjectModal({
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#000000aa] backdrop-blur-sm p-4">
+    <div className="fixed inset-0 z-100 flex items-center justify-center bg-[#000000aa] backdrop-blur-sm p-4">
       <div className="w-full max-w-md bg-[#11141a] border border-[#30363d] rounded-xl shadow-2xl">
         <div className="p-6 border-b border-[#30363d] flex justify-between items-center bg-[#0d1117]">
           <div className="flex items-center gap-3">

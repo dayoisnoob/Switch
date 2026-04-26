@@ -11,7 +11,7 @@ export interface ProjectType {
 }
 
 export const ProjectService = {
-  createProject: async (data: {
+  create: async (data: {
     name: string;
     description: string;
     workspaceSlug: string;
