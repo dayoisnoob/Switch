@@ -4,8 +4,11 @@ import { Workspace } from "@/types";
 export interface WorkspaceMembers {
   id: string;
   email: string;
+  firstName: string;
+  lastName: string;
+  avatarUrl: string;
   role: string;
-  joinedAt: string;
+  userId: string;
 }
 
 export const WorkspaceService = {
@@ -17,7 +20,7 @@ export const WorkspaceService = {
     return api.post("/workspaces", { name });
   },
 
-  getMembers: async (workspaceId: string): Promise<WorkspaceMembers[]> => {
-    return api.get(`/workspaces/${workspaceId}/members`);
+  getMembers: async (workspaceSlug: string): Promise<WorkspaceMembers[]> => {
+    return api.get(`/workspaces/${workspaceSlug}/members`);
   },
 };

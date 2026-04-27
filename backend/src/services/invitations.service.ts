@@ -45,7 +45,7 @@ export class InvitationsService {
       .limit(1);
 
     if (!existing) {
-      return { requiresRegistration: true };
+      return { requiresRegistration: true, token: token };
     }
 
     const [alreadyMember] = await db

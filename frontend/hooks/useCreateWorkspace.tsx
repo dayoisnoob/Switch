@@ -8,7 +8,8 @@ import { toast } from "sonner";
 export function useCreateWorkspace(onSuccess?: () => void) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const { workspaces, setWorkspaces, setActiveWorkspace } = useWorkspaceStore();
+  const { workspaces, setWorkspaces, setActiveWorkspace, setWorkspaceMembers } =
+    useWorkspaceStore();
 
   const createWorkspace = async (name: string) => {
     if (!name.trim()) return;
@@ -16,8 +17,9 @@ export function useCreateWorkspace(onSuccess?: () => void) {
 
     try {
       const workspace = await WorkspaceService.createWorkspace(name);
-
+      const members = await WorkspaceService.getMembers(workspace.slug);
       setWorkspaces([...workspaces, workspace]);
+      setWorkspaceMembers(members);
       setActiveWorkspace(workspace);
 
       toast.success("Workspace was successfully created");

@@ -14,7 +14,6 @@ export interface User {
   lastName: string | null;
   avatarUrl: string | null;
   role: "user" | "admin";
-  isActive: boolean;
 }
 
 export interface Workspace {

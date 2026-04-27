@@ -48,8 +48,6 @@ export default function CompleteRegister() {
 
       router.push("/dashboard");
     } catch (err) {
-      console.log(err);
-
       setServerError(getErrorMessage(err));
     } finally {
       setLoading(false);

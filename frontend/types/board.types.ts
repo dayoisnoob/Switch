@@ -6,6 +6,7 @@ export interface BoardLabel {
 
 export interface BoardAssignee {
   id: string;
+  userId: string;
   firstName: string;
   lastName: string;
   avatarUrl: string | null;

@@ -6,7 +6,12 @@ import { bcryptCompare, bcryptHash, cryptoHash } from '../utils/hash.util';
 
 import { env } from '../config/env';
 import { logger } from '../config/logger';
-import { otpTable, refreshTokensTable, usersTable } from '../db';
+import {
+  otpTable,
+  refreshTokensTable,
+  usersTable,
+  workspaceMembershipsTable,
+} from '../db';
 import { queueEmail } from '../queues/email.queue';
 import type { OAuthProfileInput } from '../types/auth.types';
 import type {
@@ -212,10 +217,7 @@ export class AuthService {
       throw new ApiError(403, 'Please verify your email');
 
     if (existing.passwordHash)
-      throw new ApiError(
-        409,
-        'Registration already completed. Please sign in.'
-      );
+      throw new ApiError(409, 'This email already exists. Please sign in.');
 
     const passwordHash = await bcryptHash(password);
 
@@ -225,6 +227,7 @@ export class AuthService {
         firstName,
         lastName,
         passwordHash,
+        hasRegistered: true,
       })
       .where(eq(usersTable.email, email))
       .returning();
@@ -300,8 +303,13 @@ export class AuthService {
         lastName: usersTable.lastName,
         email: usersTable.email,
         avatarUrl: usersTable.avatarUrl,
+        role: workspaceMembershipsTable.role,
       })
       .from(usersTable)
+      .innerJoin(
+        workspaceMembershipsTable,
+        eq(usersTable.id, workspaceMembershipsTable.userId)
+      )
       .where(eq(usersTable.id, userId))
       .limit(1);
 

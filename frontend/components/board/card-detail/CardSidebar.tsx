@@ -1,35 +1,33 @@
 "use client";
 
-import { useRef, useState } from "react";
-import { User, Flag, Calendar, Circle, Trash2, Check } from "lucide-react"; // <-- Added Check icon
+import { useClickOutside } from "@/hooks/board/index"; // <-- Imported click outside hook
+import { useToggleAssignee } from "@/hooks/useToggleAssignee";
+import { useUpdateCard } from "@/hooks/useUpdateCard";
+import { pickLabelColor } from "@/lib/utils";
+import { LabelService } from "@/services/labels.service";
+import { useBoardStore } from "@/store/board.store";
+import { useWorkspaceStore } from "@/store/workspace.store";
+import { PriorityEnum } from "@/types";
 import {
   BoardAssignee,
   BoardCard,
   BoardColumn,
   BoardLabel,
 } from "@/types/board.types";
-import { SidebarDropdown } from "./SidebarDropdown";
-import { pickLabelColor } from "@/lib/utils";
-import { PriorityEnum } from "@/types";
-import { SidebarLabelDropdown } from "./SidebarLabels";
-import { CardUpdateType } from "@/services/card.service";
-import { useClickOutside } from "@/hooks/board/index"; // <-- Imported click outside hook
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Calendar, Check, Circle, Flag, Plus, Trash2 } from "lucide-react"; // <-- Added Check icon
 import Image from "next/image";
+import { useRef, useState } from "react";
+import { toast } from "sonner";
+import { SidebarDropdown } from "./SidebarDropdown";
+import { SidebarLabelDropdown } from "./SidebarLabels";
 
 interface CardSidebarProps {
   card: BoardCard;
   columns: BoardColumn[];
   currentColumn: BoardColumn | undefined;
   workspaceLabels: BoardLabel[];
-  workspaceMembers: any[]; // <-- Added this (Replace 'any' with your member type if available)
-  onUpdateCard: (data: CardUpdateType) => void;
-  onCreateLabel: (name: string) => Promise<BoardLabel>;
-  onAttachLabel: (labelId: string) => void;
-  onRemoveLabel: (labelId: string) => void;
-  onAddLabelToCard: (cardId: string, label: BoardLabel) => void;
-  onRemoveLabelFromCard: (cardId: string, labelId: string) => void;
-  onAddWorkspaceLabel: (label: BoardLabel) => void;
-  onToggleAssignee: (memberId: string) => void; // <-- Added this handler
+  workspaceSlug: string;
 }
 
 const PRIORITY_OPTIONS = [
@@ -73,16 +71,9 @@ export function CardSidebar({
   columns,
   currentColumn,
   workspaceLabels,
-  workspaceMembers,
-  onUpdateCard,
-  onCreateLabel,
-  onAttachLabel,
-  onRemoveLabel,
-  onAddLabelToCard,
-  onRemoveLabelFromCard,
-  onAddWorkspaceLabel,
-  onToggleAssignee,
+  workspaceSlug,
 }: CardSidebarProps) {
+  const queryClient = useQueryClient();
   const [localPriority, setLocalPriority] = useState<PriorityEnum>(
     card.priority,
   );
@@ -90,7 +81,83 @@ export function CardSidebar({
   const [assigneeDropdownOpen, setAssigneeDropdownOpen] = useState(false); // <-- Added state
 
   const dateInputRef = useRef<HTMLInputElement>(null);
-  const assigneeRef = useRef<HTMLDivElement>(null); // <-- Added ref for click outside
+  const assigneeRef = useRef<HTMLDivElement>(null);
+
+  const workspaceMembers = useWorkspaceStore((s) => s.workspaceMembers);
+  const membersLoading = useWorkspaceStore((s) => s.membersLoading);
+  const removeLabelFromCard = useBoardStore((s) => s.removeLabelFromCard);
+  const addLabelToCard = useBoardStore((s) => s.addLabelToCard);
+  const { mutate: toggleAssignee } = useToggleAssignee(card);
+
+  const { mutate: updateCard } = useUpdateCard(card.id);
+
+  const { mutate: toggleLabel } = useMutation({
+    mutationFn: async ({
+      labelId,
+      isAttached,
+    }: {
+      labelId: string;
+      isAttached: boolean;
+    }) => {
+      if (isAttached) {
+        return await LabelService.removeFromCard(card.id, labelId);
+      } else {
+        return await LabelService.attachToCard(card.id, labelId);
+      }
+    },
+
+    onMutate: async ({ labelId, isAttached }) => {
+      await queryClient.cancelQueries({ queryKey: ["card", card.id] });
+
+      if (isAttached) {
+        removeLabelFromCard(card.id, labelId);
+      } else {
+        const label = workspaceLabels.find((l) => l.id === labelId);
+        if (label) addLabelToCard(card.id, label);
+      }
+
+      return { previousIsAttached: isAttached, labelId };
+    },
+
+    onError: (error, variables, context) => {
+      if (context) {
+        if (context.previousIsAttached) {
+          const label = workspaceLabels.find((l) => l.id === context.labelId);
+          if (label) addLabelToCard(card.id, label);
+        } else {
+          removeLabelFromCard(card.id, context.labelId);
+        }
+      }
+
+      toast.error("Failed to update label. Reverting...");
+      console.error(error);
+    },
+
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["card", card.id] });
+    },
+  });
+
+  const { mutate: createAndAttachLabel } = useMutation({
+    mutationFn: async (name: string) => {
+      const existingColors = workspaceLabels.map((l) => l.color);
+      const colour = pickLabelColor(name, existingColors);
+      const newLabel = await LabelService.create(workspaceSlug, {
+        name,
+        colour,
+      });
+
+      await LabelService.attachToCard(card.id, newLabel.id);
+      return newLabel;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["workspaceLabels", workspaceSlug],
+      });
+      queryClient.invalidateQueries({ queryKey: ["card", card.id] });
+      toast.success("Label created and attached");
+    },
+  });
 
   useClickOutside(assigneeRef, () => setAssigneeDropdownOpen(false));
 
@@ -98,14 +165,14 @@ export function CardSidebar({
     const priority = val as PriorityEnum;
     if (priority === localPriority) return;
     setLocalPriority(priority);
-    onUpdateCard({ priority });
+    updateCard({ priority });
   };
 
   const handleDueDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
     if (!val) return;
     setDueDate(val);
-    onUpdateCard({ dueDate: new Date(val) });
+    updateCard({ dueDate: new Date(val) });
   };
 
   const priorityLabel =
@@ -115,7 +182,6 @@ export function CardSidebar({
 
   return (
     <div className="w-full md:w-[260px] shrink-0 border-l border-white/5 bg-[#0E0E14] p-5 flex flex-col gap-5">
-      {/* Priority */}
       <SidebarDropdown
         label="Priority"
         icon={<Flag size={14} />}
@@ -125,7 +191,6 @@ export function CardSidebar({
         onSelect={handlePriorityChange}
       />
 
-      {/* Assignees */}
       <div ref={assigneeRef} className="relative">
         <p className="text-[10px] font-semibold text-white/40 uppercase tracking-widest mb-1.5">
           Assignees
@@ -142,8 +207,8 @@ export function CardSidebar({
                     key={assignee.id}
                     src={assignee.avatarUrl}
                     alt={assignee.firstName || "User avatar"}
-                    width={24} // <-- matches w-6
-                    height={24} // <-- matches h-6
+                    width={24}
+                    height={24}
                     className="w-6 h-6 rounded-full object-cover border border-white/10"
                   />
                 ) : (
@@ -166,26 +231,29 @@ export function CardSidebar({
             </div>
           ) : (
             <div className="flex items-center gap-1.5 text-sm text-white/30 pointer-events-none">
-              <User size={13} /> Unassigned
+              <Plus size={13} /> Add assignee
             </div>
           )}
         </div>
 
-        {/* Assignees Dropdown */}
         {assigneeDropdownOpen && (
           <div className="absolute top-[calc(100%+6px)] left-0 w-full bg-[#13131C] border border-white/10 rounded-xl shadow-2xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-1 duration-150">
             <div className="max-h-56 overflow-y-auto p-1">
-              {workspaceMembers?.length > 0 ? (
+              {membersLoading ? (
+                <div className="flex items-center justify-center py-6">
+                  <div className="w-4 h-4 border-2 border-[#7C6EF5]/30 border-t-[#7C6EF5] rounded-full animate-spin" />
+                </div>
+              ) : workspaceMembers?.length > 0 ? (
                 workspaceMembers.map((member) => {
                   const isAssigned = card.assignees?.some(
-                    (a: BoardAssignee) => a.id === member.id,
+                    (a: BoardAssignee) => a.userId === member.userId,
                   );
                   return (
                     <button
                       key={member.id}
                       onClick={(e) => {
                         e.stopPropagation();
-                        onToggleAssignee(member.id);
+                        toggleAssignee({ member, isAssigned });
                       }}
                       className="w-full flex items-center justify-between gap-2.5 px-3 py-2 text-sm rounded-lg hover:bg-white/5 transition-colors text-left"
                     >
@@ -194,8 +262,8 @@ export function CardSidebar({
                           <Image
                             src={member.avatarUrl}
                             alt={member.firstName || "User avatar"}
-                            width={20} // <-- matches w-5
-                            height={20} // <-- matches h-5
+                            width={20}
+                            height={20}
                             className="w-5 h-5 rounded-full object-cover border border-white/10 shrink-0"
                           />
                         ) : (
@@ -223,35 +291,18 @@ export function CardSidebar({
         )}
       </div>
 
-      {/* Labels */}
       <SidebarLabelDropdown
         projectLabels={workspaceLabels}
         selectedLabels={card.labels || []}
         onToggleLabel={(labelId) => {
-          const isSelected = card.labels?.some(
-            (l: BoardLabel) => l.id === labelId,
-          );
-          if (isSelected) {
-            onRemoveLabelFromCard(card.id, labelId);
-            onRemoveLabel(labelId);
-          } else {
-            const label = workspaceLabels.find((l) => l.id === labelId);
-            if (!label) return;
-            onAddLabelToCard(card.id, label);
-            onAttachLabel(labelId);
-          }
+          const isAttached = card.labels?.some((l) => l.id === labelId);
+          toggleLabel({ labelId, isAttached });
         }}
-        onCreateLabel={async (name) => {
-          const existingColors = workspaceLabels.map((l) => l.color);
-          const colour = pickLabelColor(name, existingColors);
-          const newLabel = await onCreateLabel(name);
-          onAddWorkspaceLabel(newLabel);
-          onAddLabelToCard(card.id, newLabel);
-          onAttachLabel(newLabel.id);
+        onCreateLabel={(name) => {
+          createAndAttachLabel(name);
         }}
       />
 
-      {/* Due Date */}
       <div>
         <p className="text-[10px] font-semibold text-white/40 uppercase tracking-widest mb-1.5">
           Due Date
@@ -286,7 +337,6 @@ export function CardSidebar({
         </div>
       </div>
 
-      {/* Move To */}
       <SidebarDropdown
         label="Move To"
         icon={<Circle size={14} />}
@@ -303,7 +353,6 @@ export function CardSidebar({
         }}
       />
 
-      {/* Delete — always at the bottom */}
       <div className="mt-auto pt-4 border-t border-white/5">
         <button className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-red-400/60 hover:text-red-400 hover:bg-red-500/10 text-sm font-medium transition-colors">
           <Trash2 size={14} /> Delete card

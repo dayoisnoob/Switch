@@ -5,6 +5,7 @@ import {
   BoardColumn,
   BoardCard,
   BoardLabel,
+  BoardAssignee,
 } from "@/types/board.types";
 
 interface BoardStore {
@@ -38,6 +39,10 @@ interface BoardStore {
   addLabelToCard: (cardId: string, label: BoardLabel) => void;
   removeLabelFromCard: (cardId: string, labelId: string) => void;
   addWorkspaceLabel: (label: BoardLabel) => void;
+
+  // Assignee Operations
+  assignUserToCard: (cardId: string, assignee: BoardAssignee) => void;
+  removeUserFromCard: (cardId: string, userId: string) => void;
 }
 
 export const useBoardStore = create<BoardStore>((set) => ({
@@ -202,4 +207,47 @@ export const useBoardStore = create<BoardStore>((set) => ({
 
   addWorkspaceLabel: (label) =>
     set((state) => ({ workspaceLabels: [...state.workspaceLabels, label] })),
+
+  // ------ Assignees ------------------------------------------
+
+  assignUserToCard: (cardId, assignee) =>
+    set((state) => {
+      if (!state.board) return state;
+      return {
+        board: {
+          ...state.board,
+          columns: state.board.columns.map((col) => ({
+            ...col,
+            cards: col.cards.map((card) =>
+              card.id === cardId
+                ? { ...card, assignees: [...card.assignees, assignee] }
+                : card,
+            ),
+          })),
+        },
+      };
+    }),
+
+  removeUserFromCard: (cardId, userId) =>
+    set((state) => {
+      if (!state.board) return state;
+      return {
+        board: {
+          ...state.board,
+          columns: state.board.columns.map((col) => ({
+            ...col,
+            cards: col.cards.map((card) =>
+              card.id === cardId
+                ? {
+                    ...card,
+                    assignees: card.assignees.filter(
+                      (a) => a.userId !== userId,
+                    ),
+                  }
+                : card,
+            ),
+          })),
+        },
+      };
+    }),
 }));

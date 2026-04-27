@@ -13,6 +13,14 @@ export const CardService = {
   update: async (cardId: string, data: CardUpdateType) => {
     return api.patch(`/cards/${cardId}`, data);
   },
+
+  assignUser: async (cardId: string, userId: string) => {
+    return api.post(`/cards/${cardId}/assignees`, { userId });
+  },
+
+  removeUser: async (cardId: string, userId: string) => {
+    return api.delete(`/cards/${cardId}/assignees/${userId}`);
+  },
 };
 
 export interface CardUpdateType {

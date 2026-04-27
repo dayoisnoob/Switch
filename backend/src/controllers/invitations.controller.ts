@@ -4,21 +4,23 @@ import { ApiResponse } from '../utils/api-response';
 
 export class InvitationsController {
   static async acceptInvitation(req: Request, res: Response) {
-    const token = req.params.token as string;
+    const invitationtoken = req.params.token as string;
 
-    const result = await InvitationsService.acceptInvitation(token);
+    const { requiresRegistration, token, message } =
+      await InvitationsService.acceptInvitation(invitationtoken);
 
-    if (result.requiresRegistration) {
+    if (requiresRegistration) {
       return res
         .status(200)
         .json(
           new ApiResponse(
             200,
-            'Please signup on Switch to accept this invitation.'
+            'Please signup on Switch to accept this invitation.',
+            { token }
           )
         );
     }
 
-    res.json(new ApiResponse(200, result.message));
+    res.json(new ApiResponse(200, message));
   }
 }

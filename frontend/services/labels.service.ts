@@ -10,7 +10,6 @@ export const LabelService = {
   },
 
   list: async (workspaceSlug: string): Promise<BoardLabel[]> => {
-    console.log(workspaceSlug, "frol label service");
     return api.get(`/workspaces/${workspaceSlug}/labels`);
   },
 

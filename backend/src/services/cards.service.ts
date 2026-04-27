@@ -284,12 +284,14 @@ export class CardsService {
 
     if (existing)
       throw new ApiError(409, 'User is already assigned to this card.');
+    console.log('assigning...');
 
     const [assignee] = await db
       .insert(cardAssigneesTable)
       .values({ cardId, userId })
       .returning();
 
+    console.log('already assigned');
     if (!assignee)
       throw new ApiError(500, 'Error assigning user. Please try again.');
 

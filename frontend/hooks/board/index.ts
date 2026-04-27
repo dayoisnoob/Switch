@@ -79,37 +79,6 @@ export function useDeleteColumn() {
   });
 }
 
-export function useUpdateCard() {
-  return useMutation({
-    mutationFn: ({ cardId, data }: { cardId: string; data: CardUpdateType }) =>
-      CardService.update(cardId, data),
-  });
-}
-export function useCreateLabel() {
-  return useMutation({
-    mutationFn: ({
-      workspaceSlug,
-      data,
-    }: {
-      workspaceSlug: string;
-      data: CreateLabelType;
-    }) => LabelService.create(workspaceSlug, data),
-  });
-}
-
-export function useAttachLabel() {
-  return useMutation({
-    mutationFn: ({ cardId, labelId }: { cardId: string; labelId: string }) =>
-      LabelService.attachToCard(cardId, labelId),
-  });
-}
-export function useRemoveLabel() {
-  return useMutation({
-    mutationFn: ({ cardId, labelId }: { cardId: string; labelId: string }) =>
-      LabelService.removeFromCard(cardId, labelId),
-  });
-}
-
 export function useClickOutside<T extends HTMLElement>(
   ref: RefObject<T | null>,
   handler: (event: MouseEvent | TouchEvent) => void,

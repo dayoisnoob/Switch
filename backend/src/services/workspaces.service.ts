@@ -144,8 +144,11 @@ export class WorkspaceService {
       .select({
         id: workspaceMembershipsTable.id,
         email: usersTable.email,
+        firstName: usersTable.firstName,
+        lastName: usersTable.lastName,
+        avatarUrl: usersTable.avatarUrl,
         role: workspaceMembershipsTable.role,
-        joinedAt: workspaceMembershipsTable.joinedAt,
+        userId: workspaceMembershipsTable.userId,
       })
       .from(workspaceMembershipsTable)
       .innerJoin(

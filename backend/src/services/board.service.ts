@@ -38,6 +38,7 @@ export class BoardService {
                     user: {
                       columns: {
                         id: true,
+                        userId: true,
                         firstName: true,
                         lastName: true,
                         avatarUrl: true,
@@ -52,7 +53,7 @@ export class BoardService {
                       columns: {
                         id: true,
                         name: true,
-                        color: true,
+                        colour: true,
                       },
                     },
                   },

@@ -14,7 +14,6 @@ import {
   Plus,
   Search,
   Settings,
-  Users,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -33,29 +32,34 @@ export default function MainLayout({ children }: { children: ReactNode }) {
   const setActiveWorkspace = useWorkspaceStore((s) => s.setActiveWorkspace);
   const workspaces = useWorkspaceStore((s) => s.workspaces);
   const activeWorkspace = useWorkspaceStore((s) => s.activeWorkspace);
+  const syncMembers = useWorkspaceStore((s) => s.syncMembers);
+  const workspaceMembers = useWorkspaceStore((s) => s.workspaceMembers);
 
   const { data: user, isLoading } = useMe();
   const logout = useLogout();
 
   useEffect(() => {
-    const syncWorkspaces = async () => {
+    const init = async () => {
       try {
         const data = await WorkspaceService.getWorkspaces();
         if (data && data.length > 0) {
           setWorkspaces(data);
-          // setActiveWorkspace(data[0]);
-        } else {
-          setIsFirstWorkspaceOpen(true);
+          if (!activeWorkspace) setActiveWorkspace(data[0]);
         }
       } catch (err) {
-        toast.error(getErrorMessage(err));
+        toast.error(getErrorMessage(err) || "Failed to load workspaces");
       } finally {
         setIsInitialLoading(false);
       }
     };
+    init();
+  }, [activeWorkspace, setActiveWorkspace, setWorkspaces]);
 
-    syncWorkspaces();
-  }, [setActiveWorkspace, setWorkspaces]);
+  useEffect(() => {
+    if (activeWorkspace?.slug) {
+      syncMembers(activeWorkspace.slug);
+    }
+  }, [activeWorkspace?.slug, syncMembers]);
 
   const navItems = [
     { name: "Home", href: "/dashboard", icon: LayoutDashboard },

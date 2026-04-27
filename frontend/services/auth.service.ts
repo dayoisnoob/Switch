@@ -1,5 +1,5 @@
 import { api } from "@/lib/api";
-import { ApiResponse } from "@/types";
+import { ApiResponse, WorkspaceRole } from "@/types";
 import { CompleteUserData, LoginRequest } from "@/types/auth.types";
 
 export const AuthService = {
@@ -40,4 +40,5 @@ export interface UserProfile {
   lastName: string;
   email: string;
   avatarUrl: string;
+  role: WorkspaceRole;
 }

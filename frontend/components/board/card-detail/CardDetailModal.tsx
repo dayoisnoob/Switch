@@ -1,30 +1,22 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import Image from "next/image";
-import {
-  X,
-  AlignLeft,
-  Paperclip,
-  MessageSquare,
-  Activity,
-  Image as ImageIcon,
-} from "lucide-react";
-import { cn } from "@/lib/utils";
-import { BoardCard, BoardColumn } from "@/types/board.types";
 import { useBoard } from "@/hooks/board/index";
-import { pickLabelColor } from "@/lib/utils";
-import { CardSidebar } from "./CardSidebar";
-import {
-  useAttachLabel,
-  useCreateLabel,
-  useRemoveLabel,
-  useUpdateCard,
-} from "@/hooks/board";
+import { cn } from "@/lib/utils";
 import { useBoardStore } from "@/store/board.store";
+import { BoardCard, BoardColumn } from "@/types/board.types";
+import {
+  Activity,
+  AlignLeft,
+  Image as ImageIcon,
+  MessageSquare,
+  Paperclip,
+  X,
+} from "lucide-react";
+import Image from "next/image";
+import { useEffect, useRef, useState } from "react";
+import { CardSidebar } from "./CardSidebar";
+import { useUpdateCard } from "@/hooks/useUpdateCard";
 
-// The header color matches the column accent. Wire to column.color when your
-// schema supports per-column colors. Falls back to the design system accent.
 const ACCENT = "#7C6EF5";
 
 interface CardDetailModalProps {
@@ -63,15 +55,10 @@ export function CardDetailModal({
         .flatMap((col) => col.cards)
         .find((c) => c.id === card.id) ?? card,
   );
+
   const workspaceLabels = useBoardStore((s) => s.workspaceLabels);
-  const { addLabelToCard, removeLabelFromCard, addWorkspaceLabel } =
-    useBoardStore();
 
-  const { mutate: updateCard } = useUpdateCard();
-  const { mutateAsync: createLabel } = useCreateLabel();
-  const { mutateAsync: attachLabel } = useAttachLabel();
-  const { mutateAsync: removeLabel } = useRemoveLabel();
-
+  const { mutate: updateCard } = useUpdateCard(card.id);
   const currentColumn = columns.find((c) =>
     c.cards.some((c2) => c2.id === card.id),
   );
@@ -91,26 +78,19 @@ export function CardDetailModal({
       setTitleValue(card.title);
       return;
     }
-    if (titleValue !== card.title)
-      updateCard({ cardId: card.id, data: { title: titleValue } });
+    if (titleValue !== card.title) updateCard({ title: titleValue });
   };
 
   const handleDescSave = () => {
     setIsEditingDesc(false);
     if (descValue !== (card.description || ""))
-      updateCard({ cardId: card.id, data: { description: descValue } });
+      updateCard({ description: descValue });
   };
 
   const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     // TODO: upload and updateCard({ coverImageUrl: uploadedUrl })
-  };
-
-  const handleCreateLabel = async (name: string) => {
-    const existingColors = workspaceLabels.map((l) => l.color);
-    const colour = pickLabelColor(name, existingColors);
-    return createLabel({ workspaceSlug, data: { name, colour } });
   };
 
   return (
@@ -313,17 +293,7 @@ export function CardDetailModal({
             columns={columns}
             currentColumn={currentColumn}
             workspaceLabels={workspaceLabels}
-            onUpdateCard={(data) => updateCard({ cardId: card.id, data })}
-            onCreateLabel={handleCreateLabel}
-            onAttachLabel={(labelId) =>
-              attachLabel({ cardId: card.id, labelId })
-            }
-            onRemoveLabel={(labelId) =>
-              removeLabel({ cardId: card.id, labelId })
-            }
-            onAddLabelToCard={addLabelToCard}
-            onRemoveLabelFromCard={removeLabelFromCard}
-            onAddWorkspaceLabel={addWorkspaceLabel}
+            workspaceSlug={workspaceSlug}
           />
         </div>
       </div>

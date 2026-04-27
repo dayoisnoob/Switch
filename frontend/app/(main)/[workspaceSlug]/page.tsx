@@ -1,14 +1,14 @@
 "use client";
 
-import { useState } from "react";
 import { PrimaryButton } from "@/components/auth/auth-components";
-import { useWorkspaceProjects, useWorkspaceMembers } from "@/hooks/useProjects"; // Fixed import
-import { cn } from "@/lib/utils";
-import { useWorkspaceStore } from "@/store/workspace.store";
-import { Layout, Clock } from "lucide-react"; // Added some icons for the project cards
-import { ProjectType } from "@/services/projects.service";
 import CreateProjectModal from "@/components/modals/CreateProjectModal";
+import { useWorkspaceProjects } from "@/hooks/useProjects"; // Fixed import
+import { cn } from "@/lib/utils";
+import { ProjectType } from "@/services/projects.service";
+import { useWorkspaceStore } from "@/store/workspace.store";
+import { Clock, Layout } from "lucide-react"; // Added some icons for the project cards
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 export default function WorkspacePage() {
   const router = useRouter();
@@ -16,11 +16,9 @@ export default function WorkspacePage() {
 
   const [activeTab, setActiveTab] = useState("Projects");
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
+  const members = useWorkspaceStore((s) => s.workspaceMembers);
 
   const { data: projects, isLoading: projectsLoading } = useWorkspaceProjects(
-    activeWorkspace?.slug,
-  );
-  const { data: members, isLoading: membersLoading } = useWorkspaceMembers(
     activeWorkspace?.slug,
   );
 
@@ -28,7 +26,7 @@ export default function WorkspacePage() {
 
   const tabs = [
     { id: "Projects", count: projects?.length || 0, loading: projectsLoading },
-    { id: "Members", count: members?.length || 0, loading: membersLoading },
+    { id: "Members", count: members?.length || 0 },
   ];
 
   return (
