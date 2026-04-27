@@ -1,10 +1,10 @@
-interface BoardLabel {
+export interface BoardLabel {
   id: string;
   name: string;
   color: string;
 }
 
-interface BoardAssignee {
+export interface BoardAssignee {
   id: string;
   firstName: string;
   lastName: string;

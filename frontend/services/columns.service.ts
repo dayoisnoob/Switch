@@ -8,6 +8,14 @@ export const ColumnService = {
   updateOrder: async (columnId: string, order: number) => {
     return api.patch(`/columns/${columnId}/order`, { order });
   },
+
+  rename: async (columnId: string, name: string) => {
+    return api.patch(`/columns/${columnId}`, { name });
+  },
+
+  delete: async (columnId: string) => {
+    return api.delete(`/columns/${columnId}`);
+  },
 };
 
 export interface ColumnType {

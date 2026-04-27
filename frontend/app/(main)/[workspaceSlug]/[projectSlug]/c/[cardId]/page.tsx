@@ -1,9 +1,9 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { useBoard } from "@/hooks/useBoard";
-import { CardDetailModal } from "@/components/modals/CardDetailModal";
+import { useBoard } from "@/hooks/board";
 import { BoardCard, BoardColumn } from "@/types/board.types";
+import { CardDetailModal } from "@/components/board/card-detail/CardDetailModal";
 
 export default function FullPageCard() {
   const router = useRouter();
@@ -12,7 +12,7 @@ export default function FullPageCard() {
     projectSlug: string;
     cardId: string;
   };
-  const { data: board, isLoading } = useBoard(projectSlug);
+  const { data: board, isLoading } = useBoard(projectSlug, workspaceSlug);
 
   if (isLoading || !board) return <div className="min-h-screen bg-[#0b0e14]" />;
 
@@ -35,6 +35,8 @@ export default function FullPageCard() {
         onClose={() => router.push(`/${workspaceSlug}/${projectSlug}`)}
         card={card}
         columns={columns}
+        projectSlug={projectSlug}
+        workspaceSlug={workspaceSlug}
       />
     </div>
   );

@@ -1,18 +1,26 @@
 "use client";
 
-import { cn } from "@/lib/utils";
-import { GripHorizontal, MoreHorizontal, Plus } from "lucide-react";
+import { cn, getErrorMessage } from "@/lib/utils";
+import {
+  GripHorizontal,
+  MoreHorizontal,
+  Plus,
+  Edit2,
+  Trash2,
+} from "lucide-react";
 import { useParams } from "next/navigation";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import {
   useBoard,
   useCreateCard,
   useCreateColumn,
+  useDeleteColumn,
   useMoveCard,
+  useRenameColumn,
   useReorderColumn,
-} from "@/hooks/useBoard";
+} from "@/hooks/board";
 import { useProjectBySlug } from "@/hooks/useProjects";
 import {
   CollisionDetection,
@@ -41,7 +49,8 @@ import { CSS } from "@dnd-kit/utilities";
 
 import { BoardCard, BoardColumn, BoardState } from "@/types/board.types";
 import { CreateInput } from "@/components/board/CreateInput";
-import { CardDetailModal } from "@/components/modals/CardDetailModal";
+import { toast } from "sonner";
+import { useBoardStore } from "@/store/board.store";
 
 function findColumnInSnapshot(
   id: string,
@@ -74,7 +83,9 @@ export default function KanbanBoardPage() {
   const router = useRouter();
 
   const { data: project } = useProjectBySlug(projectSlug);
-  const { data: board, isLoading: isBoardLoading } = useBoard(projectSlug);
+  const { isLoading: isBoardLoading } = useBoard(projectSlug, workspaceSlug);
+
+  const board = useBoardStore((s) => s.board);
 
   const { mutate: moveCard } = useMoveCard();
   const { mutate: reorderColumn } = useReorderColumn();
@@ -380,6 +391,12 @@ function SortableColumn({
   setColumns: React.Dispatch<React.SetStateAction<BoardColumn[]>>;
   children: React.ReactNode;
 }) {
+  // --- NEW COLUMN MANAGEMENT STATE ---
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editTitle, setEditTitle] = useState(column.name);
+  const menuRef = useRef<HTMLDivElement>(null);
+
   const {
     setNodeRef,
     attributes,
@@ -393,11 +410,84 @@ function SortableColumn({
   });
 
   const { mutateAsync: createCard } = useCreateCard();
+  const { mutateAsync: renameCol } = useRenameColumn();
+  const { mutateAsync: deleteCol } = useDeleteColumn();
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.3 : 1,
+  };
+
+  // --- NEW: CLOSE MENU ON OUTSIDE CLICK ---
+  useEffect(() => {
+    const listener = (event: MouseEvent | TouchEvent) => {
+      if (!menuRef.current || menuRef.current.contains(event.target as Node)) {
+        return;
+      }
+      setIsMenuOpen(false);
+    };
+    document.addEventListener("mousedown", listener);
+    document.addEventListener("touchstart", listener);
+    return () => {
+      document.removeEventListener("mousedown", listener);
+      document.removeEventListener("touchstart", listener);
+    };
+  }, []);
+
+  // --- NEW: HANDLE RENAME SUBMIT ---
+  const handleRenameSubmit = () => {
+    setIsEditing(false);
+    const newTitle = editTitle.trim();
+
+    if (newTitle === "" || newTitle === column.name) {
+      setEditTitle(column.name);
+      return;
+    }
+
+    try {
+      renameCol({ columnId: column.id, name: newTitle });
+
+      setColumns((prevColumns) =>
+        prevColumns.map((col) => {
+          if (col.id === column.id) {
+            return { ...col, name: newTitle };
+          }
+          return col;
+        }),
+      );
+    } catch (err) {
+      const msg = getErrorMessage(err);
+      toast.error(msg || "Failed to rename column");
+      setEditTitle(column.name);
+    }
+  };
+
+  const handleDeleteColumn = () => {
+    setIsMenuOpen(false);
+    if (column.cards.length > 0) {
+      // TODO: create a small modal for confirmation
+      window.alert(
+        `Cannot delete "${column.name}". Please move or delete the ${column.cards.length} cards inside it first.`,
+      );
+      return;
+    }
+
+    const confirm = window.confirm(
+      `Are you sure you want to delete the empty column "${column.name}"?`,
+    );
+    if (!confirm) return;
+
+    try {
+      deleteCol({ columnId: column.id });
+
+      setColumns((prevColumns) =>
+        prevColumns.filter((col) => col.id !== column.id),
+      );
+    } catch (err) {
+      const msg = getErrorMessage(err);
+      toast.error(msg || "Failed to delete column");
+    }
   };
 
   return (
@@ -411,31 +501,83 @@ function SortableColumn({
         {...listeners}
         className="p-3.5 flex items-center justify-between border-b border-[#30363d]/50 bg-[#11141a] mb-2 cursor-grab active:cursor-grabbing hover:bg-[#161b22] transition-colors"
       >
-        <div className="flex items-center gap-2">
-          <GripHorizontal size={14} className="text-[#484f58] mr-1" />
-          <h3 className="text-sm font-semibold text-[#f0f6fc] select-none">
-            {column.name}
-          </h3>
-          <span className="text-xs text-[#8b949e] bg-[#1c2128] px-1.5 py-0.5 rounded-md ml-1 select-none">
-            {column.cards.length}
-          </span>
+        {/* HEADER LEFT SIDE: GRIP + TITLE/INPUT */}
+        <div className="flex items-center gap-2 flex-1 min-w-0 mr-2">
+          <GripHorizontal size={14} className="text-[#484f58] shrink-0" />
+
+          {isEditing ? (
+            <input
+              autoFocus
+              value={editTitle}
+              onChange={(e) => setEditTitle(e.target.value)}
+              onBlur={handleRenameSubmit}
+              onKeyDown={(e) => {
+                e.stopPropagation();
+                if (e.key === "Enter") handleRenameSubmit();
+                if (e.key === "Escape") {
+                  setEditTitle(column.name);
+                  setIsEditing(false);
+                }
+              }}
+              // CRUCIAL: Stop dragging when typing
+              onPointerDown={(e) => e.stopPropagation()}
+              className="bg-[#1c2128] text-sm font-semibold text-[#f0f6fc] px-2 py-0.5 rounded border border-[#58a6ff] focus:outline-none w-full"
+            />
+          ) : (
+            <>
+              <h3 className="text-sm font-semibold text-[#f0f6fc] select-none truncate">
+                {column.name}
+              </h3>
+              <span className="text-xs text-[#8b949e] bg-[#1c2128] px-1.5 py-0.5 rounded-md ml-1 select-none shrink-0">
+                {column.cards.length}
+              </span>
+            </>
+          )}
         </div>
 
-        {/* TODO: onClick → open a dropdown/context menu with:
-              - "Rename column"  → PATCH /projects/:projectSlug/columns/:columnId  body: { name }
-              - "Delete column"  → DELETE /projects/:projectSlug/columns/:columnId
-                                   On success: remove column from `columns` state
-                                   Consider: warn if column has cards */}
-        <button
-          className="text-[#8b949e] hover:text-[#f0f6fc] p-1 rounded-md hover:bg-[#1c2128] transition-colors"
-          onPointerDown={(e) => e.stopPropagation()}
-        >
-          <MoreHorizontal size={16} />
-        </button>
+        {/* HEADER RIGHT SIDE: MENU */}
+        <div className="relative shrink-0" ref={menuRef}>
+          <button
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            // CRUCIAL: Stop dragging when clicking the menu button
+            onPointerDown={(e) => e.stopPropagation()}
+            className="text-[#8b949e] hover:text-[#f0f6fc] p-1 rounded-md hover:bg-[#1c2128] transition-colors"
+          >
+            <MoreHorizontal size={16} />
+          </button>
+
+          {/* FLOATING MENU */}
+          {isMenuOpen && (
+            <div className="absolute right-0 top-full mt-1 w-40 bg-[#161b22] border border-[#30363d] rounded-md shadow-xl z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-100">
+              <div className="p-1 flex flex-col">
+                <button
+                  onClick={() => {
+                    setIsEditing(true);
+                    setIsMenuOpen(false);
+                  }}
+                  onPointerDown={(e) => e.stopPropagation()}
+                  className="flex items-center gap-2 px-2 py-2 text-sm text-[#c9d1d9] hover:bg-[#1c2128] hover:text-[#f0f6fc] rounded cursor-pointer transition-colors w-full text-left"
+                >
+                  <Edit2 size={14} /> Rename
+                </button>
+                <div className="h-px bg-[#30363d] my-1 mx-1" />
+                <button
+                  onClick={handleDeleteColumn}
+                  onPointerDown={(e) => e.stopPropagation()}
+                  className="flex items-center gap-2 px-2 py-2 text-sm text-red-400 hover:bg-[#1c2128] hover:text-red-300 rounded cursor-pointer transition-colors w-full text-left"
+                >
+                  <Trash2 size={14} /> Delete
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
+      {/* CHILDREN (CARDS) */}
       {children}
 
+      {/* CARD CREATION INPUT */}
       <div className="px-3 pt-3 mt-1">
         <CreateInput
           buttonText="Add Card"
@@ -536,10 +678,6 @@ function CardContent({
   onClick?: () => void;
 }) {
   return (
-    // TODO: onClick (non-drag click) → navigate to card detail or open card detail modal
-    // Route suggestion: /board/:projectSlug/card/:cardId  (parallel route or modal route)
-    // Make sure to suppress click during drag — check isDragging or use a pointerUp delta guard
-
     <div
       onClick={onClick}
       className={cn(

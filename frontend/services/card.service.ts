@@ -9,4 +9,15 @@ export const CardService = {
   moveCard: async (cardId: string, columnId: string, order: number) => {
     return api.patch(`/cards/${cardId}/move`, { columnId, order });
   },
+
+  update: async (cardId: string, data: CardUpdateType) => {
+    return api.patch(`/cards/${cardId}`, data);
+  },
 };
+
+export interface CardUpdateType {
+  title?: string;
+  description?: string;
+  priority?: string;
+  dueDate?: Date;
+}

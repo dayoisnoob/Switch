@@ -25,6 +25,7 @@ export class BoardService {
               columns: {
                 id: true,
                 title: true,
+                description: true,
                 priority: true,
                 dueDate: true,
                 coverImageUrl: true,

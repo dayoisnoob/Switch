@@ -68,3 +68,60 @@ export function slugify(text: string): string {
     .replace(/^-+/, "")
     .replace(/-+$/, "");
 }
+
+export const LABEL_COLORS = [
+  { hex: "#FF7070", classes: "bg-red-500/10 text-red-400 border-red-500/20" },
+  {
+    hex: "#4ABA85",
+    classes: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
+  },
+  {
+    hex: "#7C6EF5",
+    classes: "bg-violet-500/10 text-violet-400 border-violet-500/20",
+  },
+  {
+    hex: "#E5A23A",
+    classes: "bg-amber-500/10 text-amber-400 border-amber-500/20",
+  },
+  {
+    hex: "#60A5FA",
+    classes: "bg-blue-500/10 text-blue-400 border-blue-500/20",
+  },
+];
+
+// utils.ts or labels.ts
+const SEMANTIC_LABEL_COLORS: Record<string, string> = {
+  bug: "#FF7070",
+  error: "#FF7070",
+  fix: "#FF7070",
+  feature: "#7C6EF5",
+  enhancement: "#7C6EF5",
+  design: "#E5A23A",
+  ui: "#E5A23A",
+  docs: "#60A5FA",
+  documentation: "#60A5FA",
+  test: "#4ABA85",
+  testing: "#4ABA85",
+  urgent: "#FF7070",
+  blocked: "#FF7070",
+  chore: "#94A3B8",
+};
+
+export const pickLabelColor = (
+  name: string,
+  existingColors: string[],
+): string => {
+  // Check semantic match first
+  const semantic = SEMANTIC_LABEL_COLORS[name.toLowerCase().trim()];
+  if (semantic && !existingColors.includes(semantic)) return semantic;
+
+  // Fall back to first color not already used
+  const available = LABEL_COLORS.filter((c) => !existingColors.includes(c.hex));
+  const pool = available.length > 0 ? available : LABEL_COLORS; // reset if all used
+
+  return pool[Math.floor(Math.random() * pool.length)].hex;
+};
+
+export const getLabelClasses = (hex: string) =>
+  LABEL_COLORS.find((c) => c.hex === hex)?.classes ??
+  "bg-zinc-500/10 text-zinc-400 border-zinc-500/20";

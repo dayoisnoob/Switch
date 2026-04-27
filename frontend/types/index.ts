@@ -4,7 +4,7 @@
 // Keep them here. Every component imports from this file, never from the API.
 // ─────────────────────────────────────────────────────────────────────────────
 
-export type Priority = "none" | "low" | "medium" | "high" | "urgent";
+export type PriorityEnum = "none" | "low" | "medium" | "high" | "urgent";
 export type WorkspaceRole = "owner" | "admin" | "member";
 
 export interface User {
@@ -48,7 +48,7 @@ export interface Card {
   boardId: string;
   title: string;
   description: string | null;
-  priority: Priority;
+  priority: PriorityEnum;
   dueDate: string | null;
   coverImageUrl: string | null;
   order: number;

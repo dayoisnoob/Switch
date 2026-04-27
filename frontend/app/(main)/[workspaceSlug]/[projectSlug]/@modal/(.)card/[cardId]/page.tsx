@@ -1,18 +1,19 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { useBoard } from "@/hooks/useBoard";
-import { CardDetailModal } from "@/components/modals/CardDetailModal";
+import { useBoard } from "@/hooks/board";
+import { CardDetailModal } from "@/components/board/card-detail/CardDetailModal";
 import { BoardCard, BoardColumn } from "@/types/board.types";
 
 export default function InterceptedCardModal() {
   const router = useRouter();
-  const { projectSlug, cardId } = useParams() as {
+  const { workspaceSlug, projectSlug, cardId } = useParams() as {
+    workspaceSlug: string;
     projectSlug: string;
     cardId: string;
   };
 
-  const { data: board, isLoading } = useBoard(projectSlug);
+  const { data: board, isLoading } = useBoard(projectSlug, workspaceSlug);
 
   if (isLoading || !board) return null;
 
@@ -29,6 +30,8 @@ export default function InterceptedCardModal() {
       onClose={() => router.back()}
       card={card}
       columns={columns}
+      projectSlug={projectSlug}
+      workspaceSlug={workspaceSlug}
     />
   );
 }

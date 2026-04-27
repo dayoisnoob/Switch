@@ -9,7 +9,7 @@ import type {
 
 export class LabelService {
   static async createLabel(workspaceId: string, data: CreateLabelType) {
-    const { name, color } = data;
+    const { name, colour } = data;
 
     const [existing] = await db
       .select({ id: labelsTable.id })
@@ -33,23 +33,26 @@ export class LabelService {
       .values({
         workspaceId,
         name,
-        color,
+        colour,
       })
       .returning();
 
     if (!label)
       throw new ApiError(500, 'Error creating label. Please try again.');
 
-    return label;
+    return {
+      id: label.id,
+      name: label.name,
+      colour: label.colour,
+    };
   }
 
   static async listLabels(workspaceId: string) {
     const labels = await db
       .select({
         id: labelsTable.id,
-        workspaceId: labelsTable.workspaceId,
         name: labelsTable.name,
-        color: labelsTable.color,
+        color: labelsTable.colour,
       })
       .from(labelsTable)
       .where(eq(labelsTable.workspaceId, workspaceId));
@@ -62,7 +65,7 @@ export class LabelService {
     labelId: string,
     data: UpdateLabelType
   ) {
-    const { name, color } = data;
+    const { name, colour } = data;
 
     if (name) {
       const [sameName] = await db
@@ -88,7 +91,7 @@ export class LabelService {
       .update(labelsTable)
       .set({
         ...(name !== undefined && { name }),
-        ...(color !== undefined && { color }),
+        ...(colour !== undefined && { colour }),
       })
       .where(eq(labelsTable.id, labelId))
       .returning();

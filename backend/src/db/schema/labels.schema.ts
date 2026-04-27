@@ -17,7 +17,7 @@ export const labelsTable = pgTable(
       .notNull()
       .references(() => workspacesTable.id, { onDelete: 'cascade' }),
     name: varchar('name', { length: 50 }).notNull(),
-    color: varchar('color', { length: 7 }).notNull(),
+    colour: varchar('colour', { length: 7 }).notNull(),
     createdAt: timestamp('created_at').notNull().defaultNow(),
   },
   (t) => [index('labels_workspace_id_idx').on(t.workspaceId)]

@@ -15,14 +15,14 @@ export function useCreateWorkspace(onSuccess?: () => void) {
     setLoading(true);
 
     try {
-      const res = await WorkspaceService.createWorkspace(name);
+      const workspace = await WorkspaceService.createWorkspace(name);
 
-      setWorkspaces([...workspaces, res]);
-      setActiveWorkspace(res);
+      setWorkspaces([...workspaces, workspace]);
+      setActiveWorkspace(workspace);
 
       toast.success("Workspace was successfully created");
       if (onSuccess) onSuccess();
-      router.push(`/workspace/${res.id}`);
+      router.push(`/workspace/${workspace.id}`);
     } catch (err) {
       const message = getErrorMessage(err);
       toast.error(message);

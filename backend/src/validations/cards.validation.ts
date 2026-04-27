@@ -10,7 +10,7 @@ export const updateCardSchema = z.object({
   title: z.string().max(50).trim().optional(),
   description: z.string().trim().optional(),
   priority: z.enum(['none', 'low', 'medium', 'high', 'urgent']).optional(),
-  dueDate: z.date().optional(),
+  dueDate: z.coerce.date().optional(),
 });
 
 export const moveCardSchema = z.object({

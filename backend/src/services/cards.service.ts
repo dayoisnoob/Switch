@@ -234,9 +234,6 @@ export class CardsService {
   ) {
     const { columnId, order } = data;
 
-    console.log(cardId);
-    console.log(data);
-
     const [column] = await db
       .select({ id: columnsTable.id })
       .from(columnsTable)
