@@ -40,12 +40,10 @@
 }
 
 @layer components {
-  /* Typography */
   .font-display {
     font-family: "Syne", sans-serif;
   }
 
-  /* Focus ring — consistent across all interactive elements */
   .focus-ring {
     @apply outline-none ring-0;
     @apply focus-visible:ring-2 focus-visible:ring-[--accent] focus-visible:ring-offset-1 focus-visible:ring-offset-[--base];
@@ -53,7 +51,6 @@
 }
 
 @layer utilities {
-  /* Surface shorthands — use these instead of raw bg colors */
   .bg-base {
     background-color: var(--base);
   }
@@ -67,7 +64,6 @@
     background-color: var(--overlay);
   }
 
-  /* Text shorthands */
   .text-primary {
     color: var(--text-primary);
   }
@@ -78,7 +74,6 @@
     color: var(--text-muted);
   }
 
-  /* Border shorthands */
   .border-base {
     border-color: var(--border);
   }
@@ -89,7 +84,6 @@
     border-color: var(--border-lg);
   }
 
-  /* Accent */
   .text-accent {
     color: var(--accent);
   }
@@ -211,4 +205,28 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: oklch(1 0 0 / 10%); /* Matches your dark mode --border! */
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #7c6ef5; /* Your purple accent */
+}
+
+/* For Firefox compatibility */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: oklch(1 0 0 / 10%) transparent;
 }

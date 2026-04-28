@@ -1,5 +1,18 @@
 import { api } from "@/lib/api";
 
+export interface CardComment {
+  id: string;
+  content: string;
+  isEdited: boolean;
+  createdAt: string;
+  author: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    avatarUrl?: string;
+  };
+}
+
 export const CommentService = {
   create: async (cardId: string, content: string): Promise<CardComment> => {
     return api.post(`/cards/${cardId}/comments`, { content });
@@ -17,16 +30,3 @@ export const CommentService = {
     return api.delete(`/comments/${commentId}`);
   },
 };
-
-export interface CardComment {
-  id: string;
-  content: string;
-  isEdited: boolean;
-  createdAt: string;
-  author: {
-    id: string;
-    firstName: string;
-    lastName: string;
-    avatarUrl?: string;
-  };
-}

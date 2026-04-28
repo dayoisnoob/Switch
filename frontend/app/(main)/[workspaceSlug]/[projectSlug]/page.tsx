@@ -195,6 +195,7 @@ export default function KanbanBoardPage() {
 
       const activeId = active.id as string;
       const overId = over.id as string;
+
       const isCrossColumn =
         targetColumnIdRef.current !== null &&
         targetColumnIdRef.current !== sourceColumnIdRef.current;
@@ -203,23 +204,25 @@ export default function KanbanBoardPage() {
 
       const isActiveColumn = active.data.current?.type === "Column";
 
+      // ── 1. COLUMN REORDERING ──
       if (isActiveColumn) {
-        setColumns((prev) => {
-          const fromIndex = prev.findIndex((c) => c.id === activeId);
-          const toIndex = prev.findIndex((c) => c.id === overId);
-          const reordered = arrayMove(prev, fromIndex, toIndex);
+        // Calculate the new order using your current `columns` state
+        const fromIndex = columns.findIndex((c) => c.id === activeId);
+        const toIndex = columns.findIndex((c) => c.id === overId);
+        const reordered = arrayMove(columns, fromIndex, toIndex);
 
-          const prevOrder = reordered[toIndex - 1]?.order ?? 0;
-          const nextOrder = reordered[toIndex + 1]?.order ?? prevOrder + 2;
-          const newOrder = (prevOrder + nextOrder) / 2;
+        const prevOrder = reordered[toIndex - 1]?.order ?? 0;
+        const nextOrder = reordered[toIndex + 1]?.order ?? prevOrder + 2;
+        const newOrder = (prevOrder + nextOrder) / 2;
 
-          reorderColumn(
-            { columnId: activeId, order: newOrder },
-            { onError: () => setColumns(prev) },
-          );
+        // 1. Update UI instantly (Pure)
+        setColumns(reordered);
 
-          return reordered;
-        });
+        // 2. Fire API exactly once (Side Effect)
+        reorderColumn(
+          { columnId: activeId, order: newOrder },
+          { onError: () => setColumns(columns) }, // Rollback on error
+        );
         return;
       }
 
@@ -227,55 +230,58 @@ export default function KanbanBoardPage() {
       sourceColumnIdRef.current = null;
       targetColumnIdRef.current = null;
 
+      // ── 2. CROSS-COLUMN CARD DRAG ──
       if (isCrossColumn) {
-        setColumns((prev) => {
-          const targetCol = prev.find((c) => c.id === targetColId);
-          if (!targetCol) return prev;
+        const targetCol = columns.find((c) => c.id === targetColId);
+        if (!targetCol) return;
 
-          const cardIndex = targetCol.cards.findIndex((c) => c.id === activeId);
-          const prevOrder = targetCol.cards[cardIndex - 1]?.order ?? 0;
-          const nextOrder =
-            targetCol.cards[cardIndex + 1]?.order ?? prevOrder + 2;
-          const newOrder = (prevOrder + nextOrder) / 2;
+        const cardIndex = targetCol.cards.findIndex((c) => c.id === activeId);
+        const prevOrder = targetCol.cards[cardIndex - 1]?.order ?? 0;
+        const nextOrder =
+          targetCol.cards[cardIndex + 1]?.order ?? prevOrder + 2;
+        const newOrder = (prevOrder + nextOrder) / 2;
 
-          moveCard(
-            { cardId: activeId, columnId: targetColId!, order: newOrder },
-            { onError: () => setColumns(prev) },
-          );
+        // Note: dnd-kit usually handles the actual cross-column array mutation
+        // in `onDragOver`, so we don't need to call setColumns here!
 
-          return prev;
-        });
+        // Fire API exactly once
+        moveCard(
+          { cardId: activeId, columnId: targetColId!, order: newOrder },
+          { onError: () => setColumns(columns) },
+        );
         return;
       }
 
-      setColumns((prev) => {
-        const activeCol = findColumnInSnapshot(activeId, prev);
-        const overCol = findColumnInSnapshot(overId, prev);
-        if (!activeCol || !overCol) return prev;
+      // ── 3. SAME-COLUMN CARD DRAG ──
+      const activeCol = findColumnInSnapshot(activeId, columns);
+      const overCol = findColumnInSnapshot(overId, columns);
+      if (!activeCol || !overCol) return;
 
-        const fromIndex = activeCol.cards.findIndex((c) => c.id === activeId);
-        const toIndex = overCol.cards.findIndex((c) => c.id === overId);
-        if (fromIndex === toIndex) return prev;
+      const fromIndex = activeCol.cards.findIndex((c) => c.id === activeId);
+      const toIndex = overCol.cards.findIndex((c) => c.id === overId);
+      if (fromIndex === toIndex) return;
 
-        const reordered = prev.map((col) => {
-          if (col.id !== activeCol.id) return col;
-          return { ...col, cards: arrayMove(col.cards, fromIndex, toIndex) };
-        });
-
-        const updatedCol = reordered.find((c) => c.id === activeCol.id)!;
-        const prevOrder = updatedCol.cards[toIndex - 1]?.order ?? 0;
-        const nextOrder = updatedCol.cards[toIndex + 1]?.order ?? prevOrder + 2;
-        const newOrder = (prevOrder + nextOrder) / 2;
-
-        moveCard(
-          { cardId: activeId, columnId: activeCol.id, order: newOrder },
-          { onError: () => setColumns(prev) },
-        );
-
-        return reordered;
+      const reorderedCols = columns.map((col) => {
+        if (col.id !== activeCol.id) return col;
+        return { ...col, cards: arrayMove(col.cards, fromIndex, toIndex) };
       });
+
+      const updatedCol = reorderedCols.find((c) => c.id === activeCol.id)!;
+      const prevOrder = updatedCol.cards[toIndex - 1]?.order ?? 0;
+      const nextOrder = updatedCol.cards[toIndex + 1]?.order ?? prevOrder + 2;
+      const newOrder = (prevOrder + nextOrder) / 2;
+
+      // 1. Update UI instantly (Pure)
+      setColumns(reorderedCols);
+
+      // 2. Fire API exactly once (Side Effect)
+      moveCard(
+        { cardId: activeId, columnId: activeCol.id, order: newOrder },
+        { onError: () => setColumns(columns) },
+      );
     },
-    [reorderColumn, moveCard],
+    // IMPORTANT: Make sure `columns` is in your dependency array so it has the freshest data!
+    [columns, reorderColumn, moveCard],
   );
 
   return (

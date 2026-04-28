@@ -57,8 +57,12 @@ export function useMoveCard() {
       toast.error("Failed to move card");
     },
 
-    onSettled: () => {
+    onSettled: (cardId) => {
       queryClient.invalidateQueries({ queryKey: ["board"] });
+      queryClient.invalidateQueries({ queryKey: ["card", cardId] });
+      queryClient.invalidateQueries({
+        queryKey: ["activities", cardId],
+      });
     },
   });
 }

@@ -25,6 +25,7 @@ import labelsRouter from './routes/labels.routes.ts';
 import commentsRouter from './routes/comments.routes.ts';
 import attachmentsRouter from './routes/attachments.routes.ts';
 import notificationsRouter from './routes/notifications.routes.ts';
+import activityRouter from './routes/activity.routes.ts';
 
 const swaggerDocument = JSON.parse(
   readFileSync(join(process.cwd(), 'swagger-output.json'), 'utf8')
@@ -82,6 +83,8 @@ app.use('/api/v1/labels', labelsRouter);
 
 app.use('/api/v1/cards/:cardId/comments', commentsRouter);
 app.use('/api/v1/comments', commentsRouter);
+
+app.use('/api/v1/cards/:cardId/activities', activityRouter);
 
 app.use('/api/v1/cards/:cardId/attachments', attachmentsRouter);
 app.use('/api/v1/attachments', attachmentsRouter);

@@ -30,6 +30,6 @@ export const CardService = {
 export interface CardUpdateType {
   title?: string;
   description?: string;
-  priority?: string;
+  priority?: "none" | "low" | "medium" | "high" | "urgent";
   dueDate?: Date;
 }

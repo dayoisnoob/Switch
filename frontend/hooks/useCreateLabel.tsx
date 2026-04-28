@@ -57,6 +57,10 @@ export const useCreateLabel = (card: BoardCard, workspaceSlug: string) => {
         queryKey: ["workspaceLabels", workspaceSlug],
       });
       queryClient.invalidateQueries({ queryKey: ["card", card.id] });
+      queryClient.invalidateQueries({
+        queryKey: ["activities", card.id],
+      });
+
       toast.success("Label created and attached");
     },
   });

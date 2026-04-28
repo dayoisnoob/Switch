@@ -72,6 +72,7 @@ export function useToggleAssignee(card: BoardCard) {
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["card", card.id] });
       queryClient.invalidateQueries({ queryKey: ["members", card.id] });
+      queryClient.invalidateQueries({ queryKey: ["activities", card.id] });
     },
   });
 }

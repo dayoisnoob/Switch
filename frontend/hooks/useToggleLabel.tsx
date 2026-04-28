@@ -54,6 +54,7 @@ const useToggleLabel = (card: BoardCard) => {
 
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["card", card.id] });
+      queryClient.invalidateQueries({ queryKey: ["activities", card.id] });
     },
   });
 };

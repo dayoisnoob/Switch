@@ -5,6 +5,8 @@ import {
   cardLabelsTable,
   cardsTable,
   columnsTable,
+  labelsTable,
+  usersTable,
   workspaceMembershipsTable,
 } from '../db';
 import { ApiError } from '../utils/api-response';
@@ -211,13 +213,6 @@ export class CardsService {
     if (!deletedCard)
       throw new ApiError(500, 'Error deleting card. Please try again.');
 
-    await ActivityService.log({
-      type: 'card_deleted',
-      userId,
-      projectId,
-      metadata: { title: deletedCard.title },
-    });
-
     emitBoardEvent(deletedCard.boardId, 'card:deleted', {
       cardId,
       columnId: deletedCard.columnId,
@@ -234,8 +229,17 @@ export class CardsService {
   ) {
     const { columnId, order } = data;
 
+    const [oldCol] = await db
+      .select({ name: columnsTable.name })
+      .from(cardsTable)
+      .innerJoin(columnsTable, eq(cardsTable.columnId, columnsTable.id))
+      .where(eq(cardsTable.id, cardId))
+      .limit(1);
+
+    if (!oldCol) throw new ApiError(404, 'Failed to determine previous column');
+
     const [column] = await db
-      .select({ id: columnsTable.id })
+      .select({ name: columnsTable.name })
       .from(columnsTable)
       .where(eq(columnsTable.id, columnId))
       .limit(1);
@@ -258,7 +262,7 @@ export class CardsService {
       userId,
       projectId,
       cardId,
-      metadata: { columnId: updatedCard.columnId },
+      metadata: { from: oldCol.name, to: column?.name },
     });
 
     emitBoardEvent(updatedCard.boardId, 'card:moved', {
@@ -270,42 +274,58 @@ export class CardsService {
     return;
   }
 
-  static async assignUser(projectId: string, cardId: string, userId: string) {
+  static async assignUser(
+    userId: string,
+    assigneeId: string,
+    projectId: string,
+    cardId: string
+  ) {
     const [existing] = await db
       .select({ id: cardAssigneesTable.id })
       .from(cardAssigneesTable)
       .where(
         and(
           eq(cardAssigneesTable.cardId, cardId),
-          eq(cardAssigneesTable.userId, userId)
+          eq(cardAssigneesTable.userId, assigneeId)
         )
       )
       .limit(1);
 
     if (existing)
       throw new ApiError(409, 'User is already assigned to this card.');
-    console.log('assigning...');
 
     const [assignee] = await db
       .insert(cardAssigneesTable)
-      .values({ cardId, userId })
+      .values({ cardId, userId: assigneeId })
       .returning();
 
-    console.log('already assigned');
     if (!assignee)
       throw new ApiError(500, 'Error assigning user. Please try again.');
+
+    const [user] = await db
+      .select({
+        firstName: usersTable.firstName,
+        lastName: usersTable.lastName,
+      })
+      .from(usersTable)
+      .where(eq(usersTable.id, assignee.userId))
+      .limit(1);
+
+    if (!user) throw new ApiError(404, 'Could not find this assignee');
+
+    const assigneeName = `${user?.firstName} ${user?.lastName}`;
 
     await ActivityService.log({
       type: 'assignee_added',
       userId,
       projectId,
       cardId,
-      metadata: { userId: assignee.userId },
+      metadata: { assigneeName },
     });
 
     await NotificationService.create({
       type: 'card_assigned',
-      userId: assignee.userId,
+      userId: assigneeId,
       title: 'You were assigned to a card',
       body: `You have been assigned to a card.`,
       entityId: cardId,
@@ -315,25 +335,43 @@ export class CardsService {
     return assignee;
   }
 
-  static async unassignUser(projectId: string, cardId: string, userId: string) {
+  static async unassignUser(
+    userId: string,
+    assigneeId: string,
+    projectId: string,
+    cardId: string
+  ) {
     const [assignee] = await db
       .delete(cardAssigneesTable)
       .where(
         and(
           eq(cardAssigneesTable.cardId, cardId),
-          eq(cardAssigneesTable.userId, userId)
+          eq(cardAssigneesTable.userId, assigneeId)
         )
       )
       .returning();
 
     if (!assignee) throw new ApiError(404, 'Assignee not found.');
 
+    const [user] = await db
+      .select({
+        firstName: usersTable.firstName,
+        lastName: usersTable.lastName,
+      })
+      .from(usersTable)
+      .where(eq(usersTable.id, assignee.userId))
+      .limit(1);
+
+    if (!user) throw new ApiError(404, 'Could not find this assignee');
+
+    const assigneeName = `${user?.firstName} ${user?.lastName}`;
+
     await ActivityService.log({
       type: 'assignee_removed',
       userId,
       projectId,
       cardId,
-      metadata: { userId: assignee.userId },
+      metadata: { assigneeName },
     });
 
     return assignee;
@@ -367,12 +405,22 @@ export class CardsService {
     if (!label)
       throw new ApiError(500, 'Error attaching label. Please try again.');
 
+    const [labelData] = await db
+      .select({
+        name: labelsTable.name,
+      })
+      .from(labelsTable)
+      .where(eq(labelsTable.id, label.labelId))
+      .limit(1);
+
+    if (!labelData) throw new ApiError(404, 'Could not find this label');
+
     await ActivityService.log({
       type: 'label_added',
       userId,
       projectId,
       cardId,
-      metadata: { labelId },
+      metadata: { labelName: labelData.name },
     });
 
     return label;
@@ -384,6 +432,16 @@ export class CardsService {
     cardId: string,
     labelId: string
   ) {
+    const [labelData] = await db
+      .select({
+        name: labelsTable.name,
+      })
+      .from(labelsTable)
+      .where(eq(labelsTable.id, labelId))
+      .limit(1);
+
+    if (!labelData) throw new ApiError(404, 'Could not find this label');
+
     const [label] = await db
       .delete(cardLabelsTable)
       .where(
@@ -402,7 +460,7 @@ export class CardsService {
       userId,
       projectId,
       cardId,
-      metadata: { labelId },
+      metadata: { labelName: labelData.name },
     });
 
     return { message: 'Label removed successfully', label };
