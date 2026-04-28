@@ -22,6 +22,14 @@ router.post(
   asyncHandler(CommentController.createComment)
 );
 
+router.get(
+  '/',
+  authenticate,
+  validateUrlParams(paramsSchema),
+  requireWorkspaceMember,
+  asyncHandler(CommentController.fetchComments)
+);
+
 router.patch(
   '/:commentId',
   authenticate,

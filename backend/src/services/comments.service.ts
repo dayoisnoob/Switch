@@ -1,4 +1,4 @@
-import { and, eq } from 'drizzle-orm';
+import { and, desc, eq } from 'drizzle-orm';
 import { db } from '../config/db';
 import { cardAssigneesTable, commentsTable, usersTable } from '../db';
 import { ApiError } from '../utils/api-response';
@@ -29,6 +29,7 @@ export class CommentService {
 
     const [user] = await db
       .select({
+        id: usersTable.id,
         firstName: usersTable.firstName,
         lastName: usersTable.lastName,
         avatarUrl: usersTable.avatarUrl,
@@ -74,11 +75,43 @@ export class CommentService {
       isEdited: comment.isEdited,
       createdAt: comment.createdAt,
       author: {
+        id: user?.id,
         firstName: user?.firstName,
         lastName: user?.lastName,
         avatarUrl: user?.avatarUrl,
       },
     };
+  }
+
+  static async fetchComments(cardId: string) {
+    const comments = await db
+      .select({
+        id: commentsTable.id,
+        content: commentsTable.content,
+        isEdited: commentsTable.isEdited,
+        createdAt: commentsTable.createdAt,
+        userId: usersTable.id,
+        firstName: usersTable.firstName,
+        lastName: usersTable.lastName,
+        avatarUrl: usersTable.avatarUrl,
+      })
+      .from(commentsTable)
+      .innerJoin(usersTable, eq(commentsTable.userId, usersTable.id))
+      .orderBy(desc(commentsTable.createdAt))
+      .where(eq(commentsTable.cardId, cardId));
+
+    return comments.map((c) => ({
+      id: c.id,
+      content: c.content,
+      isEdited: c.isEdited,
+      createdAt: c.createdAt,
+      author: {
+        id: c.userId,
+        firstName: c.firstName,
+        lastName: c.lastName,
+        avatarUrl: c.avatarUrl,
+      },
+    }));
   }
 
   static async editComment(

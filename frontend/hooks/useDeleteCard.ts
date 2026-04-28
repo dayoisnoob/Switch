@@ -16,7 +16,6 @@ export function useDeleteCard(cardId: string, columnId: string) {
 
     onError: () => {
       queryClient.invalidateQueries({ queryKey: ["board"] });
-
       toast.error("Failed to delete card");
     },
     onSuccess: () => {

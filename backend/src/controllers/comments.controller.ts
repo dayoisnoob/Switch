@@ -23,6 +23,13 @@ export class CommentController {
       .json(new ApiResponse(200, 'Comment added successfully', comment));
   }
 
+  static async fetchComments(req: AuthenticatedRequest, res: Response) {
+    const cardId = req.params.cardId as string;
+    const comments = await CommentService.fetchComments(cardId);
+
+    res.json(new ApiResponse(200, 'Comments fetched successfully', comments));
+  }
+
   static async editComment(req: AuthenticatedRequest, res: Response) {
     const userId = req.user.id;
 
