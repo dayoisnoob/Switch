@@ -182,7 +182,11 @@ export class CardsService {
       throw new ApiError(500, 'Error updating card. Please try again.');
 
     await ActivityService.log({
-      type: 'card_updated',
+      type: priority
+        ? 'priority_changed'
+        : dueDate
+          ? 'due_date_set'
+          : 'card_updated',
       userId,
       projectId,
       cardId: updatedCard.id,
@@ -191,7 +195,7 @@ export class CardsService {
         ...(description !== undefined && {
           description: updatedCard.description,
         }),
-        ...(priority !== undefined && { to: updatedCard.priority }),
+        ...(priority !== undefined && { priority: updatedCard.priority }),
         ...(dueDate !== undefined && { dueDate: updatedCard.dueDate }),
       },
     });

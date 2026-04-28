@@ -125,10 +125,7 @@ export function CardDetailModal({
             />
           )}
           <div className="absolute inset-0 bg-gradient-to-b from-black/10 to-black/35" />
-          <div className="relative z-10 flex items-center justify-between h-full px-6">
-            <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-white/75">
-              {currentColumn?.name ?? "Unknown"}
-            </span>
+          <div className="relative z-10 flex items-center justify-end h-full px-6">
             <div className="flex items-center gap-1">
               <button
                 onClick={() => coverInputRef.current?.click()}
@@ -177,9 +174,9 @@ export function CardDetailModal({
               />
               {currentColumn?.name ?? "Unknown"}
             </span>
-            <span className="text-[10px] text-white/25 font-mono">
+            {/* <span className="text-[10px] text-white/25 font-mono">
               #{card.id.slice(0, 6)}
-            </span>
+            </span> */}
           </div>
         </div>
 
@@ -284,7 +281,6 @@ export function CardDetailModal({
             </section>
           </div>
 
-          {/* RIGHT: sidebar */}
           <CardSidebar
             card={activeCard}
             columns={columns}

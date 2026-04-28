@@ -5,7 +5,7 @@ import { formatDistanceToNow } from "date-fns";
 
 export function ActivityTab({ cardId }: { cardId: string }) {
   // Use your actual data hook here!
-  const { data: activities = [], isLoading } = useGetActivities(cardId);
+  const { data: activities = [] } = useGetActivities(cardId);
 
   console.log(activities);
 

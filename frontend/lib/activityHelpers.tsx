@@ -122,6 +122,8 @@ export const getActivityConfig = (type: string) => {
 export const renderActivityText = (activity: CardActivity) => {
   const meta = activity.metadata || {};
 
+  console.log(meta.priority);
+
   switch (activity.type) {
     case "card_created":
       return "created this card";
@@ -168,15 +170,21 @@ export const renderActivityText = (activity: CardActivity) => {
     case "label_added":
       return (
         <>
-          added the{" "}
-          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-white/10 text-white/80">
+          attached a label:{" "}
+          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-md font-bold  tracking-wider bg-white/10 text-white/80">
             {meta.labelName || "label"}
           </span>{" "}
-          label
         </>
       );
     case "label_removed":
-      return `removed the ${meta.labelName || "label"} label`;
+      return (
+        <>
+          removed a label:{" "}
+          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-md font-bold  tracking-wider bg-white/10 text-white/80">
+            {meta.labelName || "label"}
+          </span>{" "}
+        </>
+      );
 
     case "attachment_added":
       return `attached ${meta.fileName || "a file"}`;
@@ -184,7 +192,6 @@ export const renderActivityText = (activity: CardActivity) => {
       return `removed ${meta.fileName || "an attachment"}`;
 
     case "due_date_set":
-      // Formats it like "Apr 28, 2026"
       const dateString = meta.dueDate
         ? format(new Date(meta.dueDate), "MMM d, yyyy")
         : "a new date";
