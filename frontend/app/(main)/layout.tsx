@@ -5,6 +5,7 @@ import CreateWorkspaceModal from "@/components/modals/CreateWorkspaceModal";
 import { useLogout, useMe } from "@/hooks/useAuth";
 import { cn, getErrorMessage } from "@/lib/utils";
 import { WorkspaceService } from "@/services/workspace.service";
+import { useAuthStore } from "@/store/auth.store";
 import { useWorkspaceStore } from "@/store/workspace.store";
 import {
   Bell,
@@ -33,10 +34,14 @@ export default function MainLayout({ children }: { children: ReactNode }) {
   const workspaces = useWorkspaceStore((s) => s.workspaces);
   const activeWorkspace = useWorkspaceStore((s) => s.activeWorkspace);
   const syncMembers = useWorkspaceStore((s) => s.syncMembers);
-  const workspaceMembers = useWorkspaceStore((s) => s.workspaceMembers);
+  const setUser = useAuthStore((s) => s.setUser);
 
   const { data: user, isLoading } = useMe();
   const logout = useLogout();
+
+  useEffect(() => {
+    if (user) setUser(user);
+  }, [user, setUser]);
 
   useEffect(() => {
     const init = async () => {
@@ -53,7 +58,7 @@ export default function MainLayout({ children }: { children: ReactNode }) {
       }
     };
     init();
-  }, [activeWorkspace, setActiveWorkspace, setWorkspaces]);
+  }, []);
 
   useEffect(() => {
     if (activeWorkspace?.slug) {
@@ -150,7 +155,9 @@ export default function MainLayout({ children }: { children: ReactNode }) {
           </div>
           <div className="space-y-0.5">
             {workspaces.map((ws) => {
-              const isSelected = activeWorkspace?.id === ws.id;
+              const isSelected =
+                activeWorkspace?.id === ws.id &&
+                pathname.startsWith(`/${ws.slug}`);
               return (
                 <button
                   key={ws.id}

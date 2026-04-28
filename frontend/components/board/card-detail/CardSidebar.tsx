@@ -1,11 +1,10 @@
 "use client";
 
 import { useClickOutside } from "@/hooks/board/index"; // <-- Imported click outside hook
+import { useCreateLabel } from "@/hooks/useCreateLabel";
 import { useToggleAssignee } from "@/hooks/useToggleAssignee";
+import useToggleLabel from "@/hooks/useToggleLabel";
 import { useUpdateCard } from "@/hooks/useUpdateCard";
-import { pickLabelColor } from "@/lib/utils";
-import { LabelService } from "@/services/labels.service";
-import { useBoardStore } from "@/store/board.store";
 import { useWorkspaceStore } from "@/store/workspace.store";
 import { PriorityEnum } from "@/types";
 import {
@@ -14,13 +13,15 @@ import {
   BoardColumn,
   BoardLabel,
 } from "@/types/board.types";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Calendar, Check, Circle, Flag, Plus, Trash2 } from "lucide-react"; // <-- Added Check icon
 import Image from "next/image";
 import { useRef, useState } from "react";
-import { toast } from "sonner";
 import { SidebarDropdown } from "./SidebarDropdown";
 import { SidebarLabelDropdown } from "./SidebarLabels";
+import { PRIORITY_COLOR, PRIORITY_OPTIONS } from "@/lib/constants";
+import { useMoveCard } from "@/hooks/useMoveCard";
+import { useDeleteCard } from "@/hooks/useDeleteCard";
+import { useRouter } from "next/navigation";
 
 interface CardSidebarProps {
   card: BoardCard;
@@ -28,43 +29,8 @@ interface CardSidebarProps {
   currentColumn: BoardColumn | undefined;
   workspaceLabels: BoardLabel[];
   workspaceSlug: string;
+  projectSlug: string;
 }
-
-const PRIORITY_OPTIONS = [
-  { label: "No Priority", value: "none", icon: <Flag size={13} /> },
-  {
-    label: "Low",
-    value: "low",
-    icon: <Flag size={13} />,
-    colorClass: "text-blue-400",
-  },
-  {
-    label: "Medium",
-    value: "medium",
-    icon: <Flag size={13} />,
-    colorClass: "text-yellow-400",
-  },
-  {
-    label: "High",
-    value: "high",
-    icon: <Flag size={13} />,
-    colorClass: "text-orange-400",
-  },
-  {
-    label: "Urgent",
-    value: "urgent",
-    icon: <Flag size={13} />,
-    colorClass: "text-red-400",
-  },
-];
-
-const PRIORITY_COLOR: Record<string, string> = {
-  urgent: "text-red-400",
-  high: "text-orange-400",
-  medium: "text-yellow-400",
-  low: "text-blue-400",
-  none: "text-white/40",
-};
 
 export function CardSidebar({
   card,
@@ -72,8 +38,9 @@ export function CardSidebar({
   currentColumn,
   workspaceLabels,
   workspaceSlug,
+  projectSlug,
 }: CardSidebarProps) {
-  const queryClient = useQueryClient();
+  // TODO: use mutation for remaining api operations and use optimistic ui in zustand store
   const [localPriority, setLocalPriority] = useState<PriorityEnum>(
     card.priority,
   );
@@ -85,81 +52,15 @@ export function CardSidebar({
 
   const workspaceMembers = useWorkspaceStore((s) => s.workspaceMembers);
   const membersLoading = useWorkspaceStore((s) => s.membersLoading);
-  const removeLabelFromCard = useBoardStore((s) => s.removeLabelFromCard);
-  const addLabelToCard = useBoardStore((s) => s.addLabelToCard);
-  const { mutate: toggleAssignee } = useToggleAssignee(card);
-
-  const { mutate: updateCard } = useUpdateCard(card.id);
-
-  const { mutate: toggleLabel } = useMutation({
-    mutationFn: async ({
-      labelId,
-      isAttached,
-    }: {
-      labelId: string;
-      isAttached: boolean;
-    }) => {
-      if (isAttached) {
-        return await LabelService.removeFromCard(card.id, labelId);
-      } else {
-        return await LabelService.attachToCard(card.id, labelId);
-      }
-    },
-
-    onMutate: async ({ labelId, isAttached }) => {
-      await queryClient.cancelQueries({ queryKey: ["card", card.id] });
-
-      if (isAttached) {
-        removeLabelFromCard(card.id, labelId);
-      } else {
-        const label = workspaceLabels.find((l) => l.id === labelId);
-        if (label) addLabelToCard(card.id, label);
-      }
-
-      return { previousIsAttached: isAttached, labelId };
-    },
-
-    onError: (error, variables, context) => {
-      if (context) {
-        if (context.previousIsAttached) {
-          const label = workspaceLabels.find((l) => l.id === context.labelId);
-          if (label) addLabelToCard(card.id, label);
-        } else {
-          removeLabelFromCard(card.id, context.labelId);
-        }
-      }
-
-      toast.error("Failed to update label. Reverting...");
-      console.error(error);
-    },
-
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["card", card.id] });
-    },
-  });
-
-  const { mutate: createAndAttachLabel } = useMutation({
-    mutationFn: async (name: string) => {
-      const existingColors = workspaceLabels.map((l) => l.color);
-      const colour = pickLabelColor(name, existingColors);
-      const newLabel = await LabelService.create(workspaceSlug, {
-        name,
-        colour,
-      });
-
-      await LabelService.attachToCard(card.id, newLabel.id);
-      return newLabel;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["workspaceLabels", workspaceSlug],
-      });
-      queryClient.invalidateQueries({ queryKey: ["card", card.id] });
-      toast.success("Label created and attached");
-    },
-  });
-
   useClickOutside(assigneeRef, () => setAssigneeDropdownOpen(false));
+
+  const { mutate: moveCard } = useMoveCard();
+  const { mutate: deleteCard } = useDeleteCard(card.id, currentColumn!.id);
+
+  const { mutate: createAndAttachLabel } = useCreateLabel(card, workspaceSlug);
+  const { mutate: toggleLabel } = useToggleLabel(card);
+  const { mutate: toggleAssignee } = useToggleAssignee(card);
+  const { mutate: updateCard } = useUpdateCard(card.id);
 
   const handlePriorityChange = (val: string) => {
     const priority = val as PriorityEnum;
@@ -173,6 +74,13 @@ export function CardSidebar({
     if (!val) return;
     setDueDate(val);
     updateCard({ dueDate: new Date(val) });
+  };
+
+  const router = useRouter();
+  const handleDeleteCard = () => {
+    if (!card.id) return;
+    deleteCard();
+    router.replace(`/${workspaceSlug}/${projectSlug}`);
   };
 
   const priorityLabel =
@@ -349,12 +257,15 @@ export function CardSidebar({
         }))}
         onSelect={(colId) => {
           if (colId === currentColumn?.id) return;
-          console.log("Move to column:", colId);
+          moveCard({ cardId: card.id, toColumnId: colId, order: 0 });
         }}
       />
 
       <div className="mt-auto pt-4 border-t border-white/5">
-        <button className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-red-400/60 hover:text-red-400 hover:bg-red-500/10 text-sm font-medium transition-colors">
+        <button
+          onClick={handleDeleteCard}
+          className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-red-400/60 hover:text-red-400 hover:bg-red-500/10 text-sm font-medium transition-colors"
+        >
           <Trash2 size={14} /> Delete card
         </button>
       </div>

@@ -21,6 +21,10 @@ export const CardService = {
   removeUser: async (cardId: string, userId: string) => {
     return api.delete(`/cards/${cardId}/assignees/${userId}`);
   },
+
+  deleteCard: async (cardId: string) => {
+    return api.delete(`/cards/${cardId}`);
+  },
 };
 
 export interface CardUpdateType {

@@ -9,10 +9,10 @@ import {
   PrimaryButton,
   ServerError,
 } from "@/components/auth/auth-components";
-import { AuthService } from "@/services/auth.service";
+import { AuthService, FormValues } from "@/services/auth.service";
 import { Eye, EyeOff } from "lucide-react";
 import { getErrorMessage } from "@/lib/utils";
-import { FormValues } from "@/types/auth.types";
+import { useAuthStore } from "@/store/auth.store";
 
 export default function CompleteRegister() {
   const searchParams = useSearchParams();
@@ -24,6 +24,8 @@ export default function CompleteRegister() {
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  const setUser = useAuthStore((s) => s.setUser);
 
   useEffect(() => {
     if (!email) router.replace("/register");
@@ -44,7 +46,8 @@ export default function CompleteRegister() {
 
     try {
       const userData = { email: email!, ...data };
-      await AuthService.completeRegistration(userData);
+      const user = await AuthService.completeRegistration(userData);
+      setUser(user);
 
       router.push("/dashboard");
     } catch (err) {

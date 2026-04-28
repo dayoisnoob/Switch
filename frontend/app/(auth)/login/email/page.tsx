@@ -10,15 +10,16 @@ import {
   PrimaryButton,
   ServerError,
 } from "@/components/auth/auth-components";
-import { AuthService } from "@/services/auth.service";
+import { AuthService, LoginRequest } from "@/services/auth.service";
 import { getErrorMessage } from "@/lib/utils";
-import { LoginRequest } from "@/types/auth.types";
+import { useAuthStore } from "@/store/auth.store";
 
 export default function EmailLoginPage() {
   const router = useRouter();
   const [serverError, setServerError] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const setUser = useAuthStore((s) => s.setUser);
 
   const {
     register,
@@ -31,7 +32,8 @@ export default function EmailLoginPage() {
     setLoading(true);
 
     try {
-      await AuthService.login(data);
+      const user = await AuthService.login(data);
+      setUser(user);
       router.push("/dashboard");
     } catch (err) {
       setServerError(getErrorMessage(err));

@@ -1,6 +1,6 @@
 import { and, eq } from 'drizzle-orm';
 import { db } from '../config/db';
-import { cardAssigneesTable, commentsTable } from '../db';
+import { cardAssigneesTable, commentsTable, usersTable } from '../db';
 import { ApiError } from '../utils/api-response';
 import type { CreateCommentType } from '../validations/comments.validation';
 import { ActivityService } from './activity.service';
@@ -26,6 +26,15 @@ export class CommentService {
 
     if (!comment)
       throw new ApiError(500, 'Error creating comment. Please try again.');
+
+    const [user] = await db
+      .select({
+        firstName: usersTable.firstName,
+        lastName: usersTable.lastName,
+        avatarUrl: usersTable.avatarUrl,
+      })
+      .from(usersTable)
+      .where(eq(usersTable.id, userId));
 
     await ActivityService.log({
       type: 'comment_added',
@@ -59,7 +68,17 @@ export class CommentService {
       });
     }
 
-    return comment;
+    return {
+      id: comment.id,
+      content: comment.content,
+      isEdited: comment.isEdited,
+      createdAt: comment.createdAt,
+      author: {
+        firstName: user?.firstName,
+        lastName: user?.lastName,
+        avatarUrl: user?.avatarUrl,
+      },
+    };
   }
 
   static async editComment(

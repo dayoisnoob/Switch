@@ -1,61 +1,56 @@
-// export async function fetchApi(endpoint: string, options: RequestInit = {}) {
-//   const baseUrl = process.env.NEXT_PUBLIC_API_URL;
-
-//   if (!baseUrl) {
-//     throw new Error("NEXT_PUBLIC_API_URL is not defined");
-//   }
-
-//   const cookieStore = await cookies();
-//   const accessToken = cookieStore.get("__auth.access")?.value;
-//   const refreshToken = cookieStore.get("__auth.refresh")?.value;
-
-//   const cookieParts = [];
-//   if (accessToken) cookieParts.push(`__auth.access=${accessToken}`);
-//   if (refreshToken) cookieParts.push(`__auth.refresh=${refreshToken}`);
-//   const cookieHeader = cookieParts.join("; ");
-
-//   const headers = new Headers(options.headers);
-//   if (!headers.has("Content-Type")) {
-//     headers.set("Content-Type", "application/json");
-//   }
-
-//   if (cookieHeader) {
-//     headers.set("Cookie", cookieHeader);
-//   }
-
-//   const response = await fetch(`${baseUrl}${endpoint}`, {
-//     ...options,
-//     headers,
-//   });
-
-//   return response;
-// }
-
+import { ApiResponse } from "@/types";
 import axios, { isAxiosError } from "axios";
-import type { ApiResponse } from "@/types";
 
 export const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
   withCredentials: true,
-  headers: { "Content-Type": "application/json" },
 });
 
+let isRefreshing = false;
+let failedQueue: { resolve: () => void; reject: (err: Error) => void }[] = [];
+
+const processQueue = (error: Error | null) => {
+  failedQueue.forEach((p) => (error ? p.reject(error) : p.resolve()));
+  failedQueue = [];
+};
+
 api.interceptors.response.use(
-  (response) => {
-    return response.data?.data ?? response.data;
-  },
-  (error) => {
-    const isAuthRoute = error.config?.url?.startsWith("/auth/");
+  (response) => response.data?.data ?? response.data,
+  async (error) => {
+    const originalRequest = error.config;
+    const isAuthRoute = originalRequest?.url?.startsWith("/auth/");
 
-    if (isAxiosError(error) && error.response?.status === 401 && !isAuthRoute) {
-      window.location.href = "/login";
-      return Promise.reject(new Error("Session expired"));
+    // pass non-401s and auth route errors straight through
+    if (!isAxiosError(error) || error.response?.status !== 401 || isAuthRoute) {
+      const data = error.response?.data;
+      const message =
+        data?.errors?.[0]?.message ?? data?.message ?? "Something went wrong";
+      return Promise.reject(new Error(message));
     }
-    const data = error.response?.data;
 
-    const message =
-      data?.errors?.[0]?.message ?? data?.message ?? "Something went wrong";
-    return Promise.reject(new Error(message));
+    // queue concurrent requests while refresh is in flight
+    if (isRefreshing) {
+      return new Promise<void>((resolve, reject) => {
+        failedQueue.push({ resolve, reject });
+      })
+        .then(() => api(originalRequest))
+        .catch(Promise.reject);
+    }
+
+    isRefreshing = true;
+
+    try {
+      await api.post("/auth/refresh");
+      processQueue(null);
+      return api(originalRequest);
+    } catch (refreshError) {
+      const err = new Error("Session expired. Please sign in again.");
+      processQueue(err);
+      window.location.href = "/login";
+      return Promise.reject(err);
+    } finally {
+      isRefreshing = false;
+    }
   },
 );
 

@@ -64,28 +64,28 @@ export class AuthController {
   }
 
   static async completeReg(req: Request, res: Response) {
-    const result = await AuthService.completeReg(req.body);
+    const { user, tokens } = await AuthService.completeReg(req.body);
 
     return res
-      .cookie('__auth.refresh', result.refreshToken, COOKIE_OPTIONS)
-      .cookie('__auth.access', result.accessToken, {
+      .cookie('__auth.refresh', tokens.refreshToken, COOKIE_OPTIONS)
+      .cookie('__auth.access', tokens.accessToken, {
         ...COOKIE_OPTIONS,
         httpOnly: true,
       })
       .status(201)
-      .json(new ApiResponse(201, 'Account created successfully'));
+      .json(new ApiResponse(201, 'Account created successfully', user));
   }
 
   static async login(req: Request, res: Response) {
-    const result = await AuthService.login(req.body);
+    const { user, tokens } = await AuthService.login(req.body);
 
     res
-      .cookie('__auth.refresh', result.refreshToken, COOKIE_OPTIONS)
-      .cookie('__auth.access', result.accessToken, {
+      .cookie('__auth.refresh', tokens.refreshToken, COOKIE_OPTIONS)
+      .cookie('__auth.access', tokens.accessToken, {
         ...COOKIE_OPTIONS,
         httpOnly: false,
       })
-      .json(new ApiResponse(200, 'Login successful', { email: result.email }));
+      .json(new ApiResponse(200, 'Login successful', user));
   }
 
   static async getMe(req: AuthenticatedRequest, res: Response) {

@@ -176,7 +176,7 @@ export const useBoardStore = create<BoardStore>((set) => ({
             ...col,
             cards: col.cards.map((card) =>
               card.id === cardId
-                ? { ...card, labels: [...card.labels, label] }
+                ? { ...card, labels: [...(card.labels || []), label] }
                 : card,
             ),
           })),

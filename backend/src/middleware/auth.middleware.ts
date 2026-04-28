@@ -11,46 +11,30 @@ export const authenticate = async (
 ) => {
   try {
     const accessToken = req.cookies['__auth.access'];
-    const refreshToken = req.cookies['__auth.refresh'];
 
-    if (accessToken?.trim()) {
-      try {
-        const decoded = jwtVerify(accessToken);
-
-        if (!decoded.isActive) {
-          return next(new ApiError(403, 'Your account has been suspended.'));
-        }
-
-        req.user = decoded;
-        return next();
-      } catch (err: any) {
-        if (err.name !== 'TokenExpiredError') {
-          return next(new ApiError(401, 'Invalid access token'));
-        }
-      }
-    }
-
-    if (!refreshToken?.trim()) {
+    if (!accessToken?.trim()) {
       return next(
         new ApiError(401, 'Authentication required. Please sign in.')
       );
     }
 
-    const result = await AuthService.refreshAccessToken(refreshToken);
+    try {
+      const decoded = jwtVerify(accessToken);
 
-    res
-      .cookie('__auth.refresh', result.refreshToken, COOKIE_OPTIONS)
-      .cookie('__auth.access', result.accessToken, {
-        ...COOKIE_OPTIONS,
-        httpOnly: false,
-      });
+      if (!decoded.isActive) {
+        return next(new ApiError(403, 'Your account has been suspended.'));
+      }
 
-    req.user = jwtVerify(result.accessToken);
-
-    return next();
+      req.user = decoded;
+      return next();
+    } catch (err: any) {
+      if (err.name === 'TokenExpiredError') {
+        return next(new ApiError(401, 'Token expired.'));
+      }
+      return next(new ApiError(401, 'Invalid access token.'));
+    }
   } catch (err) {
-    if (err instanceof ApiError) return next(err);
-    next(new ApiError(401, 'Authentication failed'));
+    next(new ApiError(401, 'Authentication failed.'));
   }
 };
 

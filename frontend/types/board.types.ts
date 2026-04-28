@@ -1,7 +1,7 @@
 export interface BoardLabel {
   id: string;
   name: string;
-  color: string;
+  colour: string;
 }
 
 export interface BoardAssignee {

@@ -1,6 +1,5 @@
 import { api } from "@/lib/api";
 import { ApiResponse, WorkspaceRole } from "@/types";
-import { CompleteUserData, LoginRequest } from "@/types/auth.types";
 
 export const AuthService = {
   initialiseRegistration: async (email: string): Promise<ApiResponse> => {
@@ -13,7 +12,7 @@ export const AuthService = {
 
   completeRegistration: async (
     data: CompleteUserData,
-  ): Promise<ApiResponse> => {
+  ): Promise<UserProfile> => {
     return api.patch("/auth/register/onboarding", data);
   },
 
@@ -21,7 +20,7 @@ export const AuthService = {
     return api.post("/auth/register/resend-otp", { email });
   },
 
-  login: async (data: LoginRequest): Promise<ApiResponse> => {
+  login: async (data: LoginRequest): Promise<UserProfile> => {
     return api.post("/auth/login", data);
   },
 
@@ -40,5 +39,21 @@ export interface UserProfile {
   lastName: string;
   email: string;
   avatarUrl: string;
-  role: WorkspaceRole;
+  role?: WorkspaceRole;
+}
+
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
+
+export interface FormValues {
+  firstName: string;
+  lastName: string;
+  password: string;
+  confirmPassword: string;
+}
+
+export interface CompleteUserData extends FormValues {
+  email: string;
 }

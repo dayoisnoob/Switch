@@ -251,7 +251,15 @@ export class AuthService {
     await AuthService.updateLastLogin(updatedUser.id);
 
     const tokens = await authTokens(updatedUser);
-    return tokens;
+
+    const user = {
+      id: existing.id,
+      email: existing.email,
+      firstName: existing.firstName,
+      lastName: existing.lastName,
+      avatarUrl: existing.avatarUrl,
+    };
+    return { user, tokens };
   }
 
   static async login(credentials: LoginInput) {
@@ -292,7 +300,15 @@ export class AuthService {
 
     logger.info({ userId: existing.id, email }, 'User logged in');
 
-    return { email, ...tokens };
+    const user = {
+      id: existing.id,
+      email: existing.email,
+      firstName: existing.firstName,
+      lastName: existing.lastName,
+      avatarUrl: existing.avatarUrl,
+    };
+
+    return { user, tokens };
   }
 
   static async getMe(userId: string) {

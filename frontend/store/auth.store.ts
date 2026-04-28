@@ -1,17 +1,15 @@
+import { UserProfile } from "@/services/auth.service";
 import { create } from "zustand";
 
-interface AuthStoreType {
-  email: string | null;
-  token: string | null;
-
-  setUserMail: (email: string) => void;
-  setToken: (token: string) => void;
+interface AuthStore {
+  user: UserProfile | null;
+  setUser: (user: UserProfile) => void;
+  clearUser: () => void;
 }
 
-export const useAuthStore = create<AuthStoreType>()((set) => ({
-  email: null,
-  token: null,
+export const useAuthStore = create<AuthStore>()((set) => ({
+  user: null,
 
-  setUserMail: (email) => set({ email }),
-  setToken: (token) => set({ token }),
+  setUser: (user: UserProfile) => set({ user }),
+  clearUser: () => set({ user: null }),
 }));

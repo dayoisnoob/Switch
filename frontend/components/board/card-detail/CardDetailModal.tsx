@@ -16,6 +16,7 @@ import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { CardSidebar } from "./CardSidebar";
 import { useUpdateCard } from "@/hooks/useUpdateCard";
+import { CardComment } from "@/services/comment.service";
 
 const ACCENT = "#7C6EF5";
 
@@ -294,6 +295,7 @@ export function CardDetailModal({
             currentColumn={currentColumn}
             workspaceLabels={workspaceLabels}
             workspaceSlug={workspaceSlug}
+            projectSlug={projectSlug}
           />
         </div>
       </div>
@@ -302,38 +304,6 @@ export function CardDetailModal({
 }
 
 // ── Small inline components ──────────────────────────────────────────────────
-
-function CommentsTab({
-  commentValue,
-  setCommentValue,
-}: {
-  commentValue: string;
-  setCommentValue: (v: string) => void;
-}) {
-  return (
-    <div className="space-y-5">
-      <div className="flex gap-3">
-        <div className="w-8 h-8 rounded-full bg-[#7C6EF5]/20 shrink-0 flex items-center justify-center text-[10px] font-bold text-[#7C6EF5]">
-          ME
-        </div>
-        <div className="flex-1 bg-[#1A1A28] border border-white/5 rounded-xl p-1 focus-within:border-[#7C6EF5]/40 transition-colors">
-          <textarea
-            value={commentValue}
-            onChange={(e) => setCommentValue(e.target.value)}
-            placeholder="Write a comment..."
-            className="w-full bg-transparent px-3 pt-2 pb-1 text-sm text-white/80 placeholder:text-white/25 focus:outline-none resize-none min-h-[60px]"
-          />
-          <div className="flex justify-end px-2 pb-2">
-            <button className="px-3 py-1.5 bg-[#7C6EF5] hover:bg-[#6B5ED4] text-white text-xs font-semibold rounded-lg transition-colors">
-              Comment
-            </button>
-          </div>
-        </div>
-      </div>
-      <p className="text-sm text-white/25 text-center py-2">No comments yet.</p>
-    </div>
-  );
-}
 
 function ActivityTab() {
   return (
@@ -353,3 +323,145 @@ function ActivityTab() {
     </div>
   );
 }
+
+const getAvatarColor = (name: string) => {
+  const colors = [
+    "bg-blue-500/20 text-blue-400",
+    "bg-emerald-500/20 text-emerald-400",
+    "bg-rose-500/20 text-rose-400",
+    "bg-amber-500/20 text-amber-400",
+  ];
+  return colors[name.length % colors.length];
+};
+
+function CommentsTab({
+  commentValue,
+  setCommentValue,
+  // Add comments array as a prop (using MOCK data by default so you can see it work)
+  comments = MOCK_COMMENTS,
+}: {
+  commentValue: string;
+  setCommentValue: (v: string) => void;
+  comments?: CardComment[];
+}) {
+  return (
+    <div className="space-y-8 pb-4">
+      {/* 1. Comment Input (Stays at the top for quick updates) */}
+      <div className="flex gap-3">
+        <div className="w-8 h-8 rounded-full bg-[#7C6EF5]/20 shrink-0 flex items-center justify-center text-[10px] font-bold text-[#7C6EF5]">
+          ME
+        </div>
+        <div className="flex-1 bg-[#1A1A28] border border-white/5 rounded-xl p-1 focus-within:border-[#7C6EF5]/40 transition-colors">
+          <textarea
+            value={commentValue}
+            onChange={(e) => setCommentValue(e.target.value)}
+            placeholder="Write a comment..."
+            className="w-full bg-transparent px-3 pt-2 pb-1 text-sm text-white/80 placeholder:text-white/25 focus:outline-none resize-none min-h-[60px]"
+          />
+          <div className="flex justify-end px-2 pb-2">
+            <button
+              disabled={!commentValue.trim()}
+              className="px-3 py-1.5 bg-[#7C6EF5] hover:bg-[#6B5ED4] disabled:bg-[#7C6EF5]/50 disabled:cursor-not-allowed text-white text-xs font-semibold rounded-lg transition-colors"
+            >
+              Comment
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* 2. The Comment Thread */}
+      <div className="space-y-6">
+        {comments.length > 0 ? (
+          comments.map((comment) => {
+            const initials =
+              `${comment.author.firstName?.[0] || ""}${comment.author.lastName?.[0] || ""}`.toUpperCase();
+
+            // Basic relative time formatter (e.g. "2 hours ago")
+            const timeAgo = new Intl.DateTimeFormat("en-US", {
+              hour: "numeric",
+              minute: "numeric",
+              month: "short",
+              day: "numeric",
+            }).format(new Date(comment.createdAt));
+
+            return (
+              <div key={comment.id} className="flex gap-3 group">
+                {/* Avatar */}
+                <div className="shrink-0 mt-0.5">
+                  {comment.author.avatarUrl ? (
+                    <Image
+                      src={comment.author.avatarUrl}
+                      alt={comment.author.firstName}
+                      width={32}
+                      height={32}
+                      className="w-8 h-8 rounded-full object-cover border border-white/10"
+                    />
+                  ) : (
+                    <div
+                      className={cn(
+                        "w-8 h-8 rounded-full border border-white/10 flex items-center justify-center text-[10px] font-bold",
+                        getAvatarColor(comment.author.firstName),
+                      )}
+                    >
+                      {initials || "?"}
+                    </div>
+                  )}
+                </div>
+
+                {/* Content */}
+                <div className="flex-1 space-y-1">
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-sm font-semibold text-white/90">
+                      {comment.author.firstName} {comment.author.lastName}
+                    </span>
+                    <span className="text-xs font-medium text-white/30">
+                      {timeAgo}
+                    </span>
+                  </div>
+                  <div className="text-sm text-white/70 leading-relaxed whitespace-pre-wrap">
+                    {comment.content}
+                  </div>
+                </div>
+              </div>
+            );
+          })
+        ) : (
+          <p className="text-sm text-white/25 text-center py-2">
+            No comments yet.
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+const MOCK_COMMENTS: CardComment[] = [
+  {
+    id: "1",
+    content:
+      "I tested the new serum parameters. We are seeing a 15% increase in base potency, but it destabilizes after 4 hours.",
+    isEdited: false,
+    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(), // 2 hours ago
+    author: { firstName: "Sarah", lastName: "Chen", avatarUrl: "" },
+  },
+  {
+    id: "2",
+    content:
+      "Try adjusting the thermal inhibitors. If we keep it below 180°C, the stabilization matrix should hold.",
+    isEdited: false,
+    createdAt: new Date(Date.now() - 1000 * 60 * 30).toISOString(), // 30 mins ago
+    author: {
+      firstName: "Marcus",
+      lastName: "Vance",
+      avatarUrl: "https://i.pravatar.cc/150?u=marcus",
+    },
+  },
+  {
+    id: "3",
+    content:
+      "Good call Marcus! I'll run the simulation again this afternoon and post the results here.",
+    createdAt: new Date().toISOString(), // Just now
+    isEdited: false,
+    author: { firstName: "Sarah", lastName: "Chen", avatarUrl: "" },
+  },
+];
