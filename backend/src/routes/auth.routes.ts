@@ -136,16 +136,12 @@ router.post(
   asyncHandler(AuthController.resetPassword)
 );
 
+router.post('/logout', asyncHandler(AuthController.logout));
+router.post('/logout-all', asyncHandler(AuthController.logoutAll));
+
 // Authenticated Routes
 
 router.get('/me', authenticate, asyncHandler(AuthController.getMe));
-
-router.post('/logout', authenticate, asyncHandler(AuthController.logout));
-router.post(
-  '/logout-all',
-  authenticate,
-  asyncHandler(AuthController.logoutAll)
-);
 
 router.patch(
   '/profile',

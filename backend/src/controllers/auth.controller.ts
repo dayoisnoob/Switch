@@ -24,7 +24,7 @@ export class AuthController {
         ...COOKIE_OPTIONS,
         httpOnly: false,
       })
-      .redirect(`${env.FRONTEND_URL}/auth/callback`);
+      .redirect(`${env.FRONTEND_URL}/dashboard`);
   }
 
   static OAuthError(

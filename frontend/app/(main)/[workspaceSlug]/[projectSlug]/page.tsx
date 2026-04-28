@@ -1,16 +1,9 @@
 "use client";
 
 import { cn, getErrorMessage } from "@/lib/utils";
-import {
-  GripHorizontal,
-  MoreHorizontal,
-  Plus,
-  Edit2,
-  Trash2,
-} from "lucide-react";
-import { useParams } from "next/navigation";
+import { Edit2, GripHorizontal, MoreHorizontal, Trash2 } from "lucide-react";
+import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
 
 import {
   useBoard,
@@ -47,10 +40,10 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
-import { BoardCard, BoardColumn, BoardState } from "@/types/board.types";
 import { CreateInput } from "@/components/board/CreateInput";
-import { toast } from "sonner";
 import { useBoardStore } from "@/store/board.store";
+import { BoardCard, BoardColumn, BoardState } from "@/types/board.types";
+import { toast } from "sonner";
 
 function findColumnInSnapshot(
   id: string,

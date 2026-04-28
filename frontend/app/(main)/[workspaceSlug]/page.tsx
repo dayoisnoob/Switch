@@ -2,21 +2,21 @@
 
 import { PrimaryButton } from "@/components/auth/auth-components";
 import CreateProjectModal from "@/components/modals/CreateProjectModal";
-import { useWorkspaceProjects } from "@/hooks/useProjects"; // Fixed import
+import { useWorkspaceProjects } from "@/hooks/useProjects";
 import { cn } from "@/lib/utils";
 import { ProjectType } from "@/services/projects.service";
 import { useWorkspaceStore } from "@/store/workspace.store";
-import { Clock, Layout } from "lucide-react"; // Added some icons for the project cards
+import { Clock, Layout, Plus, FolderOpen } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 export default function WorkspacePage() {
   const router = useRouter();
   const activeWorkspace = useWorkspaceStore((s) => s.activeWorkspace);
+  const members = useWorkspaceStore((s) => s.workspaceMembers);
 
   const [activeTab, setActiveTab] = useState("Projects");
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
-  const members = useWorkspaceStore((s) => s.workspaceMembers);
 
   const { data: projects, isLoading: projectsLoading } = useWorkspaceProjects(
     activeWorkspace?.slug,
@@ -30,31 +30,38 @@ export default function WorkspacePage() {
   ];
 
   return (
-    <div className="p-8 max-w-300 mx-auto">
-      <div className="flex items-center justify-between mb-8">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 bg-[#238636] rounded-lg flex items-center justify-center text-xl font-bold text-white shadow-lg">
+    <div className="p-8 max-w-[1200px] mx-auto w-full animate-in fade-in duration-500">
+      {/* ── HEADER ── */}
+      <div className="flex items-center justify-between mb-10">
+        <div className="flex items-center gap-5">
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#7C6EF5] to-[#5D4DD1] flex items-center justify-center text-2xl font-bold text-white shadow-[0_4px_20px_rgba(124,110,245,0.3)] shrink-0">
             {activeWorkspace.name.charAt(0).toUpperCase()}
           </div>
-          <div className="flex items-center gap-2 group cursor-pointer">
-            <h1 className="text-2xl font-bold text-[#f0f6fc]">
+          <div className="flex flex-col">
+            <h1 className="text-2xl font-bold text-white tracking-tight">
               {activeWorkspace.name}
             </h1>
+            <p className="text-sm text-white/40 mt-0.5 font-medium">
+              Manage your workspace projects and team members.
+            </p>
           </div>
         </div>
 
         <div className="flex items-center gap-3">
-          <PrimaryButton className="h-10 px-6 bg-[#238636] hover:bg-[#2ea043] w-auto">
-            Create Project
-          </PrimaryButton>
-          <button className="h-10 px-4 border border-[#30363d] text-sm font-medium text-[#c9d1d9] rounded-md hover:bg-[#161b22]">
+          <button className="h-10 px-5 rounded-lg font-medium text-sm text-white/60 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/10 transition-all">
             Invite Members
           </button>
+          <PrimaryButton
+            onClick={() => setIsProjectModalOpen(true)}
+            className="h-10 px-5 bg-[#7C6EF5] hover:bg-[#6B5ED4] text-white flex items-center gap-2 rounded-lg font-medium transition-all shadow-[0_0_15px_rgba(124,110,245,0.2)]"
+          >
+            <Plus size={16} /> Create Project
+          </PrimaryButton>
         </div>
       </div>
 
-      {/* 2. Dynamic Tabs */}
-      <div className="flex items-center gap-8 border-b border-[#30363d] mb-8">
+      {/* ── DYNAMIC TABS ── */}
+      <div className="flex items-center gap-8 border-b border-white/5 mb-8">
         {tabs.map((tab) => {
           const isActive = activeTab === tab.id;
           return (
@@ -62,103 +69,104 @@ export default function WorkspacePage() {
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={cn(
-                "pb-4 text-sm font-medium transition-colors relative flex items-center gap-2",
-                isActive
-                  ? "text-[#f0f6fc]"
-                  : "text-[#8b949e] hover:text-[#c9d1d9]",
+                "pb-4 text-sm font-semibold transition-all relative flex items-center gap-2.5 group",
+                isActive ? "text-white" : "text-white/40 hover:text-white/70",
               )}
             >
               {tab.id}
-              <span className="text-[10px] bg-[#1c2128] px-1.5 py-0.5 rounded-full border border-[#30363d]">
+              <span
+                className={cn(
+                  "text-[10px] px-2 py-0.5 rounded-full transition-colors font-mono",
+                  isActive
+                    ? "bg-[#7C6EF5]/10 text-[#7C6EF5]"
+                    : "bg-white/5 text-white/40 group-hover:bg-white/10",
+                )}
+              >
                 {tab.loading ? "..." : tab.count}
               </span>
               {isActive && (
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#58a6ff]" />
+                <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#7C6EF5] rounded-t-full" />
               )}
             </button>
           );
         })}
       </div>
 
-      {/* 3. Tab Content Routing */}
+      {/* ── TAB CONTENT: PROJECTS ── */}
       {activeTab === "Projects" && (
-        <div>
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-semibold text-[#f0f6fc]">Projects</h3>
-            <button className="text-xs text-[#8b949e] hover:text-[#58a6ff]">
-              Newest First
-            </button>
-          </div>
-
-          {/* Conditional Rendering: Loading -> Grid -> Empty State */}
+        <div className="space-y-6">
           {projectsLoading ? (
-            <div className="flex justify-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-[#58a6ff]"></div>
+            <div className="flex justify-center items-center py-24">
+              <div className="animate-spin rounded-full h-8 w-8 border-2 border-white/10 border-t-[#7C6EF5]" />
             </div>
           ) : projects && projects.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
               {projects.map((project: ProjectType) => (
                 <div
+                  key={project.id}
                   onClick={() =>
                     router.push(`/${activeWorkspace.slug}/${project.slug}`)
                   }
-                  key={project.id}
-                  className="bg-[#0d1117] border border-[#30363d] rounded-xl p-5 hover:border-[#58a6ff] hover:shadow-[0_0_15px_rgba(88,166,255,0.1)] transition-all cursor-pointer group"
+                  className="bg-[#13131C]/50 hover:bg-[#1A1A28] border border-white/5 hover:border-[#7C6EF5]/40 rounded-2xl p-6 transition-all cursor-pointer group flex flex-col justify-between min-h-[160px]"
                 >
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 rounded-lg bg-[#161b22] border border-[#30363d] flex items-center justify-center text-[#58a6ff] group-hover:bg-[#58a6ff] group-hover:text-white transition-colors">
+                  <div className="flex items-start gap-4 mb-4">
+                    <div className="w-10 h-10 rounded-xl bg-[#7C6EF5]/10 border border-[#7C6EF5]/20 flex items-center justify-center text-[#7C6EF5] group-hover:scale-105 transition-transform shrink-0">
                       <Layout size={18} />
                     </div>
-                    <div>
-                      <h4 className="text-sm font-semibold text-[#f0f6fc]">
+                    <div className="flex-1 min-w-0 pt-0.5">
+                      <h4 className="text-base font-semibold text-white/90 truncate">
                         {project.name}
                       </h4>
-                      <p className="text-[11px] text-[#8b949e]">
-                        Placeholder Boards
-                      </p>{" "}
-                      {/* Placeholder for now */}
+                      {/* Removed the fake "Placeholder Boards" to keep it clean */}
                     </div>
                   </div>
-                  <div className="flex items-center justify-between pt-4 border-t border-[#30363d] mt-2">
-                    <span className="text-xs text-[#484f58] flex items-center gap-1">
-                      <Clock size={12} /> Updated recently
+
+                  <div className="flex items-center justify-between pt-4 border-t border-white/5 mt-auto">
+                    <span className="text-[11px] font-medium text-white/30 flex items-center gap-1.5 uppercase tracking-wider">
+                      <Clock size={11} /> Updated recently
                     </span>
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="bg-[#0d1117] border border-[#30363d] rounded-2xl p-12 flex flex-col items-center text-center">
-              <div className="w-48 h-32 bg-[#161b22] border border-[#30363d] rounded-lg mb-6 flex items-center justify-center opacity-50">
-                <div className="w-32 h-20 bg-[#0d1117] border border-[#30363d] rounded-sm" />
+            // ── EMPTY STATE ──
+            <div className="bg-[#13131C]/30 border border-white/5 border-dashed rounded-3xl p-16 flex flex-col items-center text-center">
+              <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center text-white/20 mb-5">
+                <FolderOpen size={32} strokeWidth={1.5} />
               </div>
-              <h4 className="text-lg font-semibold text-[#f0f6fc] mb-2">
-                No Projects Yet
+              <h4 className="text-lg font-semibold text-white mb-2">
+                No projects found
               </h4>
-              <p className="text-sm text-[#8b949e] mb-8 max-w-xs">
-                Create a new project and start organising your cards.
+              <p className="text-sm text-white/40 mb-8 max-w-sm leading-relaxed">
+                Projects are where your team organizes tasks and sprints. Create
+                your first project to get started.
               </p>
               <PrimaryButton
                 onClick={() => setIsProjectModalOpen(true)}
-                className="w-auto px-8 h-11 bg-[#58a6ff] hover:bg-[#4a9eff]"
+                className="px-6 h-11 bg-white hover:bg-white/90 text-black font-semibold rounded-xl flex items-center gap-2 transition-all shadow-xl"
               >
-                Create Project
+                <Plus size={18} /> Create Project
               </PrimaryButton>
-
-              <CreateProjectModal
-                isOpen={isProjectModalOpen}
-                onClose={() => setIsProjectModalOpen(false)}
-              />
             </div>
           )}
         </div>
       )}
 
+      {/* ── TAB CONTENT: MEMBERS ── */}
       {activeTab === "Members" && (
-        <div className="py-12 text-center text-[#8b949e]">
-          Members list coming soon...
+        <div className="py-24 text-center">
+          <p className="text-sm text-white/30 font-medium">
+            Members management coming soon.
+          </p>
         </div>
       )}
+
+      {/* ── MODALS ── */}
+      <CreateProjectModal
+        isOpen={isProjectModalOpen}
+        onClose={() => setIsProjectModalOpen(false)}
+      />
     </div>
   );
 }

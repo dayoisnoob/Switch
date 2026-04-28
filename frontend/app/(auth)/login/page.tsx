@@ -8,10 +8,20 @@ import {
   SocialButton,
 } from "@/components/auth/auth-components";
 import { Mail } from "lucide-react";
-import { useState } from "react";
+import Link from "next/link";
+import { useEffect, useState } from "react";
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const handlePageShow = (e: PageTransitionEvent) => {
+      if (e.persisted) window.location.reload();
+    };
+
+    window.addEventListener("pageshow", handlePageShow);
+    return () => window.removeEventListener("pageshow", handlePageShow);
+  }, []);
 
   const handleSocialAuth = (provider: "google" | "github") => {
     window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/auth/${provider}`;
@@ -55,12 +65,12 @@ export default function LoginPage() {
         <div className="mt-8 pt-6 border-t border-[#30363d] text-center">
           <p className="text-sm text-[#8b949e]">
             Don&apos;t have an account?{" "}
-            <a
+            <Link
               href="/register"
               className="text-[#58a6ff] hover:underline font-medium"
             >
               Create one
-            </a>
+            </Link>
           </p>
         </div>
       </div>

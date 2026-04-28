@@ -16,14 +16,14 @@ import {
   Search,
   Settings,
 } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { ReactNode, useEffect, useState } from "react";
 import { toast } from "sonner";
 
 export default function MainLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const router = useRouter();
 
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [isFirstWorkspaceOpen, setIsFirstWorkspaceOpen] = useState(false);
@@ -36,8 +36,8 @@ export default function MainLayout({ children }: { children: ReactNode }) {
   const syncMembers = useWorkspaceStore((s) => s.syncMembers);
   const setUser = useAuthStore((s) => s.setUser);
 
-  const { data: user, isLoading } = useMe();
   const logout = useLogout();
+  const { data: user, isLoading: isUserLoading } = useMe();
 
   useEffect(() => {
     if (user) setUser(user);
@@ -71,7 +71,7 @@ export default function MainLayout({ children }: { children: ReactNode }) {
     { name: "Settings", href: "/dashboard/settings", icon: Settings },
   ];
 
-  if (isInitialLoading || isLoading) {
+  if (isInitialLoading || isUserLoading) {
     return (
       <div className="h-screen w-full bg-[#0b0e14] flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-[#58a6ff]"></div>
@@ -96,21 +96,37 @@ export default function MainLayout({ children }: { children: ReactNode }) {
       <aside className="w-60 shrink-0 bg-[#0d1117] border-r border-[#1e222b] flex flex-col">
         <div className="p-4 mb-2">
           <button className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-[#161b22] transition-all group border border-transparent hover:border-[#30363d]">
-            <div className="w-9 h-9 rounded-lg bg-[#238636] flex items-center justify-center text-white text-xs font-bold shadow-sm">
-              {user?.firstName?.charAt(0)}
-              {user?.lastName?.charAt(0)}
+            <div className="w-9 h-9 shrink-0 rounded-lg overflow-hidden bg-[#238636] flex items-center justify-center text-white text-xs font-bold shadow-sm">
+              {user?.avatarUrl ? (
+                <Image
+                  src={user.avatarUrl}
+                  alt={`${user.firstName} ${user.lastName}`}
+                  width={36}
+                  height={36}
+                  className="w-full h-full object-cover"
+                  unoptimized
+                  referrerPolicy="no-referrer"
+                />
+              ) : (
+                <>
+                  {user?.firstName?.charAt(0)?.toUpperCase()}
+                  {user?.lastName?.charAt(0)?.toUpperCase()}
+                </>
+              )}
             </div>
+
             <div className="flex flex-col items-start overflow-hidden flex-1">
-              <span className="text-sm font-semibold text-[#f0f6fc] truncate">
-                {user?.firstName} {user?.lastName}{" "}
+              <span className="text-sm font-semibold text-[#f0f6fc] truncate w-full text-left">
+                {user?.firstName} {user?.lastName}
               </span>
-              <span className="text-[11px] text-[#8b949e] font-medium">
+              <span className="text-[11px] text-[#8b949e] font-medium truncate w-full text-left">
                 {user?.email}
               </span>
             </div>
+
             <ChevronDown
               size={14}
-              className="text-[#484f58] group-hover:text-[#8b949e]"
+              className="text-[#484f58] group-hover:text-[#8b949e] shrink-0"
             />
           </button>
         </div>
@@ -156,17 +172,16 @@ export default function MainLayout({ children }: { children: ReactNode }) {
           <div className="space-y-0.5">
             {workspaces.map((ws) => {
               const isSelected =
-                activeWorkspace?.id === ws.id &&
-                pathname.startsWith(`/${ws.slug}`);
+                pathname === `/${ws.slug}` ||
+                pathname.startsWith(`/${ws.slug}/`);
+
               return (
-                <button
+                <Link
                   key={ws.id}
-                  onClick={() => {
-                    setActiveWorkspace(ws);
-                    router.push(`/${ws.slug}`);
-                  }}
+                  href={`/${ws.slug}`}
+                  onClick={() => setActiveWorkspace(ws)}
                   className={cn(
-                    "w-full flex items-center gap-3 px-3 py-2 text-sm rounded-md transition-all group",
+                    "w-full flex items-center gap-3 px-3 py-2 text-sm rounded-md",
                     isSelected
                       ? "bg-[#1c2128] text-[#f0f6fc] border border-[#30363d]"
                       : "text-[#8b949e] hover:bg-[#161b22]",
@@ -181,7 +196,7 @@ export default function MainLayout({ children }: { children: ReactNode }) {
                     )}
                   />
                   <span className="truncate">{ws.name}</span>
-                </button>
+                </Link>
               );
             })}
           </div>
