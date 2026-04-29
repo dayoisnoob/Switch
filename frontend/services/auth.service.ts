@@ -1,5 +1,6 @@
 import { api } from "@/lib/api";
-import { ApiResponse, WorkspaceRole } from "@/types";
+import { ApiResponse } from "@/types";
+import { WorkspaceRole } from "./workspace.service";
 
 export const AuthService = {
   initialiseRegistration: async (email: string): Promise<ApiResponse> => {
@@ -29,7 +30,11 @@ export const AuthService = {
   },
 
   getCurrentUser: async (): Promise<UserProfile> => {
-    return api.get("/auth/me");
+    return api.get("/users/me");
+  },
+
+  getUserTeamMembers: async (): Promise<{ count: number }> => {
+    return api.get("/users/me/teammates/count");
   },
 };
 

@@ -23,3 +23,11 @@ export function useMe() {
     queryFn: () => AuthService.getCurrentUser(),
   });
 }
+
+export function useTeammates() {
+  return useQuery({
+    queryKey: ["teammates"],
+    queryFn: () => AuthService.getUserTeamMembers(),
+    staleTime: 1000 * 60 * 5,
+  });
+}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMe } from "@/hooks/useAuth";
+import { useMe, useTeammates } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 import {
   LayoutGrid,
@@ -22,6 +22,7 @@ export default function DashboardPage() {
     useGetWorkspaces();
   const { data: projects, isLoading: countLoading } = useActiveProjectsCount();
   const { data: cards } = useOpenCards();
+  const { data: teammates } = useTeammates();
 
   // Helper to generate consistent colors for avatars based on name
   const getAvatarColor = (name: string) => {
@@ -113,7 +114,7 @@ export default function DashboardPage() {
           icon={<Users size={16} className="text-rose-400" />}
           iconBg="bg-rose-500/10"
           title="Team Members"
-          value="24"
+          value={teammates?.count.toString()}
           subtitle="across workspaces"
         />
       </div>
