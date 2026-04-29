@@ -4,7 +4,7 @@ import { useState } from "react";
 import { X } from "lucide-react";
 import { AuthInput, PrimaryButton } from "@/components/auth/auth-components";
 import { slugify } from "@/lib/utils";
-import { useCreateWorkspace } from "@/hooks/useCreateWorkspace";
+import { useCreateWorkspace } from "@/hooks/useWorkspace";
 
 interface AddWorkspaceModalProps {
   isOpen: boolean;
@@ -17,12 +17,10 @@ export default function AddWorkspaceModal({
 }: AddWorkspaceModalProps) {
   const [name, setName] = useState("");
 
-  const { createWorkspace, loading } = useCreateWorkspace(() => {
+  const { mutate: createWorkspace, isPending } = useCreateWorkspace(() => {
     setName("");
     onClose();
   });
-
-  const handleCreate = () => createWorkspace(name);
 
   if (!isOpen) return null;
 
@@ -38,7 +36,7 @@ export default function AddWorkspaceModal({
         <div className="px-6 py-4 border-b border-[#30363d] flex justify-between items-center bg-[#161b22]">
           <div className="flex items-center gap-3">
             <h2 className="text-sm font-semibold text-[#f0f6fc]">
-              Create Workspace
+              Add a Workspace
             </h2>
           </div>
           <button
@@ -86,12 +84,12 @@ export default function AddWorkspaceModal({
               Cancel
             </button>
             <PrimaryButton
-              onClick={handleCreate}
-              loading={loading}
-              disabled={!name.trim() || loading}
+              onClick={() => createWorkspace(name)}
+              loading={isPending}
+              disabled={!name.trim() || isPending}
               className="flex-1 h-10 bg-[#238636] hover:bg-[#2ea043] border-transparent text-white text-xs font-semibold"
             >
-              Create Workspace
+              {isPending ? "Creating..." : "Create Workspace"}
             </PrimaryButton>
           </div>
         </div>

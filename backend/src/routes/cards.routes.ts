@@ -36,6 +36,12 @@ router.get(
   asyncHandler(CardsController.getCard)
 );
 
+router.get(
+  '/open/count',
+  authenticate,
+  asyncHandler(CardsController.getUserOpenCardsCount)
+);
+
 router.patch(
   '/:cardId',
   authenticate,

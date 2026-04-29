@@ -1,4 +1,4 @@
-import { and, eq, gt, gte, or, sql } from 'drizzle-orm';
+import { and, eq, gt } from 'drizzle-orm';
 import { db } from '../config/db';
 
 import { ApiError } from '../utils/api-response';
@@ -6,14 +6,12 @@ import { bcryptCompare, bcryptHash, cryptoHash } from '../utils/hash.util';
 
 import { env } from '../config/env';
 import { logger } from '../config/logger';
-import {
-  otpTable,
-  refreshTokensTable,
-  usersTable,
-  workspaceMembershipsTable,
-} from '../db';
+import { otpTable, refreshTokensTable, usersTable } from '../db';
 import { queueEmail } from '../queues/email.queue';
 import type { OAuthProfileInput } from '../types/auth.types';
+import { generateSecureOtp } from '../utils/helpers';
+import { jwtDecode, jwtToken, jwtVerify } from '../utils/jwt.util';
+import { authTokens } from '../utils/tokens.util';
 import type {
   changePasswordInput,
   LoginInput,
@@ -21,9 +19,6 @@ import type {
   SignupInput,
   updateInput,
 } from '../validations/auth.validation';
-import { generateSecureOtp } from '../utils/helpers';
-import { jwtDecode, jwtToken, jwtVerify } from '../utils/jwt.util';
-import { authTokens } from '../utils/tokens.util';
 
 export class AuthService {
   static async OAuthSignIn(userProfile: OAuthProfileInput) {
@@ -309,29 +304,6 @@ export class AuthService {
     };
 
     return { user, tokens };
-  }
-
-  static async getMe(userId: string) {
-    const [user] = await db
-      .select({
-        id: usersTable.id,
-        firstName: usersTable.firstName,
-        lastName: usersTable.lastName,
-        email: usersTable.email,
-        avatarUrl: usersTable.avatarUrl,
-        role: workspaceMembershipsTable.role,
-      })
-      .from(usersTable)
-      .innerJoin(
-        workspaceMembershipsTable,
-        eq(usersTable.id, workspaceMembershipsTable.userId)
-      )
-      .where(eq(usersTable.id, userId))
-      .limit(1);
-
-    if (!user) throw new ApiError(404, 'User not found');
-
-    return user;
   }
 
   static async refreshAccessToken(refreshToken: string) {

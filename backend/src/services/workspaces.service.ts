@@ -1,4 +1,13 @@
-import { and, eq, gt, isNull } from 'drizzle-orm';
+import {
+  and,
+  count,
+  countDistinct,
+  eq,
+  gt,
+  inArray,
+  isNull,
+  ne,
+} from 'drizzle-orm';
 import { db } from '../config/db';
 import { env } from '../config/env';
 import {
@@ -67,7 +76,6 @@ export class WorkspaceService {
         name: workspacesTable.name,
         slug: workspacesTable.slug,
         ownerId: workspacesTable.ownerId,
-        createdAt: workspacesTable.createdAt,
         role: workspaceMembershipsTable.role,
       })
       .from(workspacesTable)
@@ -139,7 +147,7 @@ export class WorkspaceService {
     return;
   }
 
-  static async getMembers(userId: string, workspaceId: string) {
+  static async getWorkspaceMembers(userId: string, workspaceId: string) {
     const members = await db
       .select({
         id: workspaceMembershipsTable.id,

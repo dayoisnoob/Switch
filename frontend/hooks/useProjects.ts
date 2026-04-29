@@ -1,27 +1,28 @@
 import { ProjectService } from "@/services/projects.service";
-import { WorkspaceService } from "@/services/workspace.service";
 import { useQuery } from "@tanstack/react-query";
 
-export function useWorkspaceProjects(workspaceId?: string) {
+export function useGetWorkspaceProjects(workspaceId?: string) {
   return useQuery({
     queryKey: ["projects", workspaceId],
-    queryFn: () => ProjectService.getProjects(workspaceId!),
+    queryFn: () => ProjectService.getWorkspaceProjects(workspaceId!),
     enabled: !!workspaceId,
+    staleTime: 1000 * 60 * 5,
   });
 }
 
-export function useWorkspaceMembers(workspaceSlug: string) {
-  return useQuery({
-    queryKey: ["members", workspaceSlug],
-    queryFn: () => WorkspaceService.getMembers(workspaceSlug!),
-    enabled: !!workspaceSlug,
-  });
-}
-
-export function useProjectBySlug(projectSlug?: string) {
+export function useGetProjectBySlug(projectSlug?: string) {
   return useQuery({
     queryKey: ["project", projectSlug],
     queryFn: () => ProjectService.getProjectBySlug(projectSlug!),
     enabled: !!projectSlug,
+    staleTime: 1000 * 60 * 5,
+  });
+}
+
+export function useActiveProjectsCount() {
+  return useQuery({
+    queryKey: ["projects"],
+    queryFn: () => ProjectService.getActiveProjectsCount(),
+    staleTime: 1000 * 60 * 5,
   });
 }

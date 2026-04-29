@@ -57,7 +57,10 @@ export class WorkspaceController {
   static async getMembers(req: AuthenticatedRequest, res: Response) {
     const workspaceId = req.workspace?.workspaceId!;
 
-    const members = await WorkspaceService.getMembers(req.user.id, workspaceId);
+    const members = await WorkspaceService.getWorkspaceMembers(
+      req.user.id,
+      workspaceId
+    );
 
     res.json(new ApiResponse(200, 'Members successfully retrieved', members));
   }

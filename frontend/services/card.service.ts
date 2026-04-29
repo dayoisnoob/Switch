@@ -25,6 +25,10 @@ export const CardService = {
   deleteCard: async (cardId: string) => {
     return api.delete(`/cards/${cardId}`);
   },
+
+  getOpenCardsCount: async (): Promise<{ count: number }> => {
+    return api.get(`/cards/open/count`);
+  },
 };
 
 export interface CardUpdateType {

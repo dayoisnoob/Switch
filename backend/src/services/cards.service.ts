@@ -1,11 +1,13 @@
-import { and, desc, eq, inArray } from 'drizzle-orm';
+import { and, count, desc, eq, inArray } from 'drizzle-orm';
 import { db } from '../config/db';
 import {
+  boardsTable,
   cardAssigneesTable,
   cardLabelsTable,
   cardsTable,
   columnsTable,
   labelsTable,
+  projectsTable,
   usersTable,
   workspaceMembershipsTable,
 } from '../db';
@@ -158,6 +160,27 @@ export class CardsService {
       assignees: card.assignees.map((a) => a.user),
       labels: card.labels.map((l) => l.label),
     };
+  }
+
+  static async getUserOpenCardsCount(userId: string) {
+    const [result] = await db
+      .select({ total: count(cardsTable.id) })
+      .from(cardsTable)
+      .innerJoin(columnsTable, eq(cardsTable.columnId, columnsTable.id))
+      .innerJoin(boardsTable, eq(cardsTable.boardId, boardsTable.id))
+      .innerJoin(projectsTable, eq(boardsTable.projectId, projectsTable.id))
+      .innerJoin(
+        workspaceMembershipsTable,
+        eq(projectsTable.workspaceId, workspaceMembershipsTable.workspaceId)
+      )
+      .where(
+        and(
+          eq(workspaceMembershipsTable.userId, userId),
+          eq(columnsTable.isCompleted, false)
+        )
+      );
+
+    return result?.total;
   }
 
   static async updateCard(

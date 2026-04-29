@@ -1,7 +1,6 @@
 "use client";
 
 import { useMe } from "@/hooks/useAuth";
-import { useWorkspaceStore } from "@/store/workspace.store";
 import { cn } from "@/lib/utils";
 import {
   LayoutGrid,
@@ -12,11 +11,17 @@ import {
   Folder,
   ArrowUp,
 } from "lucide-react";
-import Link from "next/link";
+import { ReactNode } from "react";
+import { useGetWorkspaces } from "@/hooks/useWorkspace";
+import { useActiveProjectsCount } from "@/hooks/useProjects";
+import { useOpenCards } from "@/hooks/board";
 
 export default function DashboardPage() {
   const { data: user } = useMe();
-  const workspaces = useWorkspaceStore((s) => s.workspaces);
+  const { data: workspaces = [], isLoading: workspaceLoading } =
+    useGetWorkspaces();
+  const { data: projects, isLoading: countLoading } = useActiveProjectsCount();
+  const { data: cards } = useOpenCards();
 
   // Helper to generate consistent colors for avatars based on name
   const getAvatarColor = (name: string) => {
@@ -31,105 +36,77 @@ export default function DashboardPage() {
     return colors[hash];
   };
 
-  // ── MOCK DATA FOR VISUALS ──
-  const mockActivities = [
-    {
-      id: 1,
-      user: "James",
-      initials: "JD",
-      action: "moved",
-      target: "Fix auth bug",
-      to: "Done",
-      time: "2 min ago",
-      project: "API Refactor",
-      color: "bg-[#7C6EF5]",
-    },
-    {
-      id: 2,
-      user: "Aisha",
-      initials: "AM",
-      action: "commented on",
-      target: "Onboarding flow",
-      time: "18 min ago",
-      project: "Design System",
-      color: "bg-emerald-500",
-    },
-    {
-      id: 3,
-      user: "Marcus",
-      initials: "MR",
-      action: "created column",
-      target: "Review",
-      time: "1 hr ago",
-      project: "Mobile App v2",
-      color: "bg-amber-500",
-    },
-    {
-      id: 4,
-      user: "Sofia",
-      initials: "SL",
-      action: "assigned you to",
-      target: "Token refresh flow",
-      time: "3 hr ago",
-      project: "API Refactor",
-      color: "bg-rose-500",
-    },
-    {
-      id: 5,
-      user: "Ryan",
-      initials: "RK",
-      action: "uploaded attachment to",
-      target: "Hero design",
-      time: "Yesterday",
-      project: "Marketing Site",
-      color: "bg-blue-500",
-    },
-    {
-      id: 6,
-      user: "Aisha",
-      initials: "AM",
-      action: "set priority to",
-      target: "Urgent",
-      to: "on DB migration",
-      time: "Yesterday",
-      project: "API Refactor",
-      color: "bg-emerald-500",
-    },
-  ];
+  // ── PREMIUM SKELETON LOADER ──
+  if (workspaceLoading || countLoading) {
+    return (
+      <div className="max-w-6xl mx-auto w-full animate-pulse">
+        <div className="mb-8 space-y-3">
+          <div className="h-8 w-64 bg-[#1C1C1E] rounded-md" />
+          <div className="h-4 w-96 bg-[#1C1C1E] rounded-md" />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
+          {[...Array(4)].map((_, i) => (
+            <div
+              key={i}
+              className="bg-[#1c1728]/50 border border-[#262626] rounded-xl p-5 h-[116px]"
+            />
+          ))}
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2">
+            <div className="flex items-center justify-between mb-4">
+              <div className="h-5 w-32 bg-[#1C1C1E] rounded-md" />
+              <div className="h-8 w-32 bg-[#1C1C1E] rounded-md" />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {[...Array(2)].map((_, i) => (
+                <div
+                  key={i}
+                  className="bg-[#131315] border border-[#262626] rounded-xl h-44"
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Safe fallback in case workspaces is undefined after load
 
   return (
-    <div className="max-w-6xl mx-auto w-full">
+    <div className="max-w-6xl mx-auto w-full animate-in fade-in duration-500">
       {/* ── HEADER ── */}
       <header className="mb-8">
         <h1 className="text-3xl font-bold text-white mb-2">
           Good morning, {user?.firstName || "James"} 👋
         </h1>
         <p className="text-[#a1a1a1] text-sm">
-          Here's what's happening across your workspaces.
+          Here&apos;s what&apos;s happening across your workspaces.
         </p>
       </header>
 
-      {/* ── GLOBAL STATS ROW ── */}
+      {/* ── GLOBAL STATS ── */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
         <StatCard
           icon={<LayoutGrid size={16} className="text-[#7C6EF5]" />}
           iconBg="bg-[#7C6EF5]/10"
           title="Workspaces"
           value={workspaces.length.toString()}
-          trend={1}
         />
         <StatCard
           icon={<ListTodo size={16} className="text-emerald-400" />}
           iconBg="bg-emerald-500/10"
           title="Active Projects"
-          value="11"
-          trend={3}
+          value={projects?.count.toString()}
         />
         <StatCard
           icon={<Layers size={16} className="text-amber-400" />}
           iconBg="bg-amber-500/10"
           title="Open Cards"
-          value="47"
+          value={cards?.count.toString()}
           subtitle="across all boards"
         />
         <StatCard
@@ -143,7 +120,7 @@ export default function DashboardPage() {
 
       {/* ── MAIN CONTENT SPLIT ── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* LEFT SIDE: Workspaces (Takes up 2 columns) */}
+        {/* LEFT SIDE: Workspaces */}
         <div className="lg:col-span-2">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-sm font-bold text-white">Your Workspaces</h2>
@@ -187,7 +164,6 @@ export default function DashboardPage() {
                     <Folder size={14} /> 4 projects
                   </div>
 
-                  {/* Overlapping Avatar Mockup */}
                   <div className="flex items-center">
                     <div className="flex -space-x-2 mr-2">
                       <div className="w-6 h-6 rounded-full border-2 border-[#131315] bg-blue-500 flex items-center justify-center text-[9px] font-bold text-white">
@@ -223,58 +199,32 @@ export default function DashboardPage() {
             </button>
           </div>
         </div>
-
-        {/* RIGHT SIDE: Recent Activity (Takes up 1 column) */}
-        <div>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-sm font-bold text-white">Recent Activity</h2>
-          </div>
-
-          <div className="bg-[#131315] border border-[#262626] rounded-xl overflow-hidden">
-            <div className="divide-y divide-[#262626]">
-              {mockActivities.map((activity) => (
-                <div
-                  key={activity.id}
-                  className="p-4 flex gap-3 hover:bg-[#18181b] transition-colors"
-                >
-                  <div
-                    className={cn(
-                      "w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0",
-                      activity.color,
-                    )}
-                  >
-                    {activity.initials}
-                  </div>
-                  <div className="flex-1 min-w-0 leading-snug">
-                    <p className="text-sm text-[#a1a1a1]">
-                      <span className="font-semibold text-white">
-                        {activity.user}
-                      </span>{" "}
-                      {activity.action}{" "}
-                      <span className="font-semibold text-white">
-                        {activity.target}
-                      </span>
-                      {activity.to && ` ${activity.to}`}
-                    </p>
-                    <p className="text-[11px] text-[#71717a] mt-1 flex items-center gap-1">
-                      {activity.time} <span className="text-[#3f3f46]">•</span>{" "}
-                      {activity.project}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   );
 }
 
+// Fixed Interface
+interface StatCardProps {
+  icon: ReactNode; // Fixed from LucideIcon
+  iconBg: string;
+  title: string;
+  value: string | undefined;
+  subtitle?: string; // Optional
+  trend?: number; // Added!
+}
+
 // Helper Component for the Global Stats Row
-function StatCard({ icon, iconBg, title, value, trend, subtitle }: any) {
+function StatCard({
+  icon,
+  iconBg,
+  title,
+  value,
+  trend,
+  subtitle,
+}: StatCardProps) {
   return (
-    <div className="bg-[#131315] border border-[#262626] rounded-xl p-4 flex flex-col">
+    <div className="bg-[#1c1728]/80 border border-[#262626] rounded-xl p-5 flex flex-col">
       <div className="flex items-center gap-3 mb-3">
         <div
           className={cn(

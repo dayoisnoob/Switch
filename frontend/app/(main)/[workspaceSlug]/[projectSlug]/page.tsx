@@ -14,7 +14,6 @@ import {
   useRenameColumn,
   useReorderColumn,
 } from "@/hooks/board";
-import { useProjectBySlug } from "@/hooks/useProjects";
 import {
   CollisionDetection,
   DndContext,
@@ -44,6 +43,7 @@ import { CreateInput } from "@/components/board/CreateInput";
 import { useBoardStore } from "@/store/board.store";
 import { BoardCard, BoardColumn, BoardState } from "@/types/board.types";
 import { toast } from "sonner";
+import { useGetProjectBySlug } from "@/hooks/useProjects";
 
 function findColumnInSnapshot(
   id: string,
@@ -75,7 +75,7 @@ export default function KanbanBoardPage() {
 
   const router = useRouter();
 
-  const { data: project } = useProjectBySlug(projectSlug);
+  const { data: project } = useGetProjectBySlug(projectSlug);
   const { isLoading: isBoardLoading } = useBoard(projectSlug, workspaceSlug);
 
   const board = useBoardStore((s) => s.board);

@@ -28,9 +28,7 @@
 
     --danger: #ff4d4d;
   }
-  * {
-    @apply border-border outline-ring/50;
-  }
+
   body {
     @apply bg-background text-foreground;
   }

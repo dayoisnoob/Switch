@@ -21,11 +21,23 @@ export class ProjectController {
       .json(new ApiResponse(201, 'Project created successfully', project));
   }
 
-  static async getAllProjects(req: AuthenticatedRequest, res: Response) {
+  static async getWorkspaceProjects(req: AuthenticatedRequest, res: Response) {
     const workspaceId = req.workspace?.workspaceId!;
-    const projects = await ProjectService.getAllProjects(workspaceId);
+    const projects = await ProjectService.getWorkspaceProjects(workspaceId);
 
     res.json(new ApiResponse(200, 'Projects retrieved successfully', projects));
+  }
+
+  static async getUserActiveProjectsCount(
+    req: AuthenticatedRequest,
+    res: Response
+  ) {
+    const userId = req.user.id;
+    const count = await ProjectService.getUserActiveProjectsCount(userId);
+
+    res.json(
+      new ApiResponse(200, 'Projects retrieved successfully', { count })
+    );
   }
 
   static async getProject(req: AuthenticatedRequest, res: Response) {

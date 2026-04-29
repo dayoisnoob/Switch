@@ -1,5 +1,6 @@
 import { api } from "@/lib/api";
-import { Workspace } from "@/types";
+
+export type WorkspaceRole = "owner" | "admin" | "member";
 
 export interface WorkspaceMembers {
   id: string;
@@ -9,6 +10,13 @@ export interface WorkspaceMembers {
   avatarUrl: string;
   role: string;
   userId: string;
+}
+export interface Workspace {
+  id: string;
+  name: string;
+  slug: string;
+  ownerId: string;
+  role: WorkspaceRole;
 }
 
 export const WorkspaceService = {

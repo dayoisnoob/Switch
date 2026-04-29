@@ -5,7 +5,6 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 export type PriorityEnum = "none" | "low" | "medium" | "high" | "urgent";
-export type WorkspaceRole = "owner" | "admin" | "member";
 
 export interface Attachment {
   id: string;

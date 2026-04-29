@@ -141,8 +141,6 @@ router.post('/logout-all', asyncHandler(AuthController.logoutAll));
 
 // Authenticated Routes
 
-router.get('/me', authenticate, asyncHandler(AuthController.getMe));
-
 router.patch(
   '/profile',
   authenticate,

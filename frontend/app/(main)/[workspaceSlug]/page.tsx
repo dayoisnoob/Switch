@@ -1,9 +1,8 @@
 "use client";
 
 import CreateProjectModal from "@/components/modals/CreateProjectModal";
-import { useWorkspaceProjects } from "@/hooks/useProjects";
+import { useGetWorkspaceProjects } from "@/hooks/useProjects";
 import { cn } from "@/lib/utils";
-import { ProjectType } from "@/services/projects.service";
 import { useWorkspaceStore } from "@/store/workspace.store";
 import {
   Plus,
@@ -15,6 +14,7 @@ import {
   MoreVertical,
   UserPlus,
 } from "lucide-react";
+import { Project } from "next/dist/build/swc/types";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -26,9 +26,8 @@ export default function WorkspacePage() {
   const [activeTab, setActiveTab] = useState("Projects");
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
 
-  const { data: projects, isLoading: projectsLoading } = useWorkspaceProjects(
-    activeWorkspace?.slug,
-  );
+  const { data: projects, isLoading: projectsLoading } =
+    useGetWorkspaceProjects(activeWorkspace?.slug);
 
   if (!activeWorkspace) return null;
 
@@ -157,7 +156,7 @@ export default function WorkspacePage() {
             </div>
           ) : projects && projects.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {projects.map((project: ProjectType) => (
+              {projects.map((project) => (
                 <ProjectCard
                   key={project.id}
                   project={project}

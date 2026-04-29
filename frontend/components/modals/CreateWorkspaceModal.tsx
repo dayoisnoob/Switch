@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { AuthInput, PrimaryButton } from "@/components/auth/auth-components";
 import { slugify } from "@/lib/utils";
-import { useCreateWorkspace } from "@/hooks/useCreateWorkspace";
+import { useCreateWorkspace } from "@/hooks/useWorkspace";
 
 export default function CreateWorkspaceModal({
   isOpen,
@@ -14,11 +14,9 @@ export default function CreateWorkspaceModal({
 }) {
   const [name, setName] = useState("");
 
-  const { createWorkspace, loading } = useCreateWorkspace(onClose);
+  const { mutate: createWorkspace, isPending } = useCreateWorkspace(onClose);
 
   if (!isOpen) return null;
-
-  const handleCreate = async () => createWorkspace(name);
 
   return (
     <div className="fixed inset-0 z-999 flex items-center justify-center bg-[#0b0e14]/80 backdrop-blur-md px-4">
@@ -60,12 +58,12 @@ export default function CreateWorkspaceModal({
           </div>
 
           <PrimaryButton
-            onClick={handleCreate}
-            loading={loading}
-            disabled={!name.trim() || loading}
+            onClick={() => createWorkspace(name)}
+            loading={isPending}
+            disabled={!name.trim() || isPending}
             className="h-12 bg-[#1c1a24] border border-[#3a3742] hover:bg-[#24222a] text-white font-semibold transition-all"
           >
-            Create workspace
+            {isPending ? "Creating..." : "Create Workspace"}
           </PrimaryButton>
 
           <p className="text-center text-xs text-white/75 pt-2">

@@ -5,7 +5,11 @@ import { ApiError } from '../utils/api-response';
 import { emitBoardEvent } from '../socket/emitter';
 
 export class ColumnsService {
-  static async createColumn(boardId: string, name: string) {
+  static async createColumn(
+    boardId: string,
+    name: string,
+    isCompleted: boolean
+  ) {
     const [lastColumn] = await db
       .select({ order: columnsTable.order })
       .from(columnsTable)
@@ -19,6 +23,7 @@ export class ColumnsService {
       .values({
         boardId,
         name,
+        ...(isCompleted && { isCompleted: true }),
         order: newOrder,
       })
       .returning();

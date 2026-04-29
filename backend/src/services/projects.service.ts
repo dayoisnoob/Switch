@@ -1,6 +1,11 @@
-import { and, eq } from 'drizzle-orm';
+import { and, count, eq } from 'drizzle-orm';
 import { db } from '../config/db';
-import { boardsTable, columnsTable, projectsTable } from '../db';
+import {
+  boardsTable,
+  columnsTable,
+  projectsTable,
+  workspaceMembershipsTable,
+} from '../db';
 import { ApiError } from '../utils/api-response';
 import { slugGen } from '../utils/helpers';
 
@@ -44,7 +49,7 @@ export class ProjectService {
         await tx.insert(columnsTable).values([
           { boardId: board.id, name: 'To Do', order: 1.0 },
           { boardId: board.id, name: 'In Progress', order: 2.0 },
-          { boardId: board.id, name: 'Done', order: 3.0 },
+          { boardId: board.id, name: 'Done', order: 3.0, isCompleted: true },
         ]);
 
         return { project, board };
@@ -71,7 +76,7 @@ export class ProjectService {
     }
   }
 
-  static async getAllProjects(workspaceId: string) {
+  static async getWorkspaceProjects(workspaceId: string) {
     const projects = await db
       .select({
         id: projectsTable.id,
@@ -85,6 +90,27 @@ export class ProjectService {
       .where(eq(projectsTable.workspaceId, workspaceId));
 
     return projects;
+  }
+
+  static async getUserActiveProjectsCount(userId: string) {
+    const [result] = await db
+      .select({
+        total: count(projectsTable.id),
+      })
+
+      .from(projectsTable)
+      .innerJoin(
+        workspaceMembershipsTable,
+        eq(projectsTable.workspaceId, workspaceMembershipsTable.workspaceId)
+      )
+      .where(
+        and(
+          eq(workspaceMembershipsTable.userId, userId),
+          eq(projectsTable.status, 'Active')
+        )
+      );
+
+    return result?.total;
   }
 
   static async getProject(workspaceId: string, slug: string) {

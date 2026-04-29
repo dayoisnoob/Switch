@@ -96,3 +96,11 @@ export function useClickOutside<T extends HTMLElement>(
     };
   }, [ref, handler]);
 }
+
+export const useOpenCards = () => {
+  return useQuery({
+    queryKey: ["open-cards"],
+    queryFn: () => CardService.getOpenCardsCount(),
+    staleTime: 1000 * 60 * 5,
+  });
+};

@@ -88,12 +88,6 @@ export class AuthController {
       .json(new ApiResponse(200, 'Login successful', user));
   }
 
-  static async getMe(req: AuthenticatedRequest, res: Response) {
-    const user = await AuthService.getMe(req.user.id);
-
-    res.json(new ApiResponse(200, 'User retrieved successfully', user));
-  }
-
   static async refreshAccessToken(req: Request, res: Response) {
     const refreshToken = req.cookies['__auth.refresh'];
 

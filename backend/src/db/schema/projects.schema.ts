@@ -1,5 +1,6 @@
 import {
   index,
+  pgEnum,
   pgTable,
   text,
   timestamp,
@@ -9,6 +10,13 @@ import {
 } from 'drizzle-orm/pg-core';
 import { usersTable } from './users.schema';
 import { workspacesTable } from './workspaces.schema';
+
+export const projectStatusEnum = pgEnum('project_status', [
+  'Active',
+  'Paused',
+  'Planning',
+  'Completed',
+]);
 
 export const projectsTable = pgTable(
   'projects',
@@ -20,6 +28,7 @@ export const projectsTable = pgTable(
     name: varchar('name', { length: 100 }).notNull(),
     slug: varchar('slug', { length: 100 }).notNull(),
     description: text('description'),
+    status: projectStatusEnum('status').default('Active').notNull(),
     createdBy: uuid('created_by')
       .notNull()
       .references(() => usersTable.id),

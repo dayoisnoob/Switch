@@ -3,50 +3,147 @@
 import AddWorkspaceModal from "@/components/modals/AddWorkspaceModal";
 import CreateWorkspaceModal from "@/components/modals/CreateWorkspaceModal";
 import { useLogout, useMe } from "@/hooks/useAuth";
-import { useWorkspaceProjects } from "@/hooks/useProjects";
-import { cn, getErrorMessage } from "@/lib/utils";
-import { WorkspaceService } from "@/services/workspace.service";
-import { useAuthStore } from "@/store/auth.store";
+import { useGetWorkspaceProjects } from "@/hooks/useProjects";
+import { useGetMembers, useGetWorkspaces } from "@/hooks/useWorkspace";
+import { cn } from "@/lib/utils";
 import { useWorkspaceStore } from "@/store/workspace.store";
 import {
   Bell,
   ChevronDown,
-  LayoutGrid, // Solid purple dashboard in design
+  ChevronRight,
+  LayoutGrid,
   LogOut,
+  Package,
   Plus,
   Search,
   Settings,
-  Users, // Workspace section icons
-  Package,
-  ChevronRight,
+  Users,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ReactNode, useEffect, useState } from "react";
-import { toast } from "sonner";
 
 export default function MainLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
 
-  const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [isFirstWorkspaceOpen, setIsFirstWorkspaceOpen] = useState(false);
   const [isAddWorkspaceOpen, setIsAddWorkspaceOpen] = useState(false);
   const [isWorkspaceDropdownOpen, setIsWorkspaceDropdownOpen] = useState(false);
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
 
-  const setWorkspaces = useWorkspaceStore((s) => s.setWorkspaces);
-  const setActiveWorkspace = useWorkspaceStore((s) => s.setActiveWorkspace);
-  const workspaces = useWorkspaceStore((s) => s.workspaces);
   const activeWorkspace = useWorkspaceStore((s) => s.activeWorkspace);
-  const workspaceMembers = useWorkspaceStore((s) => s.workspaceMembers);
-  const syncMembers = useWorkspaceStore((s) => s.syncMembers);
-  const setUser = useAuthStore((s) => s.setUser);
+  const setActiveWorkspace = useWorkspaceStore((s) => s.setActiveWorkspace);
 
   const logout = useLogout();
-  const { data: user, isLoading: isUserLoading } = useMe();
-  const { data: projects } = useWorkspaceProjects(activeWorkspace?.slug);
-  console.log(activeWorkspace);
+  const { data: user, isLoading: userLoading } = useMe();
+  const { data: workspaces = [], isLoading: workspacesLoading } =
+    useGetWorkspaces();
+  const { data: projects = [], isLoading: projectsLoading } =
+    useGetWorkspaceProjects(activeWorkspace?.slug);
+
+  useEffect(() => {
+    if (workspaces.length > 0 && !activeWorkspace) {
+      setActiveWorkspace(workspaces[0]);
+    }
+  }, [workspaces, activeWorkspace, setActiveWorkspace]);
+
+  const { data: members = [], isLoading: membersLoading } = useGetMembers(
+    activeWorkspace?.slug,
+  );
+
+  if (workspacesLoading || userLoading || projectsLoading || membersLoading) {
+    return (
+      <div className="flex h-screen bg-[#0f0f16] overflow-hidden font-sans">
+        {/* Sidebar Skeleton */}
+        <aside className="w-60 shrink-0 bg-[#0f0f16] border border-[#221f29] flex flex-col">
+          <div className="p-3">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="w-7 h-7 rounded-lg bg-[#7C6EF5] flex items-center justify-center text-white text-xs font-black">
+                S
+              </div>
+              <span className="text-xl font-black text-white">Switch</span>
+            </div>
+            {/* Workspace Button Skeleton */}
+            <div className="h-14 w-full bg-[#151520] rounded-lg animate-pulse border border-[#151520]" />
+          </div>
+
+          <div className="flex-1 px-3 space-y-8 py-4">
+            {/* Nav Skeleton */}
+            <div className="space-y-2 animate-pulse">
+              <div className="h-10 w-full bg-[#151520] rounded-md" />
+              <div className="h-10 w-full bg-[#151520] rounded-md" />
+            </div>
+
+            {/* Projects List Skeleton */}
+            <div>
+              <div className="h-3 w-16 bg-[#151520] rounded mb-4 ml-3 animate-pulse" />
+              <div className="space-y-3 px-3 animate-pulse">
+                <div className="flex items-center gap-3">
+                  <div className="w-2.5 h-2.5 rounded-full bg-[#2a2a2a]" />
+                  <div className="h-3 w-24 bg-[#151520] rounded" />
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-2.5 h-2.5 rounded-full bg-[#2a2a2a]" />
+                  <div className="h-3 w-20 bg-[#151520] rounded" />
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-2.5 h-2.5 rounded-full bg-[#2a2a2a]" />
+                  <div className="h-3 w-28 bg-[#151520] rounded" />
+                </div>
+              </div>
+            </div>
+
+            {/* Settings List Skeleton */}
+            <div>
+              <div className="h-3 w-16 bg-[#151520] rounded mb-4 ml-3 animate-pulse" />
+              <div className="space-y-2 animate-pulse">
+                <div className="h-10 w-full bg-[#151520] rounded-md" />
+                <div className="h-10 w-full bg-[#151520] rounded-md" />
+              </div>
+            </div>
+          </div>
+
+          {/* User Profile Skeleton */}
+          <div className="p-3 border-t border-[#2a2a2a] mt-auto">
+            <div className="flex items-center gap-3 p-2.5 animate-pulse">
+              <div className="w-9 h-9 rounded-full bg-[#2a2a2a] shrink-0" />
+              <div className="flex-1 space-y-2">
+                <div className="h-3 w-20 bg-[#2a2a2a] rounded" />
+                <div className="h-2 w-24 bg-[#151520] rounded" />
+              </div>
+            </div>
+          </div>
+        </aside>
+
+        {/* Header & Main Area Skeleton */}
+        <div className="flex flex-col flex-1 min-w-0">
+          <header className="h-14 shrink-0 bg-[#0f0f16] border-b border-[#2a2a2a] flex items-center px-8">
+            <div className="ml-12 h-4 w-40 bg-[#151520] rounded animate-pulse" />
+            <div className="ml-auto flex items-center gap-4 animate-pulse">
+              <div className="w-5 h-5 bg-[#151520] rounded" />
+              <div className="w-5 h-5 bg-[#151520] rounded" />
+              <div className="w-8 h-8 rounded-full bg-[#2a2a2a] border border-[#2a2a2a]" />
+            </div>
+          </header>
+
+          <main className="flex-1 bg-black p-12">
+            {/* Generic Page Content Skeleton to fill the space */}
+            <div className="max-w-6xl mx-auto w-full animate-pulse space-y-6 opacity-30">
+              <div className="h-8 w-64 bg-[#1C1C1E] rounded-md" />
+              <div className="h-4 w-96 bg-[#1C1C1E] rounded-md" />
+              <div className="grid grid-cols-4 gap-4 pt-4">
+                <div className="h-28 bg-[#1C1C1E] rounded-xl" />
+                <div className="h-28 bg-[#1C1C1E] rounded-xl" />
+                <div className="h-28 bg-[#1C1C1E] rounded-xl" />
+                <div className="h-28 bg-[#1C1C1E] rounded-xl" />
+              </div>
+            </div>
+          </main>
+        </div>
+      </div>
+    );
+  }
 
   // A premium palette of dark-mode-friendly vibrant colors
   const PROJECT_COLORS = [
@@ -68,34 +165,6 @@ export default function MainLayout({ children }: { children: ReactNode }) {
     return PROJECT_COLORS[index];
   };
 
-  useEffect(() => {
-    if (user) setUser(user);
-  }, [user, setUser]);
-
-  useEffect(() => {
-    const init = async () => {
-      try {
-        const data = await WorkspaceService.getWorkspaces();
-        if (data && data.length > 0) {
-          setWorkspaces(data);
-          if (!activeWorkspace) setActiveWorkspace(data[0]);
-        }
-      } catch (err) {
-        toast.error(getErrorMessage(err) || "Failed to load workspaces");
-      } finally {
-        setIsInitialLoading(false);
-      }
-    };
-    init();
-  }, []);
-
-  useEffect(() => {
-    if (activeWorkspace?.slug) {
-      syncMembers(activeWorkspace.slug);
-    }
-  }, [activeWorkspace?.slug, syncMembers]);
-
-  // Main navigation items for top-level app nav
   const mainNavItems = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutGrid }, // solid purple in design
     {
@@ -106,7 +175,6 @@ export default function MainLayout({ children }: { children: ReactNode }) {
     },
   ];
 
-  // Workspace-specific navigation
   const workspaceSettingsNavItems = [
     {
       name: "Projects",
@@ -118,25 +186,9 @@ export default function MainLayout({ children }: { children: ReactNode }) {
       name: "Members",
       href: `/${activeWorkspace?.slug}/members`,
       icon: Users,
-      count: workspaceMembers.length,
+      count: members.length,
     },
   ];
-
-  // Mock projects for the middle section
-  // const projects = [
-  //   { id: "proj-1", name: "Design System", color: "#38bdf8" }, // teal
-  //   { id: "proj-2", name: "API Refactor", color: "#fb7185" }, // rose/pink
-  //   { id: "proj-3", name: "Mobile App v2", color: "#fbbf24" }, // amber
-  //   { id: "proj-4", name: "Marketing Site", color: "#a855f7" }, // purple
-  // ];
-
-  if (isInitialLoading || isUserLoading || !projects) {
-    return (
-      <div className="h-screen w-full bg-[#101010] flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-[#7C6EF5]"></div>
-      </div>
-    );
-  }
 
   // Helper function to get initials for avatars
   const getInitials = (wsName: string) => {
@@ -153,14 +205,14 @@ export default function MainLayout({ children }: { children: ReactNode }) {
       {/* ── SIDEBAR (charcoal dark gray) ── */}
       <aside className="w-60 shrink-0 bg-[#0f0f16] border-r border-[#2a2a2a] flex flex-col">
         {/* Active Workspace Switcher (Top) */}
-        <div className="p-3 border-b border-[#2a2a2a]">
-          <div className="flex items-center gap-2 mb-6">
+        <div className="p-3 ">
+          <div className="flex items-center gap-2 mb-4">
             <div className="w-7 h-7 rounded-lg bg-[#7C6EF5] flex items-center justify-center text-white text-xs font-black">
               S
             </div>
             <span className="text-xl font-black text-white">Switch</span>
           </div>
-          <div className="p-3 border-b border-[#2a2a2a] relative">
+          <div className="relative border border-[#151520] rounded-lg">
             {/* workspace button */}
             <button
               onClick={() =>
@@ -444,9 +496,9 @@ export default function MainLayout({ children }: { children: ReactNode }) {
       </aside>
 
       {/* ── HEADER & MAIN AREA (True Black) ── */}
-      <div className="flex flex-col  flex-1 min-w-0">
+      <div className="flex flex-col flex-1 min-w-0">
         {/* HEADER: Unified background with content area */}
-        <header className="h-16 shrink-0 bg-[#0f0f16] border-b border-[#2a2a2a] flex items-center px-8">
+        <header className="h-14 shrink-0 bg-[#0f0f16] border-b border-[#2a2a2a] flex items-center px-8">
           {/* Breadcrumb */}
           <div className="flex items-center gap-2 text-sm font-medium ml-12">
             <span className="text-[#a1a1a1]">
@@ -483,13 +535,12 @@ export default function MainLayout({ children }: { children: ReactNode }) {
                   </>
                 )}
               </div>
-              <ChevronDown size={14} className="text-[#a1a1a1]" />
             </div>
           </div>
         </header>
 
         {/* Main Content Area */}
-        <main className="flex-1 overflow-y-auto custom-scrollbar bg-black transition-all duration-700 ease-in-out px-12 py-10">
+        <main className="flex-1 overflow-y-auto custom-scrollbar bg-[#0f0d14] transition-all duration-700 ease-in-out px-12 py-10">
           {children}
         </main>
       </div>

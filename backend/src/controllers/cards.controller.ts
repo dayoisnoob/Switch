@@ -32,6 +32,13 @@ export class CardsController {
     res.json(new ApiResponse(200, 'Card retrieved successfully', card));
   }
 
+  static async getUserOpenCardsCount(req: AuthenticatedRequest, res: Response) {
+    const userId = req.user.id;
+    const count = await CardsService.getUserOpenCardsCount(userId);
+
+    res.json(new ApiResponse(200, 'Card retrieved successfully', { count }));
+  }
+
   static async updateCard(req: AuthenticatedRequest, res: Response) {
     const userId = req.user.id;
     const projectId = req.resolvedCard!.projectId;

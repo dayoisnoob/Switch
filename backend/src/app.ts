@@ -26,6 +26,7 @@ import commentsRouter from './routes/comments.routes.ts';
 import attachmentsRouter from './routes/attachments.routes.ts';
 import notificationsRouter from './routes/notifications.routes.ts';
 import activityRouter from './routes/activity.routes.ts';
+import userRouter from './routes/user.routes.ts';
 
 const swaggerDocument = JSON.parse(
   readFileSync(join(process.cwd(), 'swagger-output.json'), 'utf8')
@@ -90,6 +91,8 @@ app.use('/api/v1/cards/:cardId/attachments', attachmentsRouter);
 app.use('/api/v1/attachments', attachmentsRouter);
 
 app.use('/api/v1/notifications', notificationsRouter);
+
+app.use('/api/v1/users', userRouter);
 
 app.use(notFoundError);
 app.use(globalErrorHandler);

@@ -16,10 +16,9 @@ import { paramsSchema } from '../validations/urlParams.validation';
 
 const router = Router({ mergeParams: true });
 
-router.use(authenticate);
-
 router.post(
   '/',
+  authenticate,
   validateUrlParams(paramsSchema),
   validateInput(projectInputSchema),
   requireWorkspaceMember,
@@ -28,13 +27,21 @@ router.post(
 
 router.get(
   '/',
+  authenticate,
   validateUrlParams(paramsSchema),
   requireWorkspaceMember,
-  asyncHandler(ProjectController.getAllProjects)
+  asyncHandler(ProjectController.getWorkspaceProjects)
+);
+
+router.get(
+  '/count',
+  authenticate,
+  asyncHandler(ProjectController.getUserActiveProjectsCount)
 );
 
 router.get(
   '/:projectSlug',
+  authenticate,
   validateUrlParams(paramsSchema),
   requireWorkspaceMember,
   asyncHandler(ProjectController.getProject)
