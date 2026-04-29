@@ -17,6 +17,14 @@ export interface Workspace {
   slug: string;
   ownerId: string;
   role: WorkspaceRole;
+  projectsCount: number;
+  membersCount: number;
+  members: [
+    {
+      name: string;
+      avatarUrl: string | null;
+    },
+  ];
 }
 
 export const WorkspaceService = {

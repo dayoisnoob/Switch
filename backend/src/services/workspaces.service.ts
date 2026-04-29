@@ -7,6 +7,7 @@ import {
   inArray,
   isNull,
   ne,
+  sql,
 } from 'drizzle-orm';
 import { db } from '../config/db';
 import { env } from '../config/env';
@@ -21,6 +22,7 @@ import { queueEmail } from '../queues/email.queue';
 import { ApiError } from '../utils/api-response';
 import { slugGen } from '../utils/helpers';
 import { tempTokens } from '../utils/tokens.util';
+import { alias } from 'drizzle-orm/pg-core';
 
 export class WorkspaceService {
   static async createWorkspace(userId: string, name: string) {
@@ -95,6 +97,41 @@ export class WorkspaceService {
   }
 
   static async getAllWorkspaces(userId: string) {
+    const projectCount = db
+      .select({
+        workspaceId: projectsTable.workspaceId,
+        count: countDistinct(projectsTable.id).as('projectCount'),
+      })
+      .from(projectsTable)
+      .groupBy(projectsTable.workspaceId)
+      .as('projects_count');
+
+    const memberCount = db
+      .select({
+        workspaceId: workspaceMembershipsTable.workspaceId,
+        count: countDistinct(workspaceMembershipsTable.id).as('memberCount'),
+      })
+      .from(workspaceMembershipsTable)
+      .groupBy(workspaceMembershipsTable.workspaceId)
+      .as('member_count');
+
+    const members = db
+      .select({
+        workspaceId: workspaceMembershipsTable.workspaceId,
+        members: sql<{ name: string; avatarUrl: string | null }[]>`
+      json_agg(
+        distinct jsonb_build_object(
+          'name', ${usersTable.firstName},
+          'avatarUrl', ${usersTable.avatarUrl}
+        )
+      )
+    `.as('members'),
+      })
+      .from(workspaceMembershipsTable)
+      .leftJoin(usersTable, eq(workspaceMembershipsTable.userId, usersTable.id))
+      .groupBy(workspaceMembershipsTable.workspaceId)
+      .as('members');
+
     const workspaces = await db
       .select({
         id: workspacesTable.id,
@@ -102,25 +139,19 @@ export class WorkspaceService {
         slug: workspacesTable.slug,
         ownerId: workspacesTable.ownerId,
         role: workspaceMembershipsTable.role,
-        projectCount: count(projectsTable.id),
+        projectsCount: projectCount.count,
+        membersCount: memberCount.count,
+        members: members.members,
       })
       .from(workspacesTable)
       .innerJoin(
         workspaceMembershipsTable,
         eq(workspacesTable.id, workspaceMembershipsTable.workspaceId)
       )
-      .leftJoin(
-        projectsTable,
-        eq(workspacesTable.id, projectsTable.workspaceId)
-      )
-      .where(eq(workspaceMembershipsTable.userId, userId))
-      .groupBy(
-        workspacesTable.id,
-        workspacesTable.name,
-        workspacesTable.slug,
-        workspacesTable.ownerId,
-        workspaceMembershipsTable.role
-      );
+      .leftJoin(projectCount, eq(workspacesTable.id, projectCount.workspaceId))
+      .leftJoin(memberCount, eq(workspacesTable.id, memberCount.workspaceId))
+      .leftJoin(members, eq(workspacesTable.id, members.workspaceId))
+      .where(eq(workspaceMembershipsTable.userId, userId));
 
     return workspaces;
   }

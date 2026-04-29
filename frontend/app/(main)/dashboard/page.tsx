@@ -15,6 +15,7 @@ import { ReactNode } from "react";
 import { useGetWorkspaces } from "@/hooks/useWorkspace";
 import { useActiveProjectsCount } from "@/hooks/useProjects";
 import { useOpenCards } from "@/hooks/board";
+import Image from "next/image";
 
 export default function DashboardPage() {
   const { data: user } = useMe();
@@ -164,26 +165,44 @@ export default function DashboardPage() {
 
                 <div className="flex items-center justify-between mt-5 pt-4 border-t border-[#262626]">
                   <div className="flex items-center gap-1.5 text-xs font-medium text-[#a1a1a1]">
-                    <Folder size={14} /> 4 projects
+                    <Folder size={14} /> {ws.projectsCount}
                   </div>
 
                   <div className="flex items-center">
                     <div className="flex -space-x-2 mr-2">
-                      <div className="w-6 h-6 rounded-full border-2 border-[#131315] bg-blue-500 flex items-center justify-center text-[9px] font-bold text-white">
-                        J
-                      </div>
-                      <div className="w-6 h-6 rounded-full border-2 border-[#131315] bg-emerald-500 flex items-center justify-center text-[9px] font-bold text-white">
-                        A
-                      </div>
-                      <div className="w-6 h-6 rounded-full border-2 border-[#131315] bg-amber-500 flex items-center justify-center text-[9px] font-bold text-white">
-                        M
-                      </div>
-                      <div className="w-6 h-6 rounded-full border-2 border-[#131315] bg-[#2a2a2a] flex items-center justify-center text-[9px] font-bold text-white">
-                        +5
-                      </div>
+                      {ws.members?.slice(0, 3).map((member, idx) => (
+                        <div
+                          key={idx}
+                          className="w-6 h-6 rounded-full border border-[#131315] bg-blue-300 flex items-center justify-center overflow-hidden shrink-0"
+                        >
+                          {member.avatarUrl ? (
+                            <Image
+                              src={member.avatarUrl}
+                              alt={member.name}
+                              width={24}
+                              height={24}
+                              className="w-full h-full object-cover"
+                              unoptimized
+                              referrerPolicy="no-referrer"
+                            />
+                          ) : (
+                            <span className="text-[10px] font-bold text-white">
+                              {member.name?.charAt(0).toUpperCase()}
+                            </span>
+                          )}
+                        </div>
+                      ))}
+
+                      {ws.membersCount > 3 && (
+                        <div className="w-6 h-6 rounded-full border-2 border-[#131315] bg-[#2a2a2a] flex items-center justify-center text-[9px] font-bold text-white z-10">
+                          +{ws.membersCount - 3}
+                        </div>
+                      )}
                     </div>
                     <span className="text-[11px] text-[#a1a1a1]">
-                      8 members
+                      {ws.membersCount === 1
+                        ? `${ws.membersCount} member`
+                        : `${ws.membersCount} members`}
                     </span>
                   </div>
                 </div>
