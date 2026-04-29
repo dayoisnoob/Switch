@@ -132,7 +132,7 @@ export default function DashboardPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Map actual workspaces */}
-            {workspaces.map((ws, i) => (
+            {workspaces.map((ws) => (
               <div
                 key={ws.id}
                 className="bg-[#131315] border border-[#262626] rounded-xl p-5 hover:border-[#3f3f46] transition-all group flex flex-col h-44"
@@ -144,12 +144,14 @@ export default function DashboardPage() {
                   <span
                     className={cn(
                       "px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest",
-                      i === 0
+                      ws.role === "owner"
                         ? "bg-[#7C6EF5]/10 text-[#7C6EF5]"
-                        : "bg-[#2a2a2a] text-[#a1a1a1]",
+                        : ws.role === "admin"
+                          ? "bg-[#192d33] text-[#039752]"
+                          : "bg-[#2a2a2a] text-[#a1a1a1]",
                     )}
                   >
-                    {i === 0 ? "Owner" : "Member"}
+                    {ws.role}
                   </span>
                 </div>
 

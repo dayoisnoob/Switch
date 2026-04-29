@@ -11,6 +11,7 @@ import {
 import { db } from '../config/db';
 import { env } from '../config/env';
 import {
+  projectsTable,
   usersTable,
   workspaceInvitationsTable,
   workspaceMembershipsTable,
@@ -100,15 +101,26 @@ export class WorkspaceService {
         name: workspacesTable.name,
         slug: workspacesTable.slug,
         ownerId: workspacesTable.ownerId,
-        createdAt: workspacesTable.createdAt,
         role: workspaceMembershipsTable.role,
+        projectCount: count(projectsTable.id),
       })
       .from(workspacesTable)
       .innerJoin(
         workspaceMembershipsTable,
         eq(workspacesTable.id, workspaceMembershipsTable.workspaceId)
       )
-      .where(eq(workspaceMembershipsTable.userId, userId));
+      .leftJoin(
+        projectsTable,
+        eq(workspacesTable.id, projectsTable.workspaceId)
+      )
+      .where(eq(workspaceMembershipsTable.userId, userId))
+      .groupBy(
+        workspacesTable.id,
+        workspacesTable.name,
+        workspacesTable.slug,
+        workspacesTable.ownerId,
+        workspaceMembershipsTable.role
+      );
 
     return workspaces;
   }
