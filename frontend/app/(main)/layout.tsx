@@ -287,7 +287,7 @@ export default function MainLayout({ children }: { children: ReactNode }) {
                 />
                 {item.name}
                 {item.count && (
-                  <div className="ml-auto inline-flex items-center justify-center px-2 py-0.5 rounded-sm bg-blue-500 text-[10px] font-black text-white min-w-4.5">
+                  <div className="ml-auto inline-flex items-center justify-center px-1.5 py-0.5 rounded-sm bg-[#151520] text-[10px] font-black text-[#a1a1a1] min-w-4.5">
                     {item.count}
                   </div>
                 )}
