@@ -1,7 +1,7 @@
 "use client";
 
 import { useCreateWorkspace } from "@/hooks/useWorkspace";
-import { slugify } from "@/lib/utils";
+import { getInitials, slugify } from "@/lib/utils";
 import { LayoutGrid, Loader2, Plus, X } from "lucide-react";
 import { useState } from "react";
 
@@ -33,15 +33,6 @@ export default function CreateWorkspaceModal({
 
   const handleSlugChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setManualSlug(e.target.value);
-  };
-
-  const getInitials = (text: string) => {
-    if (!text.trim()) return "";
-    const words = text.trim().split(/\s+/);
-    if (words.length >= 2) {
-      return (words[0][0] + words[1][0]).toUpperCase();
-    }
-    return text.substring(0, 2).toUpperCase();
   };
 
   const handleCreate = () => {

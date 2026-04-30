@@ -18,8 +18,6 @@ export default function InitRegister() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const setUserMail = useAuthStore((s) => s.setUserMail);
-
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) return;
@@ -29,7 +27,6 @@ export default function InitRegister() {
 
     try {
       const res = await AuthService.initialiseRegistration(email);
-      setUserMail(email);
 
       router.push(
         `/register/verify?email=${encodeURIComponent(email)}&status=${res.status}`,

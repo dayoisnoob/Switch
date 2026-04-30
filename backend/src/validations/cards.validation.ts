@@ -1,7 +1,8 @@
 import { z } from 'zod';
 
 export const createCardSchema = z.object({
-  title: z.string().min(1, 'card needs to have a title').max(50).trim(),
+  title: z.string().min(2, 'card needs to have a title').max(50).trim(),
+  status: z.enum(['BACKLOG', 'TODO', 'IN_PROGRESS', 'DONE', 'CANCELED']),
   description: z.string().trim().optional(),
   assignees: z.array(z.string()).optional(),
 });
@@ -16,6 +17,7 @@ export const updateCardSchema = z.object({
 export const moveCardSchema = z.object({
   columnId: z.string().uuid('Invalid column ID'),
   order: z.number(),
+  status: z.enum(['BACKLOG', 'TODO', 'IN_PROGRESS', 'DONE', 'CANCELED']),
 });
 
 export const assignUserSchema = z.object({

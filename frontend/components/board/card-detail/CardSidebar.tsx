@@ -19,7 +19,7 @@ import { useRef, useState } from "react";
 import { SidebarDropdown } from "./SidebarDropdown";
 import { SidebarLabelDropdown } from "./SidebarLabels";
 import { PRIORITY_COLOR, PRIORITY_OPTIONS } from "@/lib/constants";
-import { useMoveCard } from "@/hooks/useMoveCard";
+import { useMoveCard } from "@/hooks/useCards";
 import { useDeleteCard } from "@/hooks/useDeleteCard";
 import { useRouter } from "next/navigation";
 

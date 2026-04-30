@@ -125,3 +125,12 @@ export const pickLabelColor = (
 export const getLabelClasses = (hex: string) =>
   LABEL_COLORS.find((c) => c.hex === hex)?.classes ??
   "bg-zinc-500/10 text-zinc-400 border-zinc-500/20";
+
+export const getInitials = (text: string) => {
+  if (!text.trim()) return "";
+  const words = text.trim().split(/\s+/);
+  if (words.length >= 2) {
+    return (words[0][0] + words[1][0]).toUpperCase();
+  }
+  return text.substring(0, 2).toUpperCase();
+};

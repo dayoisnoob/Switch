@@ -1,3 +1,5 @@
+import { StatusType } from "@/services/card.service";
+
 export interface BoardLabel {
   id: string;
   name: string;
@@ -29,6 +31,7 @@ export interface BoardColumn {
   id: string;
   name: string;
   order: number;
+  mappedStatus: StatusType;
   cards: BoardCard[];
 }
 

@@ -1,11 +1,11 @@
 "use client";
 
 import CreateWorkspaceModal from "@/components/modals/AddWorkspaceModal";
-import { useOpenCards } from "@/hooks/board";
+import { useOpenCards } from "@/hooks/useCards";
 import { useMe, useTeammates } from "@/hooks/useAuth";
 import { useActiveProjectsCount } from "@/hooks/useProjects";
 import { useGetWorkspaces } from "@/hooks/useWorkspace";
-import { cn } from "@/lib/utils";
+import { cn, getInitials } from "@/lib/utils";
 import {
   ArrowUp,
   Folder,
@@ -158,7 +158,7 @@ export default function DashboardPage() {
                       ws.colour,
                     )}
                   >
-                    {ws.name.substring(0, 2).toUpperCase()}
+                    {getInitials(ws.name)}
                   </div>
                   <span
                     className={cn(

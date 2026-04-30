@@ -30,34 +30,6 @@ export const useBoard = (projectSlug: string, workspaceSlug: string) => {
   return query;
 };
 
-export function useReorderColumn() {
-  return useMutation({
-    mutationFn: ({ columnId, order }: { columnId: string; order: number }) =>
-      ColumnService.updateOrder(columnId, order),
-  });
-}
-
-export function useMoveCard() {
-  return useMutation({
-    mutationFn: ({
-      cardId,
-      columnId,
-      order,
-    }: {
-      cardId: string;
-      columnId: string;
-      order: number;
-    }) => CardService.moveCard(cardId, columnId, order),
-  });
-}
-
-export function useCreateCard() {
-  return useMutation({
-    mutationFn: ({ columnId, title }: { columnId: string; title: string }) =>
-      CardService.create(columnId, title),
-  });
-}
-
 export function useClickOutside<T extends HTMLElement>(
   ref: RefObject<T | null>,
   handler: (event: MouseEvent | TouchEvent) => void,
@@ -75,11 +47,3 @@ export function useClickOutside<T extends HTMLElement>(
     };
   }, [ref, handler]);
 }
-
-export const useOpenCards = () => {
-  return useQuery({
-    queryKey: ["open-cards"],
-    queryFn: () => CardService.getOpenCardsCount(),
-    staleTime: 1000 * 60 * 5,
-  });
-};

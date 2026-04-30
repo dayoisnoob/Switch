@@ -49,7 +49,7 @@ export default function CompleteRegister() {
       const user = await AuthService.completeRegistration(userData);
       setUser(user);
 
-      router.push("/dashboard");
+      router.push("/");
     } catch (err) {
       setServerError(getErrorMessage(err));
     } finally {

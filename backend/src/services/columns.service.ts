@@ -19,34 +19,31 @@ export class ColumnsService {
       .limit(1);
 
     const newOrder = lastColumn ? lastColumn.order + 1.0 : 1.0;
-    try {
-      const [column] = await db
-        .insert(columnsTable)
-        .values({
-          boardId,
-          name,
-          mappedStatus,
-          order: newOrder,
-        })
-        .returning();
-    } catch (error) {
-      console.log(error);
-    }
+    const [column] = await db
+      .insert(columnsTable)
+      .values({
+        boardId,
+        name,
+        mappedStatus,
+        order: newOrder,
+      })
+      .returning();
 
-    // if (!column)
-    //   throw new ApiError(500, 'Error creating column. Please try again.');
+    if (!column)
+      throw new ApiError(500, 'Error creating column. Please try again.');
 
-    // emitBoardEvent(boardId, 'column:created', {
-    //   columnId: column.id,
-    //   name: column.name,
-    // });
+    emitBoardEvent(boardId, 'column:created', {
+      columnId: column.id,
+      name: column.name,
+    });
 
-    // return {
-    //   id: column.id,
-    //   name: column.name,
-    //   order: column.order,
-    //   cards: [],
-    // };
+    return {
+      id: column.id,
+      name: column.name,
+      order: column.order,
+      mappedStatus: mappedStatus,
+      cards: [],
+    };
   }
 
   static async updateColumnName(columnId: string, name: string) {
@@ -86,6 +83,7 @@ export class ColumnsService {
       id: updatedColumn.id,
       name: updatedColumn.name,
       order: updatedColumn.order,
+      mappedStatus: updatedColumn.mappedStatus,
     };
   }
 

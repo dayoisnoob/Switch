@@ -9,9 +9,9 @@ import {
   Trash2,
 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, memo } from "react";
 
-import { useBoard, useCreateCard, useMoveCard } from "@/hooks/board";
+import { useBoard } from "@/hooks/board";
 import {
   CollisionDetection,
   DndContext,
@@ -20,7 +20,8 @@ import {
   DragOverlay,
   DragStartEvent,
   KeyboardSensor,
-  PointerSensor,
+  MouseSensor,
+  TouchSensor,
   closestCorners,
   defaultDropAnimationSideEffects,
   rectIntersection,
@@ -48,6 +49,11 @@ import {
   useMoveColumn,
   useRenameColumn,
 } from "@/hooks/useColumns";
+import { useCreateCard, useMoveCard } from "@/hooks/useCards";
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
 
 function findColumnInSnapshot(
   id: string,
@@ -71,6 +77,10 @@ const collisionDetection: CollisionDetection = (args) => {
   return closestCorners(args);
 };
 
+// ---------------------------------------------------------------------------
+// Page
+// ---------------------------------------------------------------------------
+
 export default function KanbanBoardPage() {
   const { workspaceSlug, projectSlug } = useParams() as {
     workspaceSlug: string;
@@ -84,40 +94,47 @@ export default function KanbanBoardPage() {
 
   const board = useBoardStore((s) => s.board);
 
-  // 1. Extract the isPending flags to fix the snap-back bug
-  const { mutate: moveCard, isPending: isMovingCard } = useMoveCard();
-  const { mutate: moveColumn, isPending: isMovingColumn } = useMoveColumn();
+  const { mutate: moveCard } = useMoveCard();
+  const { mutate: moveColumn } = useMoveColumn();
 
   const [columns, setColumns] = useState<BoardColumn[]>([]);
   const [activeDragColumn, setActiveDragColumn] = useState<BoardColumn | null>(
     null,
   );
   const [activeDragCard, setActiveDragCard] = useState<BoardCard | null>(null);
-
   const [isColumnModalOpen, setIsColumnModalOpen] = useState(false);
 
-  // 2. Prevent the useEffect from overriding local state while mutations are running
+  // THE FIX: A synchronous ref to instantly lock the UI from syncing old server data
+  const isMutatingRef = useRef(false);
+
   useEffect(() => {
+    // Only sync if we are NOT dragging and NOT currently waiting for a mutation to settle
     if (
       board &&
       !activeDragColumn &&
       !activeDragCard &&
-      !isMovingColumn &&
-      !isMovingCard
+      !isMutatingRef.current
     ) {
       const fetchedColumns = Array.isArray(board) ? board : board.columns || [];
-      setColumns(fetchedColumns);
+      const timeoutId = setTimeout(() => setColumns(fetchedColumns), 0);
+      return () => clearTimeout(timeoutId);
     }
-  }, [board, activeDragColumn, activeDragCard, isMovingColumn, isMovingCard]);
+  }, [board, activeDragColumn, activeDragCard]);
 
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(MouseSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(TouchSensor, {
+      activationConstraint: { delay: 250, tolerance: 5 },
+    }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     }),
   );
 
   const sourceColumnIdRef = useRef<string | null>(null);
+  const targetColumnIdRef = useRef<string | null>(null);
+  const lastOverKeyRef = useRef<string | null>(null);
+
   const handleDragStart = useCallback(
     (event: DragStartEvent) => {
       const { active } = event;
@@ -134,20 +151,20 @@ export default function KanbanBoardPage() {
     [columns],
   );
 
-  const targetColumnIdRef = useRef<string | null>(null);
   const handleDragOver = useCallback((event: DragOverEvent) => {
     const { active, over } = event;
     if (!over) return;
 
     const activeId = active.id as string;
     const overId = over.id as string;
-
     if (activeId === overId) return;
 
     const isActiveCard = active.data.current?.type === "Card";
     if (!isActiveCard) return;
 
-    const isOverColumn = over.data.current?.type === "Column";
+    const overKey = `${activeId}:${overId}`;
+    if (lastOverKeyRef.current === overKey) return;
+    lastOverKeyRef.current = overKey;
 
     setColumns((prev) => {
       const activeCol = findColumnInSnapshot(activeId, prev);
@@ -160,6 +177,7 @@ export default function KanbanBoardPage() {
 
       const activeIndex = activeCol.cards.findIndex((c) => c.id === activeId);
       const overIndex = overCol.cards.findIndex((c) => c.id === overId);
+      const isOverColumn = over.data.current?.type === "Column";
 
       let newIndex: number;
       if (isOverColumn) {
@@ -167,7 +185,8 @@ export default function KanbanBoardPage() {
       } else {
         const isBelowOverItem =
           active.rect.current.translated &&
-          active.rect.current.translated.top > over.rect.top + over.rect.height;
+          active.rect.current.translated.top >
+            over.rect.top + over.rect.height / 2;
         newIndex =
           overIndex >= 0
             ? overIndex + (isBelowOverItem ? 1 : 0)
@@ -194,6 +213,7 @@ export default function KanbanBoardPage() {
     (event: DragEndEvent) => {
       setActiveDragColumn(null);
       setActiveDragCard(null);
+      lastOverKeyRef.current = null;
 
       const { active, over } = event;
       if (!over) return;
@@ -201,15 +221,16 @@ export default function KanbanBoardPage() {
       const activeId = active.id as string;
       const overId = over.id as string;
 
+      // Track if it crossed column boundaries using our refs
       const isCrossColumn =
+        sourceColumnIdRef.current !== null &&
         targetColumnIdRef.current !== null &&
-        targetColumnIdRef.current !== sourceColumnIdRef.current;
+        sourceColumnIdRef.current !== targetColumnIdRef.current;
 
-      if (activeId === overId && !isCrossColumn) return;
+      // ─── 1. COLUMN DRAG HANDLING ──────────────────────────────────────────
+      if (active.data.current?.type === "Column") {
+        if (activeId === overId) return;
 
-      const isActiveColumn = active.data.current?.type === "Column";
-
-      if (isActiveColumn) {
         const fromIndex = columns.findIndex((c) => c.id === activeId);
         const toIndex = columns.findIndex((c) => c.id === overId);
         const reordered = arrayMove(columns, fromIndex, toIndex);
@@ -219,62 +240,85 @@ export default function KanbanBoardPage() {
         const newOrder = (prevOrder + nextOrder) / 2;
 
         setColumns(reordered);
-
+        isMutatingRef.current = true;
         moveColumn(
           { columnId: activeId, order: newOrder },
-          { onError: () => setColumns(columns) },
+          {
+            onSettled: () => {
+              isMutatingRef.current = false;
+            },
+            onError: () => setColumns(columns),
+          },
         );
         return;
       }
 
-      const targetColId = targetColumnIdRef.current;
-      sourceColumnIdRef.current = null;
-      targetColumnIdRef.current = null;
-
-      if (isCrossColumn) {
-        const targetCol = columns.find((c) => c.id === targetColId);
-        if (!targetCol) return;
-
-        const cardIndex = targetCol.cards.findIndex((c) => c.id === activeId);
-        const prevOrder = targetCol.cards[cardIndex - 1]?.order ?? 0;
-        const nextOrder =
-          targetCol.cards[cardIndex + 1]?.order ?? prevOrder + 2;
-        const newOrder = (prevOrder + nextOrder) / 2;
-
-        moveCard(
-          { cardId: activeId, columnId: targetColId!, order: newOrder },
-          { onError: () => setColumns(columns) },
-        );
-        return;
-      }
-
+      // ─── 2. CARD DRAG HANDLING (The Unified Master Fix) ──────────────────
       const activeCol = findColumnInSnapshot(activeId, columns);
       const overCol = findColumnInSnapshot(overId, columns);
       if (!activeCol || !overCol) return;
 
       const fromIndex = activeCol.cards.findIndex((c) => c.id === activeId);
       const toIndex = overCol.cards.findIndex((c) => c.id === overId);
-      if (fromIndex === toIndex) return;
 
+      // THE FATAL BUG FIX:
+      // Only abort if the index didn't change AND the column didn't change!
+      if (fromIndex === toIndex && !isCrossColumn) {
+        sourceColumnIdRef.current = null;
+        targetColumnIdRef.current = null;
+        return;
+      }
+
+      // Let dnd-kit's native arrayMove handle the final visual shift seamlessly
       const reorderedCols = columns.map((col) => {
-        if (col.id !== activeCol.id) return col;
-        return { ...col, cards: arrayMove(col.cards, fromIndex, toIndex) };
+        if (col.id === activeCol.id) {
+          return { ...col, cards: arrayMove(col.cards, fromIndex, toIndex) };
+        }
+        return col;
       });
 
+      // Find the card's final resting place
       const updatedCol = reorderedCols.find((c) => c.id === activeCol.id)!;
-      const prevOrder = updatedCol.cards[toIndex - 1]?.order ?? 0;
-      const nextOrder = updatedCol.cards[toIndex + 1]?.order ?? prevOrder + 2;
+      const finalIndex = updatedCol.cards.findIndex((c) => c.id === activeId);
+
+      // Calculate the perfect fractional order for the database
+      const prevOrder = updatedCol.cards[finalIndex - 1]?.order ?? 0;
+      const nextOrder =
+        updatedCol.cards[finalIndex + 1]?.order ?? prevOrder + 2;
       const newOrder = (prevOrder + nextOrder) / 2;
 
+      // Lock the UI optimistic state
       setColumns(reorderedCols);
 
+      // Reset refs for the next drag
+      sourceColumnIdRef.current = null;
+      targetColumnIdRef.current = null;
+
+      // Fire the mutation!
+      isMutatingRef.current = true;
       moveCard(
-        { cardId: activeId, columnId: activeCol.id, order: newOrder },
-        { onError: () => setColumns(columns) },
+        {
+          cardId: activeId,
+          data: {
+            columnId: updatedCol.id,
+            order: newOrder,
+            status: activeCol.mappedStatus,
+          },
+        },
+        {
+          onSettled: () => {
+            isMutatingRef.current = false;
+          },
+          onError: () => setColumns(columns),
+        },
       );
     },
-    [columns, moveColumn, moveCard],
+    [columns, moveCard, moveColumn],
   );
+
+  const columnIds = useMemo(() => columns.map((c) => c.id), [columns]);
+
+  // ... [The rest of your JSX and sub-components remain perfectly identical]
 
   return (
     <div className="h-full flex flex-col bg-base">
@@ -303,7 +347,7 @@ export default function KanbanBoardPage() {
             onDragEnd={handleDragEnd}
           >
             <SortableContext
-              items={columns.map((c) => c.id)}
+              items={columnIds}
               strategy={horizontalListSortingStrategy}
             >
               <div className="flex gap-5 items-start w-max min-h-full">
@@ -335,7 +379,6 @@ export default function KanbanBoardPage() {
                   </SortableColumn>
                 ))}
 
-                {/* Add Column Button */}
                 <button
                   onClick={() => setIsColumnModalOpen(true)}
                   className="flex items-center gap-2 w-[320px] shrink-0 h-12 px-4 rounded-xl border border-dashed border-md bg-surface/50 text-secondary font-medium hover:text-primary hover:bg-surface hover:border-lg transition-all focus-ring"
@@ -374,6 +417,10 @@ export default function KanbanBoardPage() {
   );
 }
 
+// ---------------------------------------------------------------------------
+// SortableColumn
+// ---------------------------------------------------------------------------
+
 function SortableColumn({
   column,
   setColumns,
@@ -395,12 +442,9 @@ function SortableColumn({
     transform,
     transition,
     isDragging,
-  } = useSortable({
-    id: column.id,
-    data: { type: "Column", column },
-  });
+  } = useSortable({ id: column.id, data: { type: "Column", column } });
 
-  const { mutateAsync: createCard } = useCreateCard();
+  const { mutateAsync: createCard } = useCreateCard(column.id);
   const { mutateAsync: renameCol } = useRenameColumn();
   const { mutateAsync: deleteCol } = useDeleteColumn();
 
@@ -433,8 +477,8 @@ function SortableColumn({
     }
     try {
       renameCol({ columnId: column.id, name: newTitle });
-      setColumns((prevColumns) =>
-        prevColumns.map((col) =>
+      setColumns((prev) =>
+        prev.map((col) =>
           col.id === column.id ? { ...col, name: newTitle } : col,
         ),
       );
@@ -458,12 +502,9 @@ function SortableColumn({
       )
     )
       return;
-
     try {
       deleteCol({ columnId: column.id });
-      setColumns((prevColumns) =>
-        prevColumns.filter((col) => col.id !== column.id),
-      );
+      setColumns((prev) => prev.filter((col) => col.id !== column.id));
     } catch (err) {
       toast.error(getErrorMessage(err) || "Failed to delete column");
     }
@@ -550,7 +591,10 @@ function SortableColumn({
           buttonText="Add Card"
           placeholder="What needs to be done?"
           onSubmit={async (title) => {
-            const newCard = await createCard({ columnId: column.id, title });
+            const newCard = await createCard({
+              title,
+              status: column.mappedStatus,
+            });
             setColumns((prev) =>
               prev.map((col) =>
                 col.id === column.id
@@ -564,6 +608,10 @@ function SortableColumn({
     </div>
   );
 }
+
+// ---------------------------------------------------------------------------
+// ColumnContent (drag overlay)
+// ---------------------------------------------------------------------------
 
 function ColumnContent({
   column,
@@ -592,7 +640,14 @@ function ColumnContent({
   );
 }
 
-function SortableCard({
+// ---------------------------------------------------------------------------
+// SortableCard
+// FIX 3: wrapped in memo so a card only re-renders when its own data changes.
+// Without this, every setColumns call (which happens on every drag-over)
+// causes every card in every column to re-render, even untouched ones.
+// ---------------------------------------------------------------------------
+
+const SortableCard = memo(function SortableCard({
   card,
   onClick,
 }: {
@@ -620,14 +675,20 @@ function SortableCard({
       style={style}
       {...attributes}
       {...listeners}
-      className="outline-none"
+      className="outline-none touch-none"
     >
       <CardContent card={card} isDragging={isDragging} onClick={onClick} />
     </div>
   );
-}
+});
 
-function CardContent({
+// ---------------------------------------------------------------------------
+// CardContent
+// FIX 3 (cont): also memo'd. The drag overlay renders this directly, and
+// during a drag every pointermove would otherwise re-create it.
+// ---------------------------------------------------------------------------
+
+const CardContent = memo(function CardContent({
   card,
   isDragging,
   onClick,
@@ -640,7 +701,7 @@ function CardContent({
     <div
       onClick={onClick}
       className={cn(
-        "group bg-card border rounded-lg p-3.5 cursor-grab active:cursor-grabbing transition-all shadow-sm",
+        "group bg-card border rounded-lg p-3.5 cursor-grab active:cursor-grabbing transition-colors shadow-sm",
         isDragging
           ? "border-accent shadow-accent scale-105"
           : "border-md hover:border-lg",
@@ -656,4 +717,4 @@ function CardContent({
       </p>
     </div>
   );
-}
+});

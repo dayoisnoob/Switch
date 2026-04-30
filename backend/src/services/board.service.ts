@@ -18,6 +18,7 @@ export class BoardService {
             id: true,
             name: true,
             order: true,
+            mappedStatus: true,
           },
           with: {
             cards: {

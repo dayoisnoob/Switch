@@ -64,6 +64,8 @@ export class AuthService {
         authProvider: userProfile.authProvider,
         providerId: userProfile.providerId,
         lastLogin: new Date(),
+        emailVerified: true,
+        hasRegistered: true,
       })
       .returning();
 

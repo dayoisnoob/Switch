@@ -22,6 +22,7 @@ export interface ColumnType {
   id: string;
   name: string;
   order: number;
+  mappedStatus: string;
   cards: [];
 }
 

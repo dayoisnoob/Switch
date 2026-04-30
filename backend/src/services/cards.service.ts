@@ -30,7 +30,7 @@ export class CardsService {
     projectId: string,
     data: CardDataType
   ) {
-    const { title, description, assignees } = data;
+    const { title, description, status, assignees } = data;
 
     const [lastCard] = await db
       .select({ order: cardsTable.order })
@@ -48,6 +48,7 @@ export class CardsService {
           columnId,
           boardId: boardId,
           title,
+          status,
           description,
           createdBy: userId,
           order: newOrder,
@@ -253,7 +254,7 @@ export class CardsService {
     cardId: string,
     data: MoveCardType
   ) {
-    const { columnId, order } = data;
+    const { columnId, order, status } = data;
 
     const [oldCol] = await db
       .select({ name: columnsTable.name })
@@ -275,7 +276,7 @@ export class CardsService {
 
     const [updatedCard] = await db
       .update(cardsTable)
-      .set({ columnId, order })
+      .set({ columnId, order, status })
       .where(eq(cardsTable.id, cardId))
       .returning();
 

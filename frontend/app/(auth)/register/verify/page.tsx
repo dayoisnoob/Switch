@@ -5,7 +5,6 @@ import {
   PrimaryButton,
   ServerError,
 } from "@/components/auth/auth-components";
-import { api } from "@/lib/api";
 import { cn, getErrorMessage } from "@/lib/utils";
 import { AuthService } from "@/services/auth.service";
 import { ChevronLeft } from "lucide-react";
