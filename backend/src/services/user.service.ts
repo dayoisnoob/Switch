@@ -12,13 +12,8 @@ export class UserService {
         lastName: usersTable.lastName,
         email: usersTable.email,
         avatarUrl: usersTable.avatarUrl,
-        role: workspaceMembershipsTable.role,
       })
       .from(usersTable)
-      .innerJoin(
-        workspaceMembershipsTable,
-        eq(usersTable.id, workspaceMembershipsTable.userId)
-      )
       .where(eq(usersTable.id, userId))
       .limit(1);
 

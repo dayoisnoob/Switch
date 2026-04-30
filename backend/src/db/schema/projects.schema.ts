@@ -26,6 +26,7 @@ export const projectsTable = pgTable(
       .notNull()
       .references(() => workspacesTable.id, { onDelete: 'cascade' }),
     name: varchar('name', { length: 100 }).notNull(),
+    icon: text('icon').notNull(),
     slug: varchar('slug', { length: 100 }).notNull(),
     description: text('description'),
     status: projectStatusEnum('status').default('Active').notNull(),

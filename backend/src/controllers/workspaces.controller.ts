@@ -5,10 +5,7 @@ import { ApiError, ApiResponse } from '../utils/api-response';
 
 export class WorkspaceController {
   static async createWorkspace(req: AuthenticatedRequest, res: Response) {
-    const data = await WorkspaceService.createWorkspace(
-      req.user.id,
-      req.body.name
-    );
+    const data = await WorkspaceService.createWorkspace(req.user.id, req.body);
 
     res
       .status(201)

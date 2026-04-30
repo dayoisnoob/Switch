@@ -1,29 +1,25 @@
 import { getErrorMessage } from "@/lib/utils";
-import { WorkspaceService } from "@/services/workspace.service";
+import { CreateWP, WorkspaceService } from "@/services/workspace.service";
 import { useWorkspaceStore } from "@/store/workspace.store";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
-export function useCreateWorkspace(onSuccessCallback?: () => void) {
+export function useCreateWorkspace() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const setActiveWorkspace = useWorkspaceStore((s) => s.setActiveWorkspace);
 
   return useMutation({
-    mutationFn: async (name: string) => {
-      if (!name.trim()) throw new Error("Workspace name is required");
-      return WorkspaceService.createWorkspace(name);
-    },
+    mutationFn: async (data: CreateWP) =>
+      WorkspaceService.createWorkspace(data),
 
     onSuccess: (workspace) => {
       queryClient.invalidateQueries({ queryKey: ["workspaces"] });
-
+      console.log(workspace);
       setActiveWorkspace(workspace);
 
-      if (onSuccessCallback) onSuccessCallback();
-
-      router.push(`/workspace/${workspace.slug}`);
+      router.push(`/dashboard`);
     },
 
     onError: (err) => {

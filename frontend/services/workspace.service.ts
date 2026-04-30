@@ -17,6 +17,7 @@ export interface Workspace {
   slug: string;
   ownerId: string;
   role: WorkspaceRole;
+  colour: string;
   projectsCount: number;
   membersCount: number;
   members: [
@@ -27,13 +28,19 @@ export interface Workspace {
   ];
 }
 
+export interface CreateWP {
+  name: string;
+  slug: string;
+  colour: string;
+}
+
 export const WorkspaceService = {
   getWorkspaces: async (): Promise<Workspace[]> => {
     return api.get("/workspaces");
   },
 
-  createWorkspace: async (name: string): Promise<Workspace> => {
-    return api.post("/workspaces", { name });
+  createWorkspace: async (data: CreateWP): Promise<Workspace> => {
+    return api.post("/workspaces", data);
   },
 
   getMembers: async (workspaceSlug: string): Promise<WorkspaceMembers[]> => {

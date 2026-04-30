@@ -21,6 +21,7 @@ export const workspacesTable = pgTable('workspaces', {
   id: uuid('id').primaryKey().defaultRandom(),
   name: varchar('name', { length: 100 }).notNull(),
   slug: varchar('slug', { length: 100 }).notNull().unique(),
+  colour: text('colour').default('bg-[#8B5CF6]'),
   ownerId: uuid('owner_id')
     .notNull()
     .references(() => usersTable.id),

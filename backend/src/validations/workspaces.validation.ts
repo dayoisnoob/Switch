@@ -8,8 +8,12 @@ export const createWorkspaceSchema = z.object({
     .max(100)
     .trim()
     .transform(capitalize),
+  slug: z.string().trim().toLowerCase(),
+  colour: z.string(),
 });
 
 export const sendInvitationSchema = z.object({
   email: z.string().email('Please enter a valid email').trim().toLowerCase(),
 });
+
+export type CreateWP = z.infer<typeof createWorkspaceSchema>;

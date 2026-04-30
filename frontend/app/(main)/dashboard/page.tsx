@@ -1,42 +1,47 @@
 "use client";
 
+import CreateWorkspaceModal from "@/components/modals/AddWorkspaceModal";
+import { useOpenCards } from "@/hooks/board";
 import { useMe, useTeammates } from "@/hooks/useAuth";
+import { useActiveProjectsCount } from "@/hooks/useProjects";
+import { useGetWorkspaces } from "@/hooks/useWorkspace";
 import { cn } from "@/lib/utils";
 import {
+  ArrowUp,
+  Folder,
+  Layers,
   LayoutGrid,
   ListTodo,
-  Layers,
-  Users,
   Plus,
-  Folder,
-  ArrowUp,
+  Users,
 } from "lucide-react";
-import { ReactNode } from "react";
-import { useGetWorkspaces } from "@/hooks/useWorkspace";
-import { useActiveProjectsCount } from "@/hooks/useProjects";
-import { useOpenCards } from "@/hooks/board";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { ReactNode, useState } from "react";
 
 export default function DashboardPage() {
+  const router = useRouter();
+  const [isAddWorkspaceOpen, setIsAddWorkspaceOpen] = useState(false);
+
   const { data: user } = useMe();
-  const { data: workspaces = [], isLoading: workspaceLoading } =
-    useGetWorkspaces();
-  const { data: projects, isLoading: countLoading } = useActiveProjectsCount();
   const { data: cards } = useOpenCards();
   const { data: teammates } = useTeammates();
+  const { data: projects, isLoading: countLoading } = useActiveProjectsCount();
+  const { data: workspaces = [], isLoading: workspaceLoading } =
+    useGetWorkspaces();
 
   // Helper to generate consistent colors for avatars based on name
-  const getAvatarColor = (name: string) => {
-    const colors = [
-      "bg-blue-500",
-      "bg-emerald-500",
-      "bg-amber-500",
-      "bg-rose-500",
-      "bg-purple-500",
-    ];
-    const hash = name.charCodeAt(0) % colors.length;
-    return colors[hash];
-  };
+  // const getAvatarColor = (name: string) => {
+  //   const colors = [
+  //     "bg-blue-500",
+  //     "bg-emerald-500",
+  //     "bg-amber-500",
+  //     "bg-rose-500",
+  //     "bg-purple-500",
+  //   ];
+  //   const hash = name.charCodeAt(0) % colors.length;
+  //   return colors[hash];
+  // };
 
   // ── PREMIUM SKELETON LOADER ──
   if (workspaceLoading || countLoading) {
@@ -51,7 +56,7 @@ export default function DashboardPage() {
           {[...Array(4)].map((_, i) => (
             <div
               key={i}
-              className="bg-[#1c1728]/50 border border-[#262626] rounded-xl p-5 h-[116px]"
+              className="bg-[#1c1728]/50 border border-[#262626] rounded-xl p-5 h-29"
             />
           ))}
         </div>
@@ -75,8 +80,6 @@ export default function DashboardPage() {
       </div>
     );
   }
-
-  // Safe fallback in case workspaces is undefined after load
 
   return (
     <div className="max-w-6xl mx-auto w-full animate-in fade-in duration-500">
@@ -126,9 +129,9 @@ export default function DashboardPage() {
         <div className="lg:col-span-2">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-sm font-bold text-white">Your Workspaces</h2>
-            <button className="flex items-center gap-2 bg-[#7C6EF5] hover:bg-[#6b5ed6] text-white px-3 py-1.5 rounded-md text-xs font-semibold transition-colors">
+            {/* <button className="flex items-center gap-2 bg-[#7C6EF5] hover:bg-[#6b5ed6] text-white px-3 py-1.5 rounded-md text-xs font-semibold transition-colors">
               <Plus size={14} /> New Workspace
-            </button>
+            </button> */}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -136,10 +139,16 @@ export default function DashboardPage() {
             {workspaces.map((ws) => (
               <div
                 key={ws.id}
-                className="bg-[#131315] border border-[#262626] rounded-xl p-5 hover:border-[#3f3f46] transition-all group flex flex-col h-44"
+                onClick={() => router.push(`/${ws.slug}`)}
+                className="bg-[#1c1728] border border-[#262626] cursor-pointer rounded-xl p-5 hover:border-[#3f3f46] transition-all group flex flex-col h-50"
               >
-                <div className="flex items-start justify-between mb-auto">
-                  <div className="w-10 h-10 rounded-lg bg-blue-600 flex items-center justify-center text-white font-black text-sm">
+                <div className="flex items-start justify-between mb-4">
+                  <div
+                    className={cn(
+                      "w-10 h-10 rounded-lg  flex items-center justify-center text-white font-black text-sm",
+                      ws.colour,
+                    )}
+                  >
                     {ws.name.substring(0, 2).toUpperCase()}
                   </div>
                   <span
@@ -165,7 +174,10 @@ export default function DashboardPage() {
 
                 <div className="flex items-center justify-between mt-5 pt-4 border-t border-[#262626]">
                   <div className="flex items-center gap-1.5 text-xs font-medium text-[#a1a1a1]">
-                    <Folder size={14} /> {ws.projectsCount}
+                    <Folder size={14} />{" "}
+                    {ws.projectsCount
+                      ? `${ws.projectsCount} Projects`
+                      : "0 Projects"}
                   </div>
 
                   <div className="flex items-center">
@@ -210,7 +222,10 @@ export default function DashboardPage() {
             ))}
 
             {/* Create Workspace Card */}
-            <button className="bg-transparent border border-dashed border-[#333] rounded-xl p-5 hover:border-[#7C6EF5] hover:bg-[#7C6EF5]/5 transition-all flex flex-col items-center justify-center h-44 group">
+            <button
+              onClick={() => setIsAddWorkspaceOpen(true)}
+              className="bg-transparent border border-dashed border-[#333] rounded-xl p-5 hover:border-[#7C6EF5] hover:bg-[#7C6EF5]/5 transition-all flex flex-col items-center justify-center h-44 group"
+            >
               <Plus
                 size={24}
                 className="text-[#a1a1a1] group-hover:text-[#7C6EF5] mb-2 transition-colors"
@@ -222,6 +237,11 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
+
+      <CreateWorkspaceModal
+        isOpen={isAddWorkspaceOpen}
+        onClose={() => setIsAddWorkspaceOpen(false)}
+      />
     </div>
   );
 }

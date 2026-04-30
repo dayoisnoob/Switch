@@ -1,6 +1,12 @@
+"use client";
+
+import CreateWorkspaceModal from "@/components/modals/AddWorkspaceModal";
 import Link from "next/link";
+import { useState } from "react";
 
 export default function MarketingPage() {
+  const [isAddWorkspaceOpen, setIsAddWorkspaceOpen] = useState(false);
+
   return (
     <div className="min-h-screen bg-white">
       <nav className="border-b border-gray-100">
@@ -38,13 +44,18 @@ export default function MarketingPage() {
           Switch is a minimalist project management tool designed for developers
           who want to write code, not manage tickets.
         </p>
-        <Link
-          href="/login"
+        <button
+          onClick={() => setIsAddWorkspaceOpen(true)}
           className="inline-flex items-center justify-center px-8 py-4 text-lg font-medium rounded-xl text-white bg-gray-900 hover:bg-gray-800 transition-colors"
         >
           Start building for free
-        </Link>
+        </button>
       </main>
+
+      <CreateWorkspaceModal
+        isOpen={isAddWorkspaceOpen}
+        onClose={() => setIsAddWorkspaceOpen(false)}
+      />
     </div>
   );
 }

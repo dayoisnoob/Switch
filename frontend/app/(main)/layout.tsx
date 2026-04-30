@@ -1,7 +1,6 @@
 "use client";
 
-import AddWorkspaceModal from "@/components/modals/AddWorkspaceModal";
-import CreateWorkspaceModal from "@/components/modals/CreateWorkspaceModal";
+import CreateWorkspaceModal from "@/components/modals/AddWorkspaceModal";
 import { useLogout, useMe } from "@/hooks/useAuth";
 import { useGetWorkspaceProjects } from "@/hooks/useProjects";
 import { useGetMembers, useGetWorkspaces } from "@/hooks/useWorkspace";
@@ -21,11 +20,12 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { ReactNode, useEffect, useState } from "react";
 
 export default function MainLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
 
   const [isFirstWorkspaceOpen, setIsFirstWorkspaceOpen] = useState(false);
   const [isAddWorkspaceOpen, setIsAddWorkspaceOpen] = useState(false);
@@ -43,6 +43,12 @@ export default function MainLayout({ children }: { children: ReactNode }) {
     useGetWorkspaceProjects(activeWorkspace?.slug);
 
   useEffect(() => {
+    if (workspaces.length === 0 && !workspacesLoading) {
+      router.replace("/");
+    }
+  }, [workspacesLoading, router, workspaces]);
+
+  useEffect(() => {
     if (workspaces.length > 0 && !activeWorkspace) {
       setActiveWorkspace(workspaces[0]);
     }
@@ -51,6 +57,10 @@ export default function MainLayout({ children }: { children: ReactNode }) {
   const { data: members = [], isLoading: membersLoading } = useGetMembers(
     activeWorkspace?.slug,
   );
+
+  if (workspaces.length === 0 && !workspacesLoading) {
+    return null;
+  }
 
   if (workspacesLoading || userLoading || projectsLoading || membersLoading) {
     return (
@@ -546,13 +556,8 @@ export default function MainLayout({ children }: { children: ReactNode }) {
       </div>
 
       <CreateWorkspaceModal
-        isOpen={isFirstWorkspaceOpen}
-        onClose={() => setIsFirstWorkspaceOpen(false)}
-      />
-
-      <AddWorkspaceModal
         isOpen={isAddWorkspaceOpen}
-        onClose={() => setIsAddWorkspaceOpen(false)}
+        onClose={() => setIsFirstWorkspaceOpen(false)}
       />
     </div>
   );

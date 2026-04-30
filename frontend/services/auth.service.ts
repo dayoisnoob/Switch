@@ -44,7 +44,6 @@ export interface UserProfile {
   lastName: string;
   email: string;
   avatarUrl: string;
-  role?: WorkspaceRole;
 }
 
 export interface LoginRequest {

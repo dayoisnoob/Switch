@@ -1,97 +1,182 @@
 "use client";
 
-import { useState } from "react";
-import { X } from "lucide-react";
-import { AuthInput, PrimaryButton } from "@/components/auth/auth-components";
-import { slugify } from "@/lib/utils";
 import { useCreateWorkspace } from "@/hooks/useWorkspace";
+import { slugify } from "@/lib/utils";
+import { LayoutGrid, Loader2, Plus, X } from "lucide-react";
+import { useState } from "react";
 
-interface AddWorkspaceModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-}
+const AVATAR_COLORS = [
+  "bg-[#F472B6]", // Pink
+  "bg-[#8B5CF6]", // Purple
+  "bg-[#34D399]", // Green
+  "bg-[#FBBF24]", // Yellow
+  "bg-[#FB7185]", // Coral
+  "bg-[#60A5FA]", // Light Blue
+  "bg-[#A78BFA]", // Lavender
+  "bg-[#F43F5E]", // Rose
+];
 
-export default function AddWorkspaceModal({
+export default function CreateWorkspaceModal({
   isOpen,
   onClose,
-}: AddWorkspaceModalProps) {
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+}) {
   const [name, setName] = useState("");
+  const [manualSlug, setManualSlug] = useState<string | null>(null);
+  const [selectedColor, setSelectedColor] = useState(AVATAR_COLORS[0]);
 
-  const { mutate: createWorkspace, isPending } = useCreateWorkspace(() => {
-    setName("");
+  const { mutate: createWorkspace, isPending } = useCreateWorkspace();
+
+  const displayedSlug = manualSlug !== null ? manualSlug : slugify(name);
+
+  const handleSlugChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setManualSlug(e.target.value);
+  };
+
+  const getInitials = (text: string) => {
+    if (!text.trim()) return "WN";
+    const words = text.trim().split(/\s+/);
+    if (words.length >= 2) {
+      return (words[0][0] + words[1][0]).toUpperCase();
+    }
+    return text.substring(0, 2).toUpperCase();
+  };
+
+  const handleCreate = () => {
+    if (!name) return;
+    createWorkspace({ name, slug: displayedSlug, colour: selectedColor });
+  };
+
+  const handleClose = () => {
     onClose();
-  });
+    setName("");
+    setManualSlug(null);
+    setSelectedColor(AVATAR_COLORS[0]);
+  };
 
   if (!isOpen) return null;
 
   return (
-    <div
-      className="fixed inset-0 z-100 flex items-center justify-center bg-black/70 backdrop-blur-[2px] p-4 transition-all"
-      onClick={onClose}
-    >
-      <div
-        className="w-full max-w-110 bg-[#0d1117] border border-[#30363d] rounded-xl shadow-2xl overflow-hidden"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="px-6 py-4 border-b border-[#30363d] flex justify-between items-center bg-[#161b22]">
-          <div className="flex items-center gap-3">
-            <h2 className="text-sm font-semibold text-[#f0f6fc]">
-              Add a Workspace
-            </h2>
-          </div>
-          <button
-            onClick={onClose}
-            className="text-[#8b949e] hover:text-[#f0f6fc] transition-colors p-1"
-          >
-            <X size={18} />
-          </button>
-        </div>
+    <div className="fixed inset-0 z-999 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
+      <div className="w-full max-w-115 bg-[#111115] border border-[#222226] rounded-2xl shadow-2xl relative flex flex-col">
+        <button
+          onClick={handleClose}
+          className="absolute top-4 right-4 text-[#52525b] hover:text-white transition-colors"
+        >
+          <X size={18} />
+        </button>
 
-        {/* Body */}
-        <div className="p-6 space-y-6">
-          <div className="space-y-2">
-            <label className="text-[11px] font-bold text-[#8b949e] uppercase tracking-widest">
-              Workspace Name
-            </label>
-            <AuthInput
-              placeholder="e.g. Acme Engineering"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              autoFocus
-              className=""
-            />
+        {/* Reduced padding from p-7 to p-6 */}
+        <div className="p-6">
+          {/* Reduced icon size and bottom margin */}
+          <div className="w-10 h-10 bg-[#1e1e24] border border-[#2a2a30] rounded-xl flex items-center justify-center mb-4 shadow-inner">
+            <LayoutGrid size={18} className="text-[#7C6EF5]" />
           </div>
 
-          <div className="bg-[#0b0e14] border border-[#30363d] rounded-lg px-4 py-3 flex items-center gap-2">
-            <p className="text-sm text-[#484f58]">
-              switch.app/
-              <span className="text-white/75">
-                {name ? slugify(name) : "your-workspace"}
-              </span>
+          <div className="mb-5">
+            <h1 className="text-xl font-bold text-white mb-1 tracking-tight">
+              Create a workspace
+            </h1>
+            <p className="text-[13px] text-[#a1a1aa] leading-relaxed">
+              A workspace holds all your projects and brings your team together.
             </p>
           </div>
 
-          <p className="text-xs text-[#8b949e] leading-relaxed">
-            This workspace will be your team&apos;s shared space for projects
-            and boards. You can invite members once created.
-          </p>
+          {/* Reduced gap between form fields */}
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <label className="text-[12px] font-semibold text-[#e4e4e7] flex gap-1">
+                Workspace name <span className="text-[#7C6EF5]">*</span>
+              </label>
+              <input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="e.g. Acme Corp"
+                autoFocus
+                // Reduced vertical padding (py-2 instead of py-2.5)
+                className="w-full bg-[#18181b] border border-[#2a2a30] focus:border-[#7C6EF5] rounded-lg px-3 py-2 text-sm text-white placeholder-[#52525b] outline-none transition-all shadow-sm"
+              />
+            </div>
 
-          <div className="flex gap-3 pt-2">
-            <button
-              onClick={onClose}
-              className="flex-1 h-10 text-xs font-semibold text-[#c9d1d9] hover:bg-[#21262d] rounded-md border border-[#30363d] transition-colors"
-            >
-              Cancel
-            </button>
-            <PrimaryButton
-              onClick={() => createWorkspace(name)}
-              loading={isPending}
-              disabled={!name.trim() || isPending}
-              className="flex-1 h-10 bg-[#238636] hover:bg-[#2ea043] border-transparent text-white text-xs font-semibold"
-            >
-              {isPending ? "Creating..." : "Create Workspace"}
-            </PrimaryButton>
+            <div className="space-y-1.5">
+              <label className="text-[12px] font-semibold text-[#e4e4e7] flex gap-1">
+                URL slug <span className="text-[#7C6EF5]">*</span>
+              </label>
+              <div className="flex w-full bg-[#18181b] border border-[#2a2a30] focus-within:border-[#7C6EF5] rounded-lg overflow-hidden transition-all shadow-sm">
+                <div className="bg-[#1f1f24] px-3 py-2 text-sm text-[#52525b] border-r border-[#2a2a30] select-none flex items-center">
+                  switch.app/
+                </div>
+                <input
+                  value={displayedSlug}
+                  onChange={handleSlugChange}
+                  placeholder="your-workspace"
+                  className="flex-1 bg-transparent px-3 py-2 text-sm text-white placeholder-[#52525b] outline-none"
+                />
+              </div>
+              <p className="text-[11px] text-[#52525b]">
+                Only lowercase letters, numbers, and hyphens.
+              </p>
+            </div>
+
+            <div className="space-y-2 pt-1">
+              <label className="text-[12px] font-semibold text-[#e4e4e7]">
+                Avatar color
+              </label>
+              <div className="flex items-center gap-3">
+                {/* Reduced avatar preview from w-16 to w-12 */}
+                <div
+                  className={`w-12 h-12 rounded-xl flex items-center justify-center text-white font-black text-xl tracking-tighter shadow-inner transition-colors duration-300 ${selectedColor}`}
+                >
+                  {getInitials(name)}
+                </div>
+
+                <div className="flex gap-2 ml-1">
+                  {AVATAR_COLORS.map((color) => (
+                    <button
+                      key={color}
+                      type="button"
+                      onClick={() => setSelectedColor(color)}
+                      // Reduced swatch size slightly
+                      className={`w-6 h-6 rounded-md transition-all duration-200 ${color} ${
+                        selectedColor === color
+                          ? "ring-2 ring-white ring-offset-2 ring-offset-[#111115] scale-110"
+                          : "hover:scale-105 opacity-80 hover:opacity-100"
+                      }`}
+                      aria-label="Select color"
+                    />
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
+        </div>
+
+        {/* Tighter footer padding */}
+        <div className="px-6 py-4 border-t border-[#222226] flex justify-end gap-3 bg-[#111115] rounded-b-2xl">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 text-sm font-semibold text-[#e4e4e7] bg-transparent border border-[#2a2a30] hover:bg-[#1f1f24] rounded-lg transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleCreate}
+            disabled={!name.trim() || isPending}
+            className="min-w-40 justify-center px-4 py-2 text-sm font-semibold text-white bg-[#7C6EF5] hover:bg-[#6b5ed6] disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors flex items-center gap-2 shadow-md"
+          >
+            {isPending ? (
+              <>
+                <Loader2 size={16} className="animate-spin text-white/80" />
+                Creating...
+              </>
+            ) : (
+              <>
+                <Plus size={16} /> Create workspace
+              </>
+            )}
+          </button>
         </div>
       </div>
     </div>

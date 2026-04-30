@@ -1,14 +1,4 @@
-import {
-  and,
-  count,
-  countDistinct,
-  eq,
-  gt,
-  inArray,
-  isNull,
-  ne,
-  sql,
-} from 'drizzle-orm';
+import { and, countDistinct, eq, gt, isNull, sql } from 'drizzle-orm';
 import { db } from '../config/db';
 import { env } from '../config/env';
 import {
@@ -20,13 +10,24 @@ import {
 } from '../db';
 import { queueEmail } from '../queues/email.queue';
 import { ApiError } from '../utils/api-response';
-import { slugGen } from '../utils/helpers';
 import { tempTokens } from '../utils/tokens.util';
-import { alias } from 'drizzle-orm/pg-core';
+import type { CreateWP } from '../validations/workspaces.validation';
 
 export class WorkspaceService {
-  static async createWorkspace(userId: string, name: string) {
-    const slug = slugGen(name, 'workspace');
+  static async createWorkspace(userId: string, data: CreateWP) {
+    const { name, slug, colour } = data;
+
+    const [existingSlug] = await db
+      .select({ slug: workspacesTable.slug })
+      .from(workspacesTable)
+      .where(eq(workspacesTable.slug, slug))
+      .limit(1);
+
+    if (existingSlug)
+      throw new ApiError(
+        409,
+        'This URL slug is already taken. Please use a different slug'
+      );
 
     const { workspace, membership } = await db.transaction(async (tx) => {
       const [workspace] = await tx
@@ -34,6 +35,7 @@ export class WorkspaceService {
         .values({
           name,
           slug,
+          colour,
           ownerId: userId,
         })
         .returning();
@@ -65,6 +67,7 @@ export class WorkspaceService {
       id: workspace.id,
       name: workspace.name,
       slug: workspace.slug,
+      colour: workspace.colour,
       ownerId: workspace.ownerId,
       role: membership.role,
     };
@@ -78,6 +81,7 @@ export class WorkspaceService {
         id: workspacesTable.id,
         name: workspacesTable.name,
         slug: workspacesTable.slug,
+        colour: workspacesTable.colour,
         ownerId: workspacesTable.ownerId,
         role: workspaceMembershipsTable.role,
       })
@@ -137,6 +141,7 @@ export class WorkspaceService {
         id: workspacesTable.id,
         name: workspacesTable.name,
         slug: workspacesTable.slug,
+        colour: workspacesTable.colour,
         ownerId: workspacesTable.ownerId,
         role: workspaceMembershipsTable.role,
         projectsCount: projectCount.count,
