@@ -43,12 +43,6 @@ export default function MainLayout({ children }: { children: ReactNode }) {
     useGetWorkspaceProjects(activeWorkspace?.slug);
 
   useEffect(() => {
-    if (workspaces.length === 0 && !workspacesLoading) {
-      router.replace("/");
-    }
-  }, [workspacesLoading, router, workspaces]);
-
-  useEffect(() => {
     if (workspaces.length > 0 && !activeWorkspace) {
       setActiveWorkspace(workspaces[0]);
     }
@@ -57,10 +51,6 @@ export default function MainLayout({ children }: { children: ReactNode }) {
   const { data: members = [], isLoading: membersLoading } = useGetMembers(
     activeWorkspace?.slug,
   );
-
-  if (workspaces.length === 0 && !workspacesLoading) {
-    return null;
-  }
 
   if (workspacesLoading || userLoading || projectsLoading || membersLoading) {
     return (

@@ -1,1 +1,0 @@
-ALTER TABLE "labels" RENAME COLUMN "color" TO "colour";

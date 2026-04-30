@@ -47,7 +47,7 @@ export class ProjectService {
         await tx.insert(columnsTable).values([
           { boardId: board.id, name: 'To Do', order: 1.0 },
           { boardId: board.id, name: 'In Progress', order: 2.0 },
-          { boardId: board.id, name: 'Done', order: 3.0, isCompleted: true },
+          { boardId: board.id, name: 'Done', order: 3.0 },
         ]);
 
         return { project, board };

@@ -1,1 +1,0 @@
-ALTER TABLE "workspaces" ADD COLUMN "colour" varchar(15) NOT NULL;

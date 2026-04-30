@@ -7,9 +7,7 @@ export class ColumnsController {
   static async createColumn(req: AuthenticatedRequest, res: Response) {
     const boardId = req.params.boardId as string;
 
-    const { name } = req.body;
-
-    const column = await ColumnsService.createColumn(boardId, name);
+    const column = await ColumnsService.createColumn(boardId, req.body);
     res
       .status(201)
       .json(new ApiResponse(201, 'Column successfully created', column));

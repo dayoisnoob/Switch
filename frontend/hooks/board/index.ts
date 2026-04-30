@@ -51,31 +51,10 @@ export function useMoveCard() {
   });
 }
 
-export function useCreateColumn() {
-  return useMutation({
-    mutationFn: ({ boardId, name }: { boardId: string; name: string }) =>
-      ColumnService.create(boardId, name),
-  });
-}
-
 export function useCreateCard() {
   return useMutation({
     mutationFn: ({ columnId, title }: { columnId: string; title: string }) =>
       CardService.create(columnId, title),
-  });
-}
-
-export function useRenameColumn() {
-  return useMutation({
-    mutationFn: ({ columnId, name }: { columnId: string; name: string }) =>
-      ColumnService.rename(columnId, name),
-  });
-}
-
-export function useDeleteColumn() {
-  return useMutation({
-    mutationFn: ({ columnId }: { columnId: string }) =>
-      ColumnService.delete(columnId),
   });
 }
 

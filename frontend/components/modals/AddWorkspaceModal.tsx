@@ -36,7 +36,7 @@ export default function CreateWorkspaceModal({
   };
 
   const getInitials = (text: string) => {
-    if (!text.trim()) return "WN";
+    if (!text.trim()) return "";
     const words = text.trim().split(/\s+/);
     if (words.length >= 2) {
       return (words[0][0] + words[1][0]).toUpperCase();

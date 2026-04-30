@@ -3,13 +3,14 @@ import { db } from '../config/db';
 import { cardsTable, columnsTable } from '../db';
 import { ApiError } from '../utils/api-response';
 import { emitBoardEvent } from '../socket/emitter';
+import type { CreateColumn } from '../validations/projects.validation';
 
 export class ColumnsService {
-  static async createColumn(
-    boardId: string,
-    name: string,
-    isCompleted: boolean
-  ) {
+  static async createColumn(boardId: string, data: CreateColumn) {
+    const { name, mappedStatus } = data;
+
+    console.log(name, mappedStatus);
+
     const [lastColumn] = await db
       .select({ order: columnsTable.order })
       .from(columnsTable)
@@ -18,30 +19,34 @@ export class ColumnsService {
       .limit(1);
 
     const newOrder = lastColumn ? lastColumn.order + 1.0 : 1.0;
-    const [column] = await db
-      .insert(columnsTable)
-      .values({
-        boardId,
-        name,
-        ...(isCompleted && { isCompleted: true }),
-        order: newOrder,
-      })
-      .returning();
+    try {
+      const [column] = await db
+        .insert(columnsTable)
+        .values({
+          boardId,
+          name,
+          mappedStatus,
+          order: newOrder,
+        })
+        .returning();
+    } catch (error) {
+      console.log(error);
+    }
 
-    if (!column)
-      throw new ApiError(500, 'Error creating column. Please try again.');
+    // if (!column)
+    //   throw new ApiError(500, 'Error creating column. Please try again.');
 
-    emitBoardEvent(boardId, 'column:created', {
-      columnId: column.id,
-      name: column.name,
-    });
+    // emitBoardEvent(boardId, 'column:created', {
+    //   columnId: column.id,
+    //   name: column.name,
+    // });
 
-    return {
-      id: column.id,
-      name: column.name,
-      order: column.order,
-      cards: [],
-    };
+    // return {
+    //   id: column.id,
+    //   name: column.name,
+    //   order: column.order,
+    //   cards: [],
+    // };
   }
 
   static async updateColumnName(columnId: string, name: string) {

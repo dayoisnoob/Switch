@@ -10,10 +10,15 @@ const config: Config = {
         surface: "var(--surface)",
         card: "var(--card)",
         overlay: "var(--overlay)",
+
         accent: "var(--accent)",
         success: "var(--success)",
         warning: "var(--warning)",
         danger: "var(--danger)",
+
+        primary: "var(--text-primary)",
+        secondary: "var(--text-secondary)",
+        muted: "var(--text-muted)",
       },
       borderColor: {
         DEFAULT: "var(--border)",

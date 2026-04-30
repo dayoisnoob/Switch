@@ -1,11 +1,10 @@
 import {
+  index,
   pgTable,
-  uuid,
-  varchar,
   real,
   timestamp,
-  index,
-  boolean,
+  uuid,
+  varchar,
 } from 'drizzle-orm/pg-core';
 import { boardsTable } from './boards.schema';
 import { statusEnum } from './cards.schema';

@@ -1,8 +1,8 @@
 import { api } from "@/lib/api";
 
 export const ColumnService = {
-  create: async (boardId: string, name: string): Promise<ColumnType> => {
-    return api.post(`/boards/${boardId}/columns`, { name });
+  create: async (boardId: string, data: CreateCol): Promise<ColumnType> => {
+    return api.post(`/boards/${boardId}/columns`, data);
   },
 
   updateOrder: async (columnId: string, order: number) => {
@@ -23,4 +23,9 @@ export interface ColumnType {
   name: string;
   order: number;
   cards: [];
+}
+
+export interface CreateCol {
+  name: string;
+  mappedStatus: string;
 }

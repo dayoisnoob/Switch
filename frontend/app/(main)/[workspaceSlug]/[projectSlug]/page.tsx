@@ -11,14 +11,7 @@ import {
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import {
-  useBoard,
-  useCreateCard,
-  useDeleteColumn,
-  useMoveCard,
-  useRenameColumn,
-  useReorderColumn,
-} from "@/hooks/board";
+import { useBoard, useCreateCard, useMoveCard } from "@/hooks/board";
 import {
   CollisionDetection,
   DndContext,
@@ -45,12 +38,16 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 
 import { CreateInput } from "@/components/board/CreateInput";
-// Adjust this import path based on where you saved the modal!
 import CreateColumnModal from "@/components/modals/CreateColumnModal";
 import { useGetProjectBySlug } from "@/hooks/useProjects";
 import { useBoardStore } from "@/store/board.store";
 import { BoardCard, BoardColumn } from "@/types/board.types";
 import { toast } from "sonner";
+import {
+  useDeleteColumn,
+  useMoveColumn,
+  useRenameColumn,
+} from "@/hooks/useColumns";
 
 function findColumnInSnapshot(
   id: string,
@@ -87,8 +84,9 @@ export default function KanbanBoardPage() {
 
   const board = useBoardStore((s) => s.board);
 
-  const { mutate: moveCard } = useMoveCard();
-  const { mutate: reorderColumn } = useReorderColumn();
+  // 1. Extract the isPending flags to fix the snap-back bug
+  const { mutate: moveCard, isPending: isMovingCard } = useMoveCard();
+  const { mutate: moveColumn, isPending: isMovingColumn } = useMoveColumn();
 
   const [columns, setColumns] = useState<BoardColumn[]>([]);
   const [activeDragColumn, setActiveDragColumn] = useState<BoardColumn | null>(
@@ -96,19 +94,21 @@ export default function KanbanBoardPage() {
   );
   const [activeDragCard, setActiveDragCard] = useState<BoardCard | null>(null);
 
-  // ── NEW: Modal State ──
   const [isColumnModalOpen, setIsColumnModalOpen] = useState(false);
 
-  // ── FIX: Spaghetti Code / Anti-Pattern Cleaned Up ──
-  // Previously, you were checking if board !== lastSyncedBoard directly inside the render cycle
-  // and calling setColumns. Updating state during render causes React warnings, double-renders,
-  // and unpredictable bugs. It has been moved into this clean useEffect.
+  // 2. Prevent the useEffect from overriding local state while mutations are running
   useEffect(() => {
-    if (board && !activeDragColumn && !activeDragCard) {
+    if (
+      board &&
+      !activeDragColumn &&
+      !activeDragCard &&
+      !isMovingColumn &&
+      !isMovingCard
+    ) {
       const fetchedColumns = Array.isArray(board) ? board : board.columns || [];
       setColumns(fetchedColumns);
     }
-  }, [board, activeDragColumn, activeDragCard]);
+  }, [board, activeDragColumn, activeDragCard, isMovingColumn, isMovingCard]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -220,7 +220,7 @@ export default function KanbanBoardPage() {
 
         setColumns(reordered);
 
-        reorderColumn(
+        moveColumn(
           { columnId: activeId, order: newOrder },
           { onError: () => setColumns(columns) },
         );
@@ -273,13 +273,13 @@ export default function KanbanBoardPage() {
         { onError: () => setColumns(columns) },
       );
     },
-    [columns, reorderColumn, moveCard],
+    [columns, moveColumn, moveCard],
   );
 
   return (
-    <div className="h-full flex flex-col bg-[#0b0e14]">
-      <header className="px-8 h-16 border-b border-[#30363d] flex items-center justify-between bg-[#0d1117] shrink-0 z-10">
-        <h1 className="text-sm font-bold text-[#f0f6fc] leading-tight">
+    <div className="h-full flex flex-col bg-base">
+      <header className="px-8 h-16 border-b border-md flex items-center justify-between bg-surface shrink-0 z-10">
+        <h1 className="heading-md text-primary leading-tight">
           {project?.name}
         </h1>
       </header>
@@ -290,7 +290,7 @@ export default function KanbanBoardPage() {
             {[1, 2, 3].map((i) => (
               <div
                 key={i}
-                className="w-[320px] h-125 bg-[#0d1117] border border-[#30363d] rounded-xl animate-pulse"
+                className="w-[320px] h-125 bg-surface border border-md rounded-xl animate-pulse"
               />
             ))}
           </div>
@@ -335,10 +335,10 @@ export default function KanbanBoardPage() {
                   </SortableColumn>
                 ))}
 
-                {/* ── NEW: Replaced CreateInput with trigger button ── */}
+                {/* Add Column Button */}
                 <button
                   onClick={() => setIsColumnModalOpen(true)}
-                  className="flex items-center gap-2 w-[320px] shrink-0 h-[48px] px-4 rounded-xl border border-dashed border-[#30363d] bg-[#0d1117]/50 text-[#8b949e] font-medium hover:text-[#c9d1d9] hover:bg-[#0d1117] hover:border-[#484f58] transition-all"
+                  className="flex items-center gap-2 w-[320px] shrink-0 h-12 px-4 rounded-xl border border-dashed border-md bg-surface/50 text-secondary font-medium hover:text-primary hover:bg-surface hover:border-lg transition-all focus-ring"
                 >
                   <Plus size={16} /> Add Column
                 </button>
@@ -363,7 +363,6 @@ export default function KanbanBoardPage() {
         )}
       </main>
 
-      {/* ── NEW: Mount the modal ── */}
       {board && (
         <CreateColumnModal
           isOpen={isColumnModalOpen}
@@ -474,15 +473,15 @@ function SortableColumn({
     <div
       ref={setNodeRef}
       style={style}
-      className="flex flex-col h-max w-[320px] shrink-0 bg-[#0d1117] border border-[#30363d] rounded-xl overflow-hidden pb-2"
+      className="flex flex-col h-max w-[320px] shrink-0 bg-surface border border-md rounded-xl overflow-hidden pb-2"
     >
       <div
         {...attributes}
         {...listeners}
-        className="p-3.5 flex items-center justify-between border-b border-[#30363d]/50 bg-[#11141a] mb-2 cursor-grab active:cursor-grabbing hover:bg-[#161b22] transition-colors"
+        className="p-3.5 flex items-center justify-between border-b border-md bg-card mb-2 cursor-grab active:cursor-grabbing hover:bg-overlay transition-colors"
       >
         <div className="flex items-center gap-2 flex-1 min-w-0 mr-2">
-          <GripHorizontal size={14} className="text-[#484f58] shrink-0" />
+          <GripHorizontal size={14} className="text-muted shrink-0" />
           {isEditing ? (
             <input
               autoFocus
@@ -498,14 +497,14 @@ function SortableColumn({
                 }
               }}
               onPointerDown={(e) => e.stopPropagation()}
-              className="bg-[#1c2128] text-sm font-semibold text-[#f0f6fc] px-2 py-0.5 rounded border border-[#58a6ff] focus:outline-none w-full"
+              className="input-premium text-sm font-semibold px-2 py-0.5 focus-ring w-full"
             />
           ) : (
             <>
-              <h3 className="text-sm font-semibold text-[#f0f6fc] select-none truncate">
+              <h3 className="text-sm font-bold text-primary select-none truncate">
                 {column.name}
               </h3>
-              <span className="text-xs text-[#8b949e] bg-[#1c2128] px-1.5 py-0.5 rounded-md ml-1 select-none shrink-0">
+              <span className="text-xs text-secondary bg-overlay px-1.5 py-0.5 rounded-md ml-1 select-none shrink-0">
                 {column.cards.length}
               </span>
             </>
@@ -515,12 +514,12 @@ function SortableColumn({
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             onPointerDown={(e) => e.stopPropagation()}
-            className="text-[#8b949e] hover:text-[#f0f6fc] p-1 rounded-md hover:bg-[#1c2128] transition-colors"
+            className="text-muted hover:text-primary p-1 rounded-md hover:bg-overlay transition-colors focus-ring"
           >
             <MoreHorizontal size={16} />
           </button>
           {isMenuOpen && (
-            <div className="absolute right-0 top-full mt-1 w-40 bg-[#161b22] border border-[#30363d] rounded-md shadow-xl z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-100">
+            <div className="absolute right-0 top-full mt-1 w-40 bg-surface border border-md rounded-lg shadow-soft z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-100">
               <div className="p-1 flex flex-col">
                 <button
                   onClick={() => {
@@ -528,15 +527,15 @@ function SortableColumn({
                     setIsMenuOpen(false);
                   }}
                   onPointerDown={(e) => e.stopPropagation()}
-                  className="flex items-center gap-2 px-2 py-2 text-sm text-[#c9d1d9] hover:bg-[#1c2128] hover:text-[#f0f6fc] rounded cursor-pointer transition-colors w-full text-left"
+                  className="flex items-center gap-2 px-2 py-2 text-sm text-secondary hover:bg-overlay hover:text-primary rounded cursor-pointer transition-colors w-full text-left focus-ring"
                 >
                   <Edit2 size={14} /> Rename
                 </button>
-                <div className="h-px bg-[#30363d] my-1 mx-1" />
+                <div className="h-px bg-border my-1 mx-1" />
                 <button
                   onClick={handleDeleteColumn}
                   onPointerDown={(e) => e.stopPropagation()}
-                  className="flex items-center gap-2 px-2 py-2 text-sm text-red-400 hover:bg-[#1c2128] hover:text-red-300 rounded cursor-pointer transition-colors w-full text-left"
+                  className="flex items-center gap-2 px-2 py-2 text-sm text-danger hover:bg-danger/10 hover:text-red-400 rounded cursor-pointer transition-colors w-full text-left focus-ring"
                 >
                   <Trash2 size={14} /> Delete
                 </button>
@@ -576,17 +575,17 @@ function ColumnContent({
   return (
     <div
       className={cn(
-        "flex flex-col h-max w-[320px] shrink-0 bg-[#0d1117] border rounded-xl overflow-hidden pb-2",
+        "flex flex-col h-max w-[320px] shrink-0 bg-surface border rounded-xl overflow-hidden pb-2",
         isDragging
-          ? "border-[#58a6ff] shadow-2xl scale-[1.02] opacity-90"
-          : "border-[#30363d]",
+          ? "border-accent shadow-accent scale-[1.02] opacity-90"
+          : "border-md",
       )}
     >
-      <div className="p-3.5 flex items-center gap-2 border-b border-[#30363d]/50 bg-[#11141a] mb-2">
-        <GripHorizontal size={14} className="text-[#484f58] mr-1" />
-        <h3 className="text-sm font-semibold text-[#f0f6fc]">{column.name}</h3>
+      <div className="p-3.5 flex items-center gap-2 border-b border-md bg-card mb-2">
+        <GripHorizontal size={14} className="text-muted mr-1" />
+        <h3 className="text-sm font-bold text-primary">{column.name}</h3>
       </div>
-      <div className="px-3 py-4 text-center text-sm text-[#484f58] font-medium border-2 border-dashed border-[#30363d] mx-3 rounded-lg">
+      <div className="px-3 py-4 text-center text-sm text-secondary font-medium border-2 border-dashed border-md mx-3 rounded-lg">
         {column.cards.length} Cards
       </div>
     </div>
@@ -608,11 +607,13 @@ function SortableCard({
     transition,
     isDragging,
   } = useSortable({ id: card.id, data: { type: "Card", card } });
+
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.3 : 1,
   };
+
   return (
     <div
       ref={setNodeRef}
@@ -639,18 +640,18 @@ function CardContent({
     <div
       onClick={onClick}
       className={cn(
-        "group bg-[#161b22] border rounded-lg p-3.5 cursor-grab active:cursor-grabbing transition-colors",
+        "group bg-card border rounded-lg p-3.5 cursor-grab active:cursor-grabbing transition-all shadow-sm",
         isDragging
-          ? "border-[#58a6ff] shadow-lg scale-105"
-          : "border-[#30363d] hover:border-[#484f58]",
+          ? "border-accent shadow-accent scale-105"
+          : "border-md hover:border-lg",
       )}
     >
       {card.priority !== "none" && (
-        <span className="text-[10px] px-2 py-0.5 rounded border font-medium bg-red-500/10 text-red-400 border-red-500/20 mb-2 inline-block">
-          {card.priority.toUpperCase()}
+        <span className="text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider mb-2 inline-block bg-accent-dim text-accent border border-accent/20">
+          {card.priority}
         </span>
       )}
-      <p className="text-sm font-medium text-[#c9d1d9] leading-snug mb-2">
+      <p className="text-sm font-medium text-primary leading-snug mb-2">
         {card.title}
       </p>
     </div>

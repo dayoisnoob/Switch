@@ -104,62 +104,63 @@ export default function CreateProjectModal({
     onClose();
     setName("");
     setDescription("");
+    setShowIconPicker(false);
   };
 
   if (!isOpen) return null;
 
   return (
+    // Backdrop overlay matching the Column Modal
     <div
-      className="fixed inset-0 z-999 flex items-center justify-center bg-black/70 px-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-[#000000]/80 backdrop-blur-sm px-4 animate-in fade-in duration-200"
       onClick={handleCloseModal}
     >
+      {/* Modal Container */}
       <div
-        className="relative flex w-full max-w-115 flex-col rounded-2xl border border-[#26242c] bg-[#141218]"
+        className="relative flex w-full max-w-lg flex-col rounded-xl border border-md bg-surface shadow-soft animate-in zoom-in-95 duration-200"
         onClick={(e) => e.stopPropagation()}
       >
         <button
           onClick={onClose}
-          className="absolute top-5 right-5 text-[#6e6b7b] transition-colors hover:text-white"
+          className="absolute top-5 right-5 text-muted transition-colors hover:text-primary focus-ring rounded-sm p-1"
         >
-          <X size={16} strokeWidth={1.5} />
+          <X size={18} strokeWidth={1.5} />
         </button>
 
         <div className="p-6">
           {/* Header */}
-          <div className="mb-6">
-            <div className="mb-5 flex h-10 w-10 items-center justify-center rounded-xl bg-[#4aba85]/10 text-[#4aba85]">
+          <div className="mb-6 flex flex-col items-start">
+            <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg border border-md bg-accent-dim text-accent">
               <AlignLeft size={18} strokeWidth={1.5} />
             </div>
 
-            <h1 className="mb-1.5 text-xl font-bold tracking-tight text-white">
-              New project
-            </h1>
+            <h1 className="heading-md mb-1.5 text-primary">New project</h1>
 
-            <p className="text-[13px] leading-relaxed text-[#8b8898]">
+            <p className="text-sm leading-relaxed text-secondary pr-6">
               Projects contain boards, columns, and cards for your team&apos;s
               work.
             </p>
           </div>
 
           <div className="space-y-5">
-            {/* Row */}
-            <div className="flex items-start gap-3">
+            {/* Row: Icon Picker & Name */}
+            <div className="flex items-start gap-4">
               {/* Icon Picker */}
               <div className="relative" ref={iconPickerRef}>
-                <div className="mb-1.5 text-[12px] font-semibold text-[#8b8898]">
+                <div className="mb-1.5 flex gap-1 text-sm font-semibold text-primary">
                   Icon
                 </div>
 
                 <button
                   type="button"
                   onClick={() => setShowIconPicker((prev) => !prev)}
-                  className="flex h-10 w-10 items-center justify-center rounded-lg border border-[#2c2a35] bg-[#1a1820] text-white transition-colors hover:border-[#433f52]"
+                  className="input-premium flex h-10 w-10 items-center justify-center focus-ring hover:bg-overlay"
                 >
                   <CurrentIcon size={18} strokeWidth={1.8} />
                 </button>
 
                 {showIconPicker && (
-                  <div className="absolute left-0 top-13 z-50 w-55 rounded-xl border border-[#2c2a35] bg-[#18161d] p-2 shadow-xl">
+                  <div className="absolute left-0 top-13 z-50 w-56 rounded-xl border border-md bg-surface p-2 shadow-soft animate-in fade-in zoom-in-95 duration-150">
                     <div className="grid grid-cols-4 gap-2">
                       {PROJECT_ICONS.map((item) => {
                         const ActiveIcon = item.Icon;
@@ -174,10 +175,10 @@ export default function CreateProjectModal({
                               setIcon(item.value);
                               setShowIconPicker(false);
                             }}
-                            className={`relative flex h-10 w-10 items-center justify-center rounded-lg border transition-colors ${
+                            className={`relative flex h-10 w-10 items-center justify-center rounded-lg border transition-colors focus-ring ${
                               active
-                                ? "border-[#a855f7] bg-[#a855f7]/10 text-[#a855f7]"
-                                : "border-[#2c2a35] bg-[#1f1c24] text-[#b7b4c4] hover:border-[#433f52] hover:text-white"
+                                ? "border-accent bg-accent-dim text-accent"
+                                : "border-md bg-card text-muted hover:border-lg hover:text-primary hover:bg-overlay"
                             }`}
                           >
                             <ActiveIcon size={18} strokeWidth={1.8} />
@@ -185,7 +186,8 @@ export default function CreateProjectModal({
                             {active && (
                               <Check
                                 size={11}
-                                className="absolute right-1 top-1"
+                                strokeWidth={3}
+                                className="absolute right-1 top-1 text-accent"
                               />
                             )}
                           </button>
@@ -198,9 +200,9 @@ export default function CreateProjectModal({
 
               {/* Name */}
               <div className="flex-1">
-                <div className="mb-1.5 flex gap-1 text-[12px] font-semibold text-[#8b8898]">
+                <div className="mb-1.5 flex gap-1 text-sm font-semibold text-primary">
                   Project name
-                  <span className="text-[#a855f7]">*</span>
+                  <span className="text-danger">*</span>
                 </div>
 
                 <input
@@ -208,14 +210,14 @@ export default function CreateProjectModal({
                   onChange={(e) => setName(e.target.value)}
                   placeholder="e.g. Design System"
                   autoFocus
-                  className="h-10 w-full rounded-lg border border-[#2c2a35] bg-[#1a1820] px-3 text-[13px] text-white outline-none transition-all placeholder:text-[#524f5f] focus:border-[#a855f7]"
+                  className="input-premium h-10 w-full px-3 text-sm focus-ring"
                 />
               </div>
             </div>
 
             {/* Description */}
             <div>
-              <div className="mb-1.5 text-[12px] font-semibold text-[#8b8898]">
+              <div className="mb-1.5 flex gap-1 text-sm font-semibold text-primary">
                 Description
               </div>
 
@@ -224,13 +226,13 @@ export default function CreateProjectModal({
                 onChange={(e) => setDescription(e.target.value)}
                 rows={3}
                 placeholder="What is this project about?"
-                className="w-full resize-none rounded-lg border border-[#2c2a35] bg-[#1a1820] p-3 text-[13px] text-white outline-none transition-all placeholder:text-[#524f5f] focus:border-[#a855f7]"
+                className="input-premium w-full resize-none p-3 text-sm focus-ring"
               />
             </div>
 
             {/* Workspace */}
             <div>
-              <div className="mb-1.5 text-[12px] font-semibold text-[#8b8898]">
+              <div className="mb-1.5 flex gap-1 text-sm font-semibold text-primary">
                 Workspace
               </div>
 
@@ -239,7 +241,7 @@ export default function CreateProjectModal({
                   value={activeWorkspaceId}
                   onChange={(e) => setManualWorkspaceId(e.target.value)}
                   disabled={workspacesLoading || !workspaces?.length}
-                  className="h-10 w-full appearance-none rounded-lg border border-[#2c2a35] bg-[#1a1820] px-3 text-[13px] text-white outline-none"
+                  className="input-premium h-10 w-full appearance-none px-3 text-sm focus-ring disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {workspacesLoading ? (
                     <option>Loading workspaces...</option>
@@ -254,7 +256,7 @@ export default function CreateProjectModal({
 
                 <ChevronDown
                   size={16}
-                  className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#6e6b7b]"
+                  className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-muted"
                 />
               </div>
             </div>
@@ -262,10 +264,10 @@ export default function CreateProjectModal({
         </div>
 
         {/* Footer */}
-        <div className="flex justify-end gap-3 px-6 py-4">
+        <div className="flex justify-end gap-3 border-t border-md bg-surface px-6 py-4 rounded-b-xl">
           <button
-            onClick={onClose}
-            className="rounded-lg bg-transparent px-4 py-2 text-[13px] font-semibold text-[#8b8898] transition-colors hover:text-white"
+            onClick={handleCloseModal}
+            className="btn-ghost h-9 px-4 text-sm font-medium focus-ring"
           >
             Cancel
           </button>
@@ -273,7 +275,7 @@ export default function CreateProjectModal({
           <button
             onClick={handleSubmit}
             disabled={!name.trim() || creatingProject || workspacesLoading}
-            className="flex items-center gap-2 rounded-lg bg-[#a855f7] px-4 py-2 text-[13px] font-semibold text-white transition-colors hover:bg-[#9333ea] disabled:cursor-not-allowed disabled:opacity-50"
+            className="btn-primary flex h-9 items-center gap-2 px-4 text-sm font-semibold focus-ring disabled:cursor-not-allowed disabled:opacity-50"
           >
             <Plus size={14} strokeWidth={2} />
             Create project

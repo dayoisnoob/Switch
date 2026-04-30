@@ -222,6 +222,7 @@ interface ProjectCard {
 }
 
 function ProjectCard({ project, activeWorkspaceSlug, colorHash }: ProjectCard) {
+  const router = useRouter();
   // Fake data fallbacks to make the UI look premium until your backend catches up
   const status = project.status || "Active"; // "Active", "Paused", "Planning"
   const progressPercent =

@@ -20,6 +20,7 @@ export const createColumnSchema = z.object({
     .max(100)
     .trim()
     .transform(capitalize),
+  mappedStatus: z.enum(['BACKLOG', 'TODO', 'IN_PROGRESS', 'DONE', 'CANCELED']),
 });
 
 export const columnOrderSchema = z.object({
@@ -27,3 +28,4 @@ export const columnOrderSchema = z.object({
 });
 
 export type ProjectInput = z.infer<typeof projectInputSchema>;
+export type CreateColumn = z.infer<typeof createColumnSchema>;

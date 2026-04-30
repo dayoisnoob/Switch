@@ -1,1 +1,0 @@
-ALTER TABLE "users" ADD COLUMN "has_registered" boolean DEFAULT false NOT NULL;

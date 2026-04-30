@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { ReactNode, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -27,8 +27,17 @@ export default function DashboardPage() {
   const { data: cards } = useOpenCards();
   const { data: teammates } = useTeammates();
   const { data: projects, isLoading: countLoading } = useActiveProjectsCount();
-  const { data: workspaces = [], isLoading: workspaceLoading } =
-    useGetWorkspaces();
+  const {
+    data: workspaces = [],
+    isLoading: workspacesLoading,
+    isFetched,
+  } = useGetWorkspaces();
+
+  useEffect(() => {
+    if (isFetched && workspaces.length === 0) {
+      router.replace("/");
+    }
+  }, [isFetched, router, workspaces]);
 
   // Helper to generate consistent colors for avatars based on name
   // const getAvatarColor = (name: string) => {
@@ -44,7 +53,7 @@ export default function DashboardPage() {
   // };
 
   // ── PREMIUM SKELETON LOADER ──
-  if (workspaceLoading || countLoading) {
+  if (workspacesLoading || countLoading) {
     return (
       <div className="max-w-6xl mx-auto w-full animate-pulse">
         <div className="mb-8 space-y-3">
