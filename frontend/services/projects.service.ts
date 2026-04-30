@@ -5,23 +5,29 @@ export interface Project {
   workspaceId: string;
   name: string;
   slug: string;
+  status: string;
+  icon: string;
   description: string;
   createdBy: string;
-  boardId: string;
 }
 export interface ProjectCount {
   count: number;
 }
+export interface CreateProject {
+  icon: string;
+  name: string;
+  description: string;
+  workspaceSlug: string;
+  workspaceId: string;
+}
 
 export const ProjectService = {
-  create: async (data: {
-    name: string;
-    description: string;
-    workspaceSlug: string;
-  }): Promise<Project> => {
+  create: async (data: CreateProject): Promise<Project> => {
     return api.post(`/workspaces/${data.workspaceSlug}/projects`, {
       name: data.name,
       description: data.description,
+      icon: data.icon,
+      workspaceId: data.workspaceId,
     });
   },
 

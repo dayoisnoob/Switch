@@ -1,8 +1,13 @@
 "use client";
 
-import CreateProjectModal from "@/components/modals/CreateProjectModal";
+import CreateProjectModal, {
+  PROJECT_ICON_MAP,
+  PROJECT_ICONS,
+} from "@/components/modals/CreateProjectModal";
 import { useGetWorkspaceProjects } from "@/hooks/useProjects";
+import { useGetMembers } from "@/hooks/useWorkspace";
 import { cn } from "@/lib/utils";
+import { Project } from "@/services/projects.service";
 import { useWorkspaceStore } from "@/store/workspace.store";
 import {
   Plus,
@@ -14,18 +19,17 @@ import {
   MoreVertical,
   UserPlus,
 } from "lucide-react";
-import { Project } from "next/dist/build/swc/types";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 export default function WorkspacePage() {
   const router = useRouter();
   const activeWorkspace = useWorkspaceStore((s) => s.activeWorkspace);
-  const members = useWorkspaceStore((s) => s.workspaceMembers);
 
   const [activeTab, setActiveTab] = useState("Projects");
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
 
+  const { data: members } = useGetMembers(activeWorkspace?.slug);
   const { data: projects, isLoading: projectsLoading } =
     useGetWorkspaceProjects(activeWorkspace?.slug);
 
@@ -33,7 +37,6 @@ export default function WorkspacePage() {
 
   const tabs = [{ id: "Projects" }, { id: "Members" }, { id: "Settings" }];
 
-  // Helper to generate consistent avatar colors (like we did in the layout)
   const getConsistentColor = (id: string) => {
     const colors = [
       "#38bdf8",
@@ -51,11 +54,16 @@ export default function WorkspacePage() {
   };
 
   return (
-    <div className="max-w-[1200px] mx-auto w-full animate-in fade-in duration-500">
+    <div className="max-w-300 mx-auto w-full animate-in fade-in duration-500">
       {/* ── HEADER CARD (Matches Screenshot exactly) ── */}
       <div className="bg-[#1C1C1E] border border-[#2a2a2a] rounded-xl p-5 mb-8 flex items-center justify-between shadow-sm">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-lg bg-blue-600 flex items-center justify-center text-xl font-black text-white shrink-0">
+          <div
+            className={cn(
+              "w-12 h-12 rounded-lg  flex items-center justify-center text-xl font-black text-white shrink-0",
+              activeWorkspace.colour,
+            )}
+          >
             {activeWorkspace.name.substring(0, 2).toUpperCase()}
           </div>
           <div className="flex flex-col">
@@ -68,10 +76,10 @@ export default function WorkspacePage() {
               </span>
               <span className="text-[#404040]">•</span>
               <span className="text-[#a1a1a1] flex items-center gap-1.5">
-                <UserPlus size={14} /> {members?.length || 0} members
+                <UserPlus size={14} /> {members?.length || 0} member(s)
               </span>
               <span className="text-[#404040]">•</span>
-              <span className="text-[#7C6EF5]">Owner</span>
+              <span className="text-[#7C6EF5]">{activeWorkspace.role}</span>
             </div>
           </div>
         </div>
@@ -160,7 +168,6 @@ export default function WorkspacePage() {
                 <ProjectCard
                   key={project.id}
                   project={project}
-                  router={router}
                   activeWorkspaceSlug={activeWorkspace.slug}
                   colorHash={getConsistentColor(project.id)}
                 />
@@ -169,7 +176,7 @@ export default function WorkspacePage() {
               {/* "Create Project" Card (Matches the dashed card in the layout) */}
               <button
                 onClick={() => setIsProjectModalOpen(true)}
-                className="bg-transparent border border-dashed border-[#333] rounded-xl p-6 hover:border-[#7C6EF5] hover:bg-[#7C6EF5]/5 transition-all flex flex-col items-center justify-center min-h-[220px] group"
+                className="bg-transparent border border-dashed border-[#333] rounded-xl p-6 hover:border-[#7C6EF5] hover:bg-[#7C6EF5]/5 transition-all flex flex-col items-center justify-center min-h-55 group"
               >
                 <Plus
                   size={24}
@@ -208,9 +215,13 @@ export default function WorkspacePage() {
   );
 }
 
-// ── EXTRACTED PROJECT CARD COMPONENT ──
-// This handles the complex visual layout for each project block
-function ProjectCard({ project, router, activeWorkspaceSlug, colorHash }: any) {
+interface ProjectCard {
+  project: Project;
+  activeWorkspaceSlug: string;
+  colorHash: string;
+}
+
+function ProjectCard({ project, activeWorkspaceSlug, colorHash }: ProjectCard) {
   // Fake data fallbacks to make the UI look premium until your backend catches up
   const status = project.status || "Active"; // "Active", "Paused", "Planning"
   const progressPercent =
@@ -219,7 +230,8 @@ function ProjectCard({ project, router, activeWorkspaceSlug, colorHash }: any) {
     project.completedCards || Math.floor((progressPercent / 100) * 25);
   const totalCards = project.totalCards || 25;
   const priority = project.priority || "Medium";
-  const iconEmoji = project.icon || "🎨"; // Fallback emoji if no icon provided
+
+  const Icon = PROJECT_ICON_MAP[project.icon] || "Palette";
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -257,7 +269,7 @@ function ProjectCard({ project, router, activeWorkspaceSlug, colorHash }: any) {
       <div className="flex items-start justify-between mb-4">
         {/* Dynamic Project Icon */}
         <div className="w-8 h-8 rounded bg-[#252529] flex items-center justify-center text-lg shadow-sm">
-          {iconEmoji}
+          <Icon />
         </div>
 
         <div className="flex items-center gap-2">

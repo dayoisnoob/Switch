@@ -1,15 +1,14 @@
 import crypto from 'crypto';
 import { cryptoHash } from './hash.util';
 
-export const slugGen = (str: string, type: string = 'project') => {
+export const slugGen = (str: string) => {
   const slug = str
     .toLowerCase()
     .trim()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '');
 
-  const hash = crypto.randomBytes(2).toString('hex');
-  return type === 'workspace' ? `${slug}-${hash}` : slug;
+  return slug;
 };
 
 export const generateSecureOtp = () => {

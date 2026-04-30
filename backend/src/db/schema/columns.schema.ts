@@ -8,6 +8,7 @@ import {
   boolean,
 } from 'drizzle-orm/pg-core';
 import { boardsTable } from './boards.schema';
+import { statusEnum } from './cards.schema';
 
 export const columnsTable = pgTable(
   'columns',
@@ -18,7 +19,7 @@ export const columnsTable = pgTable(
       .references(() => boardsTable.id, { onDelete: 'cascade' }),
     name: varchar('name', { length: 100 }).notNull(),
     order: real('order').notNull(),
-    isCompleted: boolean('is_completed').default(false).notNull(),
+    mappedStatus: statusEnum('mapped_status').notNull().default('TODO'),
     createdAt: timestamp('created_at').notNull().defaultNow(),
   },
   (t) => [index('columns_board_id_idx').on(t.boardId)]

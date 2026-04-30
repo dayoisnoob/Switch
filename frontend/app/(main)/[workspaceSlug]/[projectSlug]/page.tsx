@@ -1,14 +1,19 @@
 "use client";
 
 import { cn, getErrorMessage } from "@/lib/utils";
-import { Edit2, GripHorizontal, MoreHorizontal, Trash2 } from "lucide-react";
+import {
+  Edit2,
+  GripHorizontal,
+  MoreHorizontal,
+  Plus,
+  Trash2,
+} from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import {
   useBoard,
   useCreateCard,
-  useCreateColumn,
   useDeleteColumn,
   useMoveCard,
   useRenameColumn,
@@ -40,10 +45,12 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 
 import { CreateInput } from "@/components/board/CreateInput";
-import { useBoardStore } from "@/store/board.store";
-import { BoardCard, BoardColumn, BoardState } from "@/types/board.types";
-import { toast } from "sonner";
+// Adjust this import path based on where you saved the modal!
+import CreateColumnModal from "@/components/modals/CreateColumnModal";
 import { useGetProjectBySlug } from "@/hooks/useProjects";
+import { useBoardStore } from "@/store/board.store";
+import { BoardCard, BoardColumn } from "@/types/board.types";
+import { toast } from "sonner";
 
 function findColumnInSnapshot(
   id: string,
@@ -82,28 +89,26 @@ export default function KanbanBoardPage() {
 
   const { mutate: moveCard } = useMoveCard();
   const { mutate: reorderColumn } = useReorderColumn();
-  const { mutateAsync: createColumn } = useCreateColumn();
 
   const [columns, setColumns] = useState<BoardColumn[]>([]);
-  //   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
   const [activeDragColumn, setActiveDragColumn] = useState<BoardColumn | null>(
     null,
   );
   const [activeDragCard, setActiveDragCard] = useState<BoardCard | null>(null);
-  const [lastSyncedBoard, setLastSyncedBoard] = useState<BoardState | null>(
-    null,
-  );
 
-  if (
-    board &&
-    board !== lastSyncedBoard &&
-    !activeDragColumn &&
-    !activeDragCard
-  ) {
-    setLastSyncedBoard(board);
-    const fetchedColumns = Array.isArray(board) ? board : board.columns || [];
-    setColumns(fetchedColumns);
-  }
+  // ── NEW: Modal State ──
+  const [isColumnModalOpen, setIsColumnModalOpen] = useState(false);
+
+  // ── FIX: Spaghetti Code / Anti-Pattern Cleaned Up ──
+  // Previously, you were checking if board !== lastSyncedBoard directly inside the render cycle
+  // and calling setColumns. Updating state during render causes React warnings, double-renders,
+  // and unpredictable bugs. It has been moved into this clean useEffect.
+  useEffect(() => {
+    if (board && !activeDragColumn && !activeDragCard) {
+      const fetchedColumns = Array.isArray(board) ? board : board.columns || [];
+      setColumns(fetchedColumns);
+    }
+  }, [board, activeDragColumn, activeDragCard]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -204,9 +209,7 @@ export default function KanbanBoardPage() {
 
       const isActiveColumn = active.data.current?.type === "Column";
 
-      // ── 1. COLUMN REORDERING ──
       if (isActiveColumn) {
-        // Calculate the new order using your current `columns` state
         const fromIndex = columns.findIndex((c) => c.id === activeId);
         const toIndex = columns.findIndex((c) => c.id === overId);
         const reordered = arrayMove(columns, fromIndex, toIndex);
@@ -215,13 +218,11 @@ export default function KanbanBoardPage() {
         const nextOrder = reordered[toIndex + 1]?.order ?? prevOrder + 2;
         const newOrder = (prevOrder + nextOrder) / 2;
 
-        // 1. Update UI instantly (Pure)
         setColumns(reordered);
 
-        // 2. Fire API exactly once (Side Effect)
         reorderColumn(
           { columnId: activeId, order: newOrder },
-          { onError: () => setColumns(columns) }, // Rollback on error
+          { onError: () => setColumns(columns) },
         );
         return;
       }
@@ -230,7 +231,6 @@ export default function KanbanBoardPage() {
       sourceColumnIdRef.current = null;
       targetColumnIdRef.current = null;
 
-      // ── 2. CROSS-COLUMN CARD DRAG ──
       if (isCrossColumn) {
         const targetCol = columns.find((c) => c.id === targetColId);
         if (!targetCol) return;
@@ -241,10 +241,6 @@ export default function KanbanBoardPage() {
           targetCol.cards[cardIndex + 1]?.order ?? prevOrder + 2;
         const newOrder = (prevOrder + nextOrder) / 2;
 
-        // Note: dnd-kit usually handles the actual cross-column array mutation
-        // in `onDragOver`, so we don't need to call setColumns here!
-
-        // Fire API exactly once
         moveCard(
           { cardId: activeId, columnId: targetColId!, order: newOrder },
           { onError: () => setColumns(columns) },
@@ -252,7 +248,6 @@ export default function KanbanBoardPage() {
         return;
       }
 
-      // ── 3. SAME-COLUMN CARD DRAG ──
       const activeCol = findColumnInSnapshot(activeId, columns);
       const overCol = findColumnInSnapshot(overId, columns);
       if (!activeCol || !overCol) return;
@@ -271,16 +266,13 @@ export default function KanbanBoardPage() {
       const nextOrder = updatedCol.cards[toIndex + 1]?.order ?? prevOrder + 2;
       const newOrder = (prevOrder + nextOrder) / 2;
 
-      // 1. Update UI instantly (Pure)
       setColumns(reorderedCols);
 
-      // 2. Fire API exactly once (Side Effect)
       moveCard(
         { cardId: activeId, columnId: activeCol.id, order: newOrder },
         { onError: () => setColumns(columns) },
       );
     },
-    // IMPORTANT: Make sure `columns` is in your dependency array so it has the freshest data!
     [columns, reorderColumn, moveCard],
   );
 
@@ -343,20 +335,13 @@ export default function KanbanBoardPage() {
                   </SortableColumn>
                 ))}
 
-                <CreateInput
-                  isColumn
-                  buttonText="Add Column"
-                  placeholder="e.g. In Review"
-                  onSubmit={async (title) => {
-                    if (!board) return;
-                    const newCol = await createColumn({
-                      boardId: board.id,
-                      name: title,
-                    });
-
-                    setColumns((prev) => [...prev, newCol]);
-                  }}
-                />
+                {/* ── NEW: Replaced CreateInput with trigger button ── */}
+                <button
+                  onClick={() => setIsColumnModalOpen(true)}
+                  className="flex items-center gap-2 w-[320px] shrink-0 h-[48px] px-4 rounded-xl border border-dashed border-[#30363d] bg-[#0d1117]/50 text-[#8b949e] font-medium hover:text-[#c9d1d9] hover:bg-[#0d1117] hover:border-[#484f58] transition-all"
+                >
+                  <Plus size={16} /> Add Column
+                </button>
               </div>
             </SortableContext>
 
@@ -377,6 +362,15 @@ export default function KanbanBoardPage() {
           </DndContext>
         )}
       </main>
+
+      {/* ── NEW: Mount the modal ── */}
+      {board && (
+        <CreateColumnModal
+          isOpen={isColumnModalOpen}
+          onClose={() => setIsColumnModalOpen(false)}
+          boardId={board.id}
+        />
+      )}
     </div>
   );
 }
@@ -390,7 +384,6 @@ function SortableColumn({
   setColumns: React.Dispatch<React.SetStateAction<BoardColumn[]>>;
   children: React.ReactNode;
 }) {
-  // --- NEW COLUMN MANAGEMENT STATE ---
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(column.name);
@@ -418,12 +411,10 @@ function SortableColumn({
     opacity: isDragging ? 0.3 : 1,
   };
 
-  // --- NEW: CLOSE MENU ON OUTSIDE CLICK ---
   useEffect(() => {
     const listener = (event: MouseEvent | TouchEvent) => {
-      if (!menuRef.current || menuRef.current.contains(event.target as Node)) {
+      if (!menuRef.current || menuRef.current.contains(event.target as Node))
         return;
-      }
       setIsMenuOpen(false);
     };
     document.addEventListener("mousedown", listener);
@@ -434,30 +425,22 @@ function SortableColumn({
     };
   }, []);
 
-  // --- NEW: HANDLE RENAME SUBMIT ---
   const handleRenameSubmit = () => {
     setIsEditing(false);
     const newTitle = editTitle.trim();
-
     if (newTitle === "" || newTitle === column.name) {
       setEditTitle(column.name);
       return;
     }
-
     try {
       renameCol({ columnId: column.id, name: newTitle });
-
       setColumns((prevColumns) =>
-        prevColumns.map((col) => {
-          if (col.id === column.id) {
-            return { ...col, name: newTitle };
-          }
-          return col;
-        }),
+        prevColumns.map((col) =>
+          col.id === column.id ? { ...col, name: newTitle } : col,
+        ),
       );
     } catch (err) {
-      const msg = getErrorMessage(err);
-      toast.error(msg || "Failed to rename column");
+      toast.error(getErrorMessage(err) || "Failed to rename column");
       setEditTitle(column.name);
     }
   };
@@ -465,27 +448,25 @@ function SortableColumn({
   const handleDeleteColumn = () => {
     setIsMenuOpen(false);
     if (column.cards.length > 0) {
-      // TODO: create a small modal for confirmation
       window.alert(
         `Cannot delete "${column.name}". Please move or delete the ${column.cards.length} cards inside it first.`,
       );
       return;
     }
-
-    const confirm = window.confirm(
-      `Are you sure you want to delete the empty column "${column.name}"?`,
-    );
-    if (!confirm) return;
+    if (
+      !window.confirm(
+        `Are you sure you want to delete the empty column "${column.name}"?`,
+      )
+    )
+      return;
 
     try {
       deleteCol({ columnId: column.id });
-
       setColumns((prevColumns) =>
         prevColumns.filter((col) => col.id !== column.id),
       );
     } catch (err) {
-      const msg = getErrorMessage(err);
-      toast.error(msg || "Failed to delete column");
+      toast.error(getErrorMessage(err) || "Failed to delete column");
     }
   };
 
@@ -500,10 +481,8 @@ function SortableColumn({
         {...listeners}
         className="p-3.5 flex items-center justify-between border-b border-[#30363d]/50 bg-[#11141a] mb-2 cursor-grab active:cursor-grabbing hover:bg-[#161b22] transition-colors"
       >
-        {/* HEADER LEFT SIDE: GRIP + TITLE/INPUT */}
         <div className="flex items-center gap-2 flex-1 min-w-0 mr-2">
           <GripHorizontal size={14} className="text-[#484f58] shrink-0" />
-
           {isEditing ? (
             <input
               autoFocus
@@ -518,7 +497,6 @@ function SortableColumn({
                   setIsEditing(false);
                 }
               }}
-              // CRUCIAL: Stop dragging when typing
               onPointerDown={(e) => e.stopPropagation()}
               className="bg-[#1c2128] text-sm font-semibold text-[#f0f6fc] px-2 py-0.5 rounded border border-[#58a6ff] focus:outline-none w-full"
             />
@@ -533,19 +511,14 @@ function SortableColumn({
             </>
           )}
         </div>
-
-        {/* HEADER RIGHT SIDE: MENU */}
         <div className="relative shrink-0" ref={menuRef}>
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            // CRUCIAL: Stop dragging when clicking the menu button
             onPointerDown={(e) => e.stopPropagation()}
             className="text-[#8b949e] hover:text-[#f0f6fc] p-1 rounded-md hover:bg-[#1c2128] transition-colors"
           >
             <MoreHorizontal size={16} />
           </button>
-
-          {/* FLOATING MENU */}
           {isMenuOpen && (
             <div className="absolute right-0 top-full mt-1 w-40 bg-[#161b22] border border-[#30363d] rounded-md shadow-xl z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-100">
               <div className="p-1 flex flex-col">
@@ -572,28 +545,19 @@ function SortableColumn({
           )}
         </div>
       </div>
-
-      {/* CHILDREN (CARDS) */}
       {children}
-
-      {/* CARD CREATION INPUT */}
       <div className="px-3 pt-3 mt-1">
         <CreateInput
           buttonText="Add Card"
           placeholder="What needs to be done?"
           onSubmit={async (title) => {
             const newCard = await createCard({ columnId: column.id, title });
-
             setColumns((prev) =>
-              prev.map((col) => {
-                if (col.id === column.id) {
-                  return {
-                    ...col,
-                    cards: [...col.cards, newCard],
-                  };
-                }
-                return col;
-              }),
+              prev.map((col) =>
+                col.id === column.id
+                  ? { ...col, cards: [...col.cards, newCard] }
+                  : col,
+              ),
             );
           }}
         />
@@ -643,17 +607,12 @@ function SortableCard({
     transform,
     transition,
     isDragging,
-  } = useSortable({
-    id: card.id,
-    data: { type: "Card", card },
-  });
-
+  } = useSortable({ id: card.id, data: { type: "Card", card } });
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.3 : 1,
   };
-
   return (
     <div
       ref={setNodeRef}
@@ -694,9 +653,6 @@ function CardContent({
       <p className="text-sm font-medium text-[#c9d1d9] leading-snug mb-2">
         {card.title}
       </p>
-      {/* TODO: render card.assignees avatars here if present (AvatarGroup component) */}
-      {/* TODO: render card.dueDate here if present (date-fns format) */}
-      {/* TODO: render attachment/comment counts here if present */}
     </div>
   );
 }

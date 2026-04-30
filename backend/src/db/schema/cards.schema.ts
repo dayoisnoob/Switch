@@ -13,6 +13,13 @@ import { boardsTable } from './boards.schema';
 import { columnsTable } from './columns.schema';
 import { usersTable } from './users.schema';
 
+export const statusEnum = pgEnum('status', [
+  'BACKLOG',
+  'TODO',
+  'IN_PROGRESS',
+  'DONE',
+  'CANCELED',
+]);
 export const priorityEnum = pgEnum('priority', [
   'none',
   'low',
@@ -33,6 +40,7 @@ export const cardsTable = pgTable(
       .references(() => boardsTable.id, { onDelete: 'cascade' }),
     title: varchar('title', { length: 255 }).notNull(),
     description: text('description'),
+    status: statusEnum('status').notNull().default('TODO'),
     priority: priorityEnum('priority').notNull().default('none'),
     dueDate: timestamp('due_date'),
     coverImageUrl: text('cover_image_url'),

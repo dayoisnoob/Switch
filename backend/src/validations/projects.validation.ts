@@ -9,6 +9,8 @@ export const projectInputSchema = z.object({
     .trim()
     .transform(capitalize),
   description: z.string().trim().optional(),
+  icon: z.string().trim(),
+  workspaceId: z.string().uuid(),
 });
 
 export const createColumnSchema = z.object({
@@ -23,3 +25,5 @@ export const createColumnSchema = z.object({
 export const columnOrderSchema = z.object({
   order: z.number(),
 });
+
+export type ProjectInput = z.infer<typeof projectInputSchema>;

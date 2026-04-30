@@ -1,4 +1,4 @@
-import { and, count, eq } from 'drizzle-orm';
+import { and, count, desc, eq } from 'drizzle-orm';
 import { db } from '../config/db';
 import {
   boardsTable,
@@ -8,14 +8,11 @@ import {
 } from '../db';
 import { ApiError } from '../utils/api-response';
 import { slugGen } from '../utils/helpers';
+import type { ProjectInput } from '../validations/projects.validation';
 
 export class ProjectService {
-  static async createProject(
-    userId: string,
-    workspaceId: string,
-    name: string,
-    description: string
-  ) {
+  static async createProject(userId: string, data: ProjectInput) {
+    const { name, description, icon, workspaceId } = data;
     const slug = slugGen(name);
 
     try {
@@ -26,6 +23,7 @@ export class ProjectService {
             workspaceId,
             name,
             slug,
+            icon,
             description,
             createdBy: userId,
           })
@@ -83,10 +81,13 @@ export class ProjectService {
         workspaceId: projectsTable.workspaceId,
         name: projectsTable.name,
         slug: projectsTable.slug,
+        status: projectsTable.status,
+        icon: projectsTable.icon,
         description: projectsTable.description,
         createdBy: projectsTable.createdBy,
       })
       .from(projectsTable)
+      .orderBy(desc(projectsTable.createdAt))
       .where(eq(projectsTable.workspaceId, workspaceId));
 
     return projects;

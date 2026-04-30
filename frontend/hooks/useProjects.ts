@@ -1,5 +1,28 @@
-import { ProjectService } from "@/services/projects.service";
-import { useQuery } from "@tanstack/react-query";
+import { getErrorMessage } from "@/lib/utils";
+import { CreateProject, ProjectService } from "@/services/projects.service";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+
+export function useCreateProject() {
+  const router = useRouter();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (data: CreateProject) => ProjectService.create(data),
+
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["project"] });
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
+      router.push(`/${variables.workspaceSlug}/${data.slug}`);
+    },
+
+    onError: (err) => {
+      const message = getErrorMessage(err);
+      toast.error(message);
+    },
+  });
+}
 
 export function useGetWorkspaceProjects(workspaceId?: string) {
   return useQuery({

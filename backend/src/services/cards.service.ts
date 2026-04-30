@@ -1,4 +1,4 @@
-import { and, count, desc, eq, inArray } from 'drizzle-orm';
+import { and, count, desc, eq, inArray, notInArray } from 'drizzle-orm';
 import { db } from '../config/db';
 import {
   boardsTable,
@@ -166,7 +166,6 @@ export class CardsService {
     const [result] = await db
       .select({ total: count(cardsTable.id) })
       .from(cardsTable)
-      .innerJoin(columnsTable, eq(cardsTable.columnId, columnsTable.id))
       .innerJoin(boardsTable, eq(cardsTable.boardId, boardsTable.id))
       .innerJoin(projectsTable, eq(boardsTable.projectId, projectsTable.id))
       .innerJoin(
@@ -176,7 +175,7 @@ export class CardsService {
       .where(
         and(
           eq(workspaceMembershipsTable.userId, userId),
-          eq(columnsTable.isCompleted, false)
+          notInArray(cardsTable.status, ['DONE', 'CANCELED'])
         )
       );
 
