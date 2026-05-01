@@ -2,39 +2,40 @@
 
 import CreateProjectModal, {
   PROJECT_ICON_MAP,
-  PROJECT_ICONS,
 } from "@/components/modals/CreateProjectModal";
 import { useWorkspaceProjects } from "@/hooks/useProjects";
 import { useGetMembers, useGetWorkspaces } from "@/hooks/useWorkspace";
 import { cn } from "@/lib/utils";
 import { Project } from "@/services/projects.service";
-import { useWorkspaceStore } from "@/store/workspace.store";
 import {
-  Plus,
-  Search,
-  Filter,
   ChevronDown,
+  Filter,
   LayoutGrid,
   List,
   MoreVertical,
+  Plus,
+  Search,
   UserPlus,
 } from "lucide-react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 
 export default function WorkspacePage() {
   const router = useRouter();
-  const activeWorkspace = useWorkspaceStore((s) => s.activeWorkspace);
+  const params = useParams();
+
+  const workspaceSlug = params?.workspaceSlug as string;
+
+  const { data: workspaces } = useGetWorkspaces();
+  const activeWorkspace = workspaces?.find((w) => w.slug === workspaceSlug);
 
   const [activeTab, setActiveTab] = useState("Projects");
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
 
-  const { data: members } = useGetMembers(activeWorkspace?.slug);
-  const { data: wp } = useGetWorkspaces();
-  const { data: projects, isLoading: projectsLoading } = useWorkspaceProjects(
-    activeWorkspace?.slug,
-  );
+  const { data: members } = useGetMembers(workspaceSlug);
+  const { data: projects, isLoading: projectsLoading } =
+    useWorkspaceProjects(workspaceSlug);
 
   if (!activeWorkspace) return null;
 
@@ -118,7 +119,7 @@ export default function WorkspacePage() {
             >
               {tab.id}
               {isActive && (
-                <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#7C6EF5] rounded-t-full" />
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#7C6EF5] rounded-t-full" />
               )}
             </button>
           );
@@ -250,7 +251,7 @@ function ProjectCard({ project, activeWorkspaceSlug, colorHash }: ProjectCard) {
   return (
     <div
       onClick={() => router.push(`/${activeWorkspaceSlug}/${project.slug}`)}
-      className="bg-[#1C1C1E] border border-[#2a2a2a] hover:border-[#3f3f46] rounded-xl p-5 transition-all cursor-pointer flex flex-col min-h-[220px]"
+      className="bg-[#1C1C1E] border border-[#2a2a2a] hover:border-[#3f3f46] rounded-xl p-5 transition-all cursor-pointer flex flex-col min-h-55"
     >
       <div className="flex items-start justify-between mb-4">
         {/* Dynamic Project Icon */}

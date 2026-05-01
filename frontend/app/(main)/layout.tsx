@@ -27,7 +27,7 @@ export default function MainLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const params = useParams();
-  const workspaceIdentifier = params?.workspaceSlug;
+  const workspaceSlug = params?.workspaceSlug;
 
   const [isFirstWorkspaceOpen, setIsFirstWorkspaceOpen] = useState(false);
   const [isAddWorkspaceOpen, setIsAddWorkspaceOpen] = useState(false);
@@ -45,21 +45,29 @@ export default function MainLayout({ children }: { children: ReactNode }) {
     useWorkspaceProjects(activeWorkspace?.slug);
 
   useEffect(() => {
-    if (workspaces.length > 0 && !activeWorkspace) {
-      if (workspaceIdentifier) {
+    if (workspaces && workspaces.length > 0) {
+      if (workspaceSlug) {
         const matchedWorkspace = workspaces.find(
-          (w) => w.slug === workspaceIdentifier,
+          (w) => w.slug === workspaceSlug,
         );
 
-        if (matchedWorkspace) {
+        if (
+          matchedWorkspace &&
+          matchedWorkspace.slug !== activeWorkspace?.slug
+        ) {
           setActiveWorkspace(matchedWorkspace);
-          return;
         }
+      } else if (!activeWorkspace) {
+        setActiveWorkspace(workspaces[0]);
       }
-
-      setActiveWorkspace(workspaces[0]);
     }
-  }, [workspaces, activeWorkspace, setActiveWorkspace, workspaceIdentifier]);
+  }, [
+    workspaces,
+    workspaceSlug,
+    activeWorkspace?.slug,
+    setActiveWorkspace,
+    activeWorkspace,
+  ]);
 
   const { data: members = [], isLoading: membersLoading } = useGetMembers(
     activeWorkspace?.slug,
@@ -281,7 +289,6 @@ export default function MainLayout({ children }: { children: ReactNode }) {
                           key={ws.id}
                           href={`/${ws.slug}`}
                           onClick={() => {
-                            setActiveWorkspace(ws);
                             setIsWorkspaceDropdownOpen(false);
                           }}
                           className={cn(
