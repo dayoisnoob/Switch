@@ -11,7 +11,10 @@ import {
 import { queueEmail } from '../queues/email.queue';
 import { ApiError } from '../utils/api-response';
 import { tempTokens } from '../utils/tokens.util';
-import type { CreateWP } from '../validations/workspaces.validation';
+import type {
+  CreateWP,
+  SendInvite,
+} from '../validations/workspaces.validation';
 
 export class WorkspaceService {
   static async createWorkspace(userId: string, data: CreateWP) {
@@ -255,7 +258,7 @@ export class WorkspaceService {
 
   static async sendInvitation(
     userId: string,
-    email: string,
+    data: SendInvite,
     workspaceId: string,
     inviterName: string,
     workspaceName: string
@@ -272,7 +275,7 @@ export class WorkspaceService {
       .where(
         and(
           eq(workspaceMembershipsTable.workspaceId, workspaceId),
-          eq(usersTable.email, email)
+          eq(usersTable.email, data.email)
         )
       )
       .limit(1);
@@ -292,7 +295,7 @@ export class WorkspaceService {
       .where(
         and(
           eq(workspaceInvitationsTable.workspaceId, workspaceId),
-          eq(workspaceInvitationsTable.email, email),
+          eq(workspaceInvitationsTable.email, data.email),
           gt(workspaceInvitationsTable.expiresAt, new Date()),
           isNull(workspaceInvitationsTable.acceptedAt)
         )
@@ -313,7 +316,8 @@ export class WorkspaceService {
       .values({
         workspaceId,
         invitedBy: userId,
-        email,
+        email: data.email,
+        role: data.role,
         tokenHash,
         expiresAt,
       })
@@ -325,10 +329,80 @@ export class WorkspaceService {
 
     await queueEmail({
       type: 'invitation',
+      user: { email: data.email },
+      inviterName,
+      workspaceName,
+      link: `${env.FRONTEND_URL}/invite/accept?token=${token}`,
+    });
+  }
+
+  static async getPendingInvites(workspaceId: string) {
+    const pendingInvites = await db
+      .select({
+        id: workspaceInvitationsTable.id,
+        email: workspaceInvitationsTable.email,
+        invitedBy: workspaceInvitationsTable.invitedBy,
+        role: workspaceInvitationsTable.role,
+        createdAt: workspaceInvitationsTable.createdAt,
+      })
+      .from(workspaceInvitationsTable)
+      .where(
+        and(
+          eq(workspaceInvitationsTable.workspaceId, workspaceId),
+          gt(workspaceInvitationsTable.expiresAt, new Date()),
+          isNull(workspaceInvitationsTable.acceptedAt)
+        )
+      );
+
+    return pendingInvites;
+  }
+
+  static async revokeInvite(workspaceId: string, email: string) {
+    await db
+      .delete(workspaceInvitationsTable)
+      .where(
+        and(
+          eq(workspaceInvitationsTable.workspaceId, workspaceId),
+          eq(workspaceInvitationsTable.email, email)
+        )
+      );
+
+    return;
+  }
+
+  static async resendInvite(
+    workspaceId: string,
+    email: string,
+    inviterName: string,
+    workspaceName: string
+  ) {
+    const { token, tokenHash, expiresAt } = tempTokens();
+
+    const [updatedInvite] = await db
+      .update(workspaceInvitationsTable)
+      .set({
+        createdAt: new Date(),
+        tokenHash,
+        expiresAt,
+      })
+      .where(
+        and(
+          eq(workspaceInvitationsTable.workspaceId, workspaceId),
+          eq(workspaceInvitationsTable.email, email)
+        )
+      )
+      .returning();
+
+    if (!updatedInvite) throw new Error('Invitation not found');
+
+    await queueEmail({
+      type: 'invitation',
       user: { email },
       inviterName,
       workspaceName,
       link: `${env.FRONTEND_URL}/invite/accept?token=${token}`,
     });
+
+    return { success: true };
   }
 }

@@ -81,8 +81,49 @@ export class WorkspaceController {
 
     await WorkspaceService.sendInvitation(
       req.user.id,
-      req.body.email,
+      req.body,
       workspaceId,
+      inviterName,
+      workspaceName
+    );
+
+    res.json(new ApiResponse(200, 'Invitation sent successfully'));
+  }
+
+  static async getPendingInvites(req: AuthenticatedRequest, res: Response) {
+    const workspaceId = req.workspace?.workspaceId!;
+
+    const pendingInvites =
+      await WorkspaceService.getPendingInvites(workspaceId);
+
+    res.json(
+      new ApiResponse(
+        200,
+        'Pending invitations successfully retrieved',
+        pendingInvites
+      )
+    );
+  }
+
+  static async revokeInvite(req: AuthenticatedRequest, res: Response) {
+    const workspaceId = req.workspace?.workspaceId!;
+    const email = req.params.email as string;
+
+    await WorkspaceService.revokeInvite(workspaceId, email);
+
+    res.json(new ApiResponse(200, 'Invite successfully revoked'));
+  }
+
+  static async resendInvitation(req: AuthenticatedRequest, res: Response) {
+    const workspaceId = req.workspace?.workspaceId!;
+    const inviterName = req.user.firstName;
+    const workspaceName = req.workspace?.workspaceName;
+
+    if (!workspaceName) throw new ApiError(500, 'Workspace context missing');
+
+    await WorkspaceService.resendInvite(
+      workspaceId,
+      req.body.email,
       inviterName,
       workspaceName
     );

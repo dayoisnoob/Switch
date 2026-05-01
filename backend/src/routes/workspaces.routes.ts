@@ -14,6 +14,7 @@ import { asyncHandler } from '../utils/async-handler';
 import { paramsSchema } from '../validations/urlParams.validation';
 import {
   createWorkspaceSchema,
+  resendInvitationSchema,
   sendInvitationSchema,
 } from '../validations/workspaces.validation';
 
@@ -85,6 +86,34 @@ router.post(
   requireWorkspaceMember,
   requireWorkspaceRole(['Owner', 'Admin']),
   asyncHandler(WorkspaceController.sendInvitation)
+);
+
+router.get(
+  '/:workspaceSlug/invitations',
+  authenticate,
+  validateUrlParams(paramsSchema),
+  requireWorkspaceMember,
+  requireWorkspaceRole(['Owner', 'Admin']),
+  asyncHandler(WorkspaceController.getPendingInvites)
+);
+
+router.delete(
+  '/:workspaceSlug/invitations/:email',
+  authenticate,
+  validateUrlParams(paramsSchema),
+  requireWorkspaceMember,
+  requireWorkspaceRole(['Owner', 'Admin']),
+  asyncHandler(WorkspaceController.revokeInvite)
+);
+
+router.post(
+  '/:workspaceSlug/invitations/resend',
+  authenticate,
+  validateUrlParams(paramsSchema),
+  validateInput(resendInvitationSchema),
+  requireWorkspaceMember,
+  requireWorkspaceRole(['Owner', 'Admin']),
+  asyncHandler(WorkspaceController.resendInvitation)
 );
 
 export default router;

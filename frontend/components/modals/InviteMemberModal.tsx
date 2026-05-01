@@ -1,5 +1,13 @@
 "use client";
 
+import {
+  useGetPendingInvites,
+  useResendInvite,
+  useRevokeInvite,
+  useSendInvite,
+} from "@/hooks/useWorkspace";
+import { timeAgo } from "@/lib/utils";
+import { PendingInvites } from "@/services/workspace.service";
 import { ArrowRight, ChevronDown, Info, UserPlus, X } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -7,15 +15,25 @@ interface InviteMemberModalProps {
   isOpen: boolean;
   onClose: () => void;
   workspaceName?: string;
+  workspaceSlug?: string;
 }
 
 export default function InviteMemberModal({
   isOpen,
   onClose,
-  workspaceName = "Acme Corp",
+  workspaceName,
+  workspaceSlug,
 }: InviteMemberModalProps) {
   const [email, setEmail] = useState("");
   const [role, setRole] = useState("Member");
+
+  const { data: pendingInvites, isLoading } =
+    useGetPendingInvites(workspaceSlug);
+  const { mutate: sendInvite, isPending } = useSendInvite(workspaceSlug!);
+  const { mutate: revokeInvite } = useRevokeInvite(workspaceSlug!);
+  const { mutate: resend, isPending: resendingInvite } = useResendInvite(
+    workspaceSlug!,
+  );
 
   // Prevent background scrolling when modal is open
   useEffect(() => {
@@ -29,6 +47,19 @@ export default function InviteMemberModal({
     };
   }, [isOpen]);
 
+  const handleInvite = () => {
+    if (!email.trim()) return;
+
+    sendInvite(
+      { email, role },
+      {
+        onSuccess: () => {
+          setEmail("");
+        },
+      },
+    );
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -40,7 +71,7 @@ export default function InviteMemberModal({
       />
 
       {/* Modal Container */}
-      <div className="relative w-full max-w-[460px] bg-[#151517] border border-[#2a2a2a] rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+      <div className="relative w-full max-w-115 bg-[#151517] border border-[#2a2a2a] rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
         {/* Close Button */}
         <button
           onClick={onClose}
@@ -121,46 +152,57 @@ export default function InviteMemberModal({
             <h3 className="text-[13px] font-semibold text-[#8a8a93] mb-4">
               Pending invitations
             </h3>
-            <div className="space-y-4">
-              {/* Mock Item 1 */}
-              <div className="flex items-center justify-between group">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-full bg-[#8B5CF6]/20 text-[#8B5CF6] flex items-center justify-center text-xs font-bold border border-[#8B5CF6]/20">
-                    RK
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="text-sm font-semibold text-white">
-                      ryan.koh@acme.io
-                    </span>
-                    <span className="text-xs text-[#6a6a75]">
-                      Invited 2 days ago · Member
-                    </span>
-                  </div>
-                </div>
-                <button className="text-xs font-semibold text-[#5a5a6a] hover:text-white transition-colors">
-                  Resend
-                </button>
-              </div>
 
-              {/* Mock Item 2 */}
-              <div className="flex items-center justify-between group">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-full bg-[#F43F5E]/20 text-[#F43F5E] flex items-center justify-center text-xs font-bold border border-[#F43F5E]/20">
-                    SL
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="text-sm font-semibold text-white">
-                      sofia.lara@acme.io
-                    </span>
-                    <span className="text-xs text-[#6a6a75]">
-                      Invited 5 days ago · Admin
-                    </span>
-                  </div>
+            <div className="space-y-4 max-h-50 overflow-y-auto pr-2 custom-scrollbar">
+              {isLoading ? (
+                <div className="text-sm text-[#5a5a6a] flex items-center justify-center py-4">
+                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-[#8a8a93]/30 border-t-[#8a8a93] mr-2" />
+                  Loading...
                 </div>
-                <button className="text-xs font-semibold text-[#5a5a6a] hover:text-white transition-colors">
-                  Resend
-                </button>
-              </div>
+              ) : pendingInvites && pendingInvites.length > 0 ? (
+                pendingInvites.map((invite: PendingInvites) => (
+                  <div
+                    key={invite.id}
+                    className="flex items-center justify-between group"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-full bg-[#8B5CF6]/20 text-[#8B5CF6] flex items-center justify-center text-xs font-bold border border-[#8B5CF6]/20 shrink-0">
+                        {invite.email.substring(0, 2).toUpperCase()}
+                      </div>
+                      <div className="flex flex-col min-w-0">
+                        <span className="text-sm font-semibold text-white truncate max-w-50">
+                          {invite.email}
+                        </span>
+                        <span className="text-xs text-[#6a6a75] truncate">
+                          Invited {timeAgo(invite.createdAt)}
+                          <span> •</span>
+                          <span> {invite.role}</span>
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3 shrink-0">
+                      <button
+                        disabled={resendingInvite}
+                        onClick={() => resend(invite.email)}
+                        className="text-xs font-semibold text-[#5a5a6a] hover:text-white transition-colors"
+                      >
+                        Resend
+                      </button>
+
+                      <button
+                        onClick={() => revokeInvite(invite.email)}
+                        className="text-xs font-semibold text-[#5a5a6a] hover:text-red-400 transition-colors"
+                      >
+                        Revoke
+                      </button>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-[13px] text-[#5a5a6a] py-2">
+                  No pending invitations.
+                </div>
+              )}
             </div>
           </div>
 
@@ -172,8 +214,13 @@ export default function InviteMemberModal({
             >
               Cancel
             </button>
-            <button className="px-5 h-10 rounded-lg text-sm font-semibold text-white bg-[#A855F7] hover:bg-[#9333EA] flex items-center gap-2 transition-all shadow-[0_0_15px_rgba(168,85,247,0.3)]">
-              Send invitation <ArrowRight size={16} />
+            <button
+              onClick={handleInvite}
+              disabled={!email || isPending}
+              className="px-5 h-10 rounded-lg text-sm font-semibold text-white bg-[#A855F7] hover:bg-[#9333EA] flex items-center gap-2 transition-all shadow-[0_0_15px_rgba(168,85,247,0.3)]"
+            >
+              {isPending ? "Sending..." : "Send invitation"}
+              {!isPending && <ArrowRight size={16} />}{" "}
             </button>
           </div>
         </div>

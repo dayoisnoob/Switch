@@ -1,6 +1,6 @@
 import { api } from "@/lib/api";
 
-export type WorkspaceRole = "owner" | "admin" | "member";
+export type WorkspaceRole = "Owner" | "Admin" | "Member";
 
 export interface WorkspaceMembers {
   id: string;
@@ -8,7 +8,7 @@ export interface WorkspaceMembers {
   firstName: string;
   lastName: string;
   avatarUrl: string;
-  role: "Owner" | "Admin" | "Member";
+  role: WorkspaceRole;
   joinedAt: string;
   userId: string;
 }
@@ -34,6 +34,18 @@ export interface CreateWP {
   slug: string;
   colour: string;
 }
+export interface SendInvite {
+  email: string;
+  role: string;
+}
+
+export interface PendingInvites {
+  id: string;
+  email: string;
+  invitedBy: string;
+  role: string;
+  createdAt: string;
+}
 
 export const WorkspaceService = {
   getWorkspaces: async (): Promise<Workspace[]> => {
@@ -46,5 +58,25 @@ export const WorkspaceService = {
 
   getMembers: async (workspaceSlug: string): Promise<WorkspaceMembers[]> => {
     return api.get(`/workspaces/${workspaceSlug}/members`);
+  },
+
+  sendInvite: async (workspaceSlug: string, data: SendInvite) => {
+    return api.post(`/workspaces/${workspaceSlug}/invitations`, data);
+  },
+
+  revokeInvite: async (workspaceSlug: string, email: string) => {
+    return api.delete(`/workspaces/${workspaceSlug}/invitations/${email}`);
+  },
+
+  getPendingInvites: async (
+    workspaceSlug: string,
+  ): Promise<PendingInvites[]> => {
+    return api.get(`/workspaces/${workspaceSlug}/invitations`);
+  },
+
+  resendInvite: async (workspaceSlug: string, email: string) => {
+    return api.post(`/workspaces/${workspaceSlug}/invitations/resend`, {
+      email,
+    });
   },
 };

@@ -1,5 +1,5 @@
 import { formatDate, getConsistentColor } from "@/lib/utils";
-import { WorkspaceMembers } from "@/services/workspace.service";
+import { Workspace, WorkspaceMembers } from "@/services/workspace.service";
 import { ChevronDown, Plus, Search, Trash2 } from "lucide-react";
 import Image from "next/image";
 import React, { useState } from "react";
@@ -7,10 +7,12 @@ import InviteMemberModal from "../modals/InviteMemberModal";
 
 export const MembersTab = ({
   members,
-  workspaceName,
+  activeWorkspace,
+  canManageMembers,
 }: {
   members: WorkspaceMembers[];
-  workspaceName: string;
+  activeWorkspace: Workspace;
+  canManageMembers: boolean;
 }) => {
   const [inviteModal, setInviteModal] = useState(false);
 
@@ -33,13 +35,14 @@ export const MembersTab = ({
             Role <ChevronDown size={14} />
           </button>
         </div>
-
-        <button
-          onClick={() => setInviteModal(true)}
-          className="h-9 px-4 bg-[#7C6EF5] hover:bg-[#6b5ee6] text-white flex items-center gap-2 rounded-md font-semibold transition-all shadow-[0_0_15px_rgba(124,110,245,0.2)]"
-        >
-          <Plus size={16} /> Invite Member
-        </button>
+        {canManageMembers && (
+          <button
+            onClick={() => setInviteModal(true)}
+            className="h-9 px-4 bg-[#7C6EF5] hover:bg-[#6b5ee6] text-white flex items-center gap-2 rounded-md font-semibold transition-all shadow-[0_0_15px_rgba(124,110,245,0.2)]"
+          >
+            <Plus size={16} /> Invite Member
+          </button>
+        )}
       </div>
 
       {/* MEMBERS TABLE */}
@@ -64,11 +67,9 @@ export const MembersTab = ({
               .map((member: WorkspaceMembers, index: number) => {
                 const name =
                   member.firstName + " " + member.lastName || "Unknown User";
-                const email = member.email || member.email || "user@switch.io";
+                const email = member.email || "user@switch.io";
                 const role = member.role || "Member";
-                const joinedDate = member.joinedAt
-                  ? formatDate(member.joinedAt)
-                  : "Apr 2, 2024";
+                const joinedDate = formatDate(member.joinedAt);
 
                 return (
                   <div
@@ -114,16 +115,20 @@ export const MembersTab = ({
                     {/* 2. Joined Date */}
                     <div className="text-sm text-[#a1a1a1]">{joinedDate}</div>
 
-                    {/* 3. Role Selector */}
+                    {/* 3. Role Selector (UPDATED FOR PERMISSIONS) */}
                     <div>
                       {role === "Owner" ? (
                         <span className="inline-flex items-center px-2.5 py-1 rounded bg-[#7C6EF5]/10 text-[#7C6EF5] text-xs font-semibold">
                           Owner
                         </span>
-                      ) : (
+                      ) : canManageMembers ? (
+                        // If they are an Admin/Owner, show the interactive dropdown
                         <div className="relative inline-block w-27.5">
                           <select
-                            defaultValue={role}
+                            value={role}
+                            onChange={(e) =>
+                              console.log("Update role to:", e.target.value)
+                            }
                             className="w-full h-8 pl-3 pr-8 appearance-none bg-transparent border border-[#2a2a2a] hover:bg-[#252529] rounded text-sm text-[#a1a1a1] hover:text-white transition-colors focus:outline-none focus:border-[#7C6EF5] cursor-pointer"
                           >
                             <option
@@ -144,12 +149,17 @@ export const MembersTab = ({
                             className="absolute right-3 top-1/2 -translate-y-1/2 text-[#a1a1a1] pointer-events-none"
                           />
                         </div>
+                      ) : (
+                        // If they are a standard member, just show the text
+                        <span className="text-sm text-[#a1a1a1] pl-3">
+                          {role}
+                        </span>
                       )}
                     </div>
 
-                    {/* 4. Actions */}
+                    {/* 4. Actions (UPDATED FOR PERMISSIONS) */}
                     <div className="w-8 flex justify-end">
-                      {role !== "Owner" && (
+                      {role !== "Owner" && canManageMembers && (
                         <button className="text-[#a1a1a1] hover:text-red-400 p-1.5 rounded-md hover:bg-red-400/10 transition-colors">
                           <Trash2 size={15} />
                         </button>
@@ -169,7 +179,8 @@ export const MembersTab = ({
       <InviteMemberModal
         isOpen={inviteModal}
         onClose={() => setInviteModal(false)}
-        workspaceName={workspaceName}
+        workspaceName={activeWorkspace.name}
+        workspaceSlug={activeWorkspace.slug}
       />
     </div>
   );

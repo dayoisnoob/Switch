@@ -14,6 +14,12 @@ export const createWorkspaceSchema = z.object({
 
 export const sendInvitationSchema = z.object({
   email: z.string().email('Please enter a valid email').trim().toLowerCase(),
+  role: z.enum(['Admin', 'Member']),
+});
+
+export const resendInvitationSchema = z.object({
+  email: z.string().email('Please enter a valid email').trim().toLowerCase(),
 });
 
 export type CreateWP = z.infer<typeof createWorkspaceSchema>;
+export type SendInvite = z.infer<typeof sendInvitationSchema>;

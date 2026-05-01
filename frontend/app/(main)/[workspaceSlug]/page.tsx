@@ -41,7 +41,8 @@ export default function WorkspacePage() {
     useWorkspaceProjects(workspaceSlug);
 
   if (!activeWorkspace) return null;
-
+  const canManageMembers =
+    activeWorkspace.role === "Owner" || activeWorkspace.role === "Admin";
   const tabs = [{ id: "Projects" }, { id: "Members" }, { id: "Settings" }];
 
   if (projectsLoading || membersloading) return <div>Loading...</div>;
@@ -78,9 +79,6 @@ export default function WorkspacePage() {
         </div>
 
         <div className="flex items-center gap-3">
-          <button className="h-9 px-4 rounded-md font-semibold text-sm text-white hover:bg-[#252529] border border-transparent transition-all flex items-center gap-2">
-            <UserPlus size={16} /> Invite Member
-          </button>
           <button
             onClick={() => setIsProjectModalOpen(true)}
             className="h-9 px-4 bg-[#3b2d9e] hover:bg-[#4a3bc2] text-white flex items-center gap-2 rounded-md font-semibold transition-all shadow-[0_0_15px_rgba(124,110,245,0.2)]"
@@ -202,7 +200,11 @@ export default function WorkspacePage() {
 
       {/* ── TAB CONTENT: MEMBERS ── */}
       {activeTab === "Members" && (
-        <MembersTab members={members} workspaceName={activeWorkspace.name} />
+        <MembersTab
+          members={members}
+          activeWorkspace={activeWorkspace}
+          canManageMembers={canManageMembers}
+        />
       )}
 
       {/* ── TAB CONTENT: SETTINGS ── */}

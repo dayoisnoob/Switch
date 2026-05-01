@@ -1,5 +1,9 @@
 import { getErrorMessage } from "@/lib/utils";
-import { CreateWP, WorkspaceService } from "@/services/workspace.service";
+import {
+  CreateWP,
+  SendInvite,
+  WorkspaceService,
+} from "@/services/workspace.service";
 import { useWorkspaceStore } from "@/store/workspace.store";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
@@ -16,7 +20,6 @@ export function useCreateWorkspace() {
 
     onSuccess: (workspace) => {
       queryClient.invalidateQueries({ queryKey: ["workspaces"] });
-      console.log(workspace);
       setActiveWorkspace(workspace);
 
       router.push(`/dashboard`);
@@ -45,3 +48,72 @@ export const useGetMembers = (workspaceSlug?: string) => {
     staleTime: 1000 * 60 * 5,
   });
 };
+
+export function useSendInvite(workspaceSlug: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (data: SendInvite) =>
+      WorkspaceService.sendInvite(workspaceSlug, data),
+
+    onSuccess: () => {
+      toast.success("Invitation sent successfully!");
+      queryClient.invalidateQueries({ queryKey: ["invitations"] });
+    },
+
+    onError: (err) => {
+      const message = getErrorMessage(err);
+      toast.error(message);
+    },
+  });
+}
+
+export const useGetPendingInvites = (workspaceSlug?: string) => {
+  return useQuery({
+    queryKey: ["invitations", workspaceSlug],
+    queryFn: () => WorkspaceService.getPendingInvites(workspaceSlug!),
+    enabled: !!workspaceSlug,
+    staleTime: 1000 * 60 * 5,
+  });
+};
+
+export function useRevokeInvite(workspaceSlug: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (email: string) =>
+      WorkspaceService.revokeInvite(workspaceSlug, email),
+
+    onSuccess: () => {
+      toast.success("Invitation revoked");
+      queryClient.invalidateQueries({
+        queryKey: ["invitations", workspaceSlug],
+      });
+    },
+
+    onError: (err) => {
+      toast.error(getErrorMessage(err));
+    },
+  });
+}
+
+export function useResendInvite(workspaceSlug: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (email: string) =>
+      WorkspaceService.resendInvite(workspaceSlug, email),
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["invitations", workspaceSlug],
+      });
+      toast.success("Invitation resent successfully!");
+    },
+
+    onError: (err) => {
+      const message = getErrorMessage(err);
+      toast.error(message);
+    },
+  });
+}
