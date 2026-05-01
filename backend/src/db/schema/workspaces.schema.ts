@@ -12,9 +12,9 @@ import { usersTable } from './users.schema';
 import type { InferSelectModel } from 'drizzle-orm';
 
 export const workspaceRoleEnum = pgEnum('workspace_role', [
-  'owner',
-  'admin',
-  'member',
+  'Owner',
+  'Admin',
+  'Member',
 ]);
 
 export const workspacesTable = pgTable('workspaces', {
@@ -42,7 +42,7 @@ export const workspaceMembershipsTable = pgTable(
     userId: uuid('user_id')
       .notNull()
       .references(() => usersTable.id, { onDelete: 'cascade' }),
-    role: workspaceRoleEnum('role').notNull().default('member'),
+    role: workspaceRoleEnum('role').notNull().default('Member'),
     joinedAt: timestamp('joined_at').notNull().defaultNow(),
   },
   (t) => [
@@ -65,7 +65,7 @@ export const workspaceInvitationsTable = pgTable(
     tokenHash: text('token_hash').notNull().unique(),
     expiresAt: timestamp('expires_at').notNull(),
     acceptedAt: timestamp('accepted_at'),
-    role: workspaceRoleEnum('role').notNull().default('member'),
+    role: workspaceRoleEnum('role').notNull().default('Member'),
     createdAt: timestamp('created_at').notNull().defaultNow(),
   },
   (t) => [index('wi_workspace_id_idx').on(t.workspaceId)]

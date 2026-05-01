@@ -8,7 +8,8 @@ export interface WorkspaceMembers {
   firstName: string;
   lastName: string;
   avatarUrl: string;
-  role: string;
+  role: "Owner" | "Admin" | "Member";
+  joinedAt: string;
   userId: string;
 }
 export interface Workspace {

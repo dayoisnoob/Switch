@@ -3,9 +3,10 @@
 import CreateProjectModal, {
   PROJECT_ICON_MAP,
 } from "@/components/modals/CreateProjectModal";
+import { MembersTab } from "@/components/workspace/MembersTab";
 import { useWorkspaceProjects } from "@/hooks/useProjects";
 import { useGetMembers, useGetWorkspaces } from "@/hooks/useWorkspace";
-import { cn } from "@/lib/utils";
+import { cn, getConsistentColor } from "@/lib/utils";
 import { Project } from "@/services/projects.service";
 import {
   ChevronDown,
@@ -15,6 +16,7 @@ import {
   MoreVertical,
   Plus,
   Search,
+  Trash2,
   UserPlus,
 } from "lucide-react";
 import Image from "next/image";
@@ -33,29 +35,16 @@ export default function WorkspacePage() {
   const [activeTab, setActiveTab] = useState("Projects");
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
 
-  const { data: members } = useGetMembers(workspaceSlug);
-  const { data: projects, isLoading: projectsLoading } =
+  const { data: members = [], isLoading: membersloading } =
+    useGetMembers(workspaceSlug);
+  const { data: projects = [], isLoading: projectsLoading } =
     useWorkspaceProjects(workspaceSlug);
 
   if (!activeWorkspace) return null;
 
   const tabs = [{ id: "Projects" }, { id: "Members" }, { id: "Settings" }];
 
-  const getConsistentColor = (id: string) => {
-    const colors = [
-      "#38bdf8",
-      "#818cf8",
-      "#a855f7",
-      "#fb7185",
-      "#fbbf24",
-      "#34d399",
-    ];
-    let hash = 0;
-    for (let i = 0; i < id.length; i++) {
-      hash = id.charCodeAt(i) + ((hash << 5) - hash);
-    }
-    return colors[Math.abs(hash) % colors.length];
-  };
+  if (projectsLoading || membersloading) return <div>Loading...</div>;
 
   return (
     <div className="max-w-300 mx-auto w-full animate-in fade-in duration-500">
@@ -211,6 +200,65 @@ export default function WorkspacePage() {
         </>
       )}
 
+      {/* ── TAB CONTENT: MEMBERS ── */}
+      {activeTab === "Members" && (
+        <MembersTab members={members} workspaceName={activeWorkspace.name} />
+      )}
+
+      {/* ── TAB CONTENT: SETTINGS ── */}
+      {activeTab === "Settings" && (
+        <div className="animate-in fade-in duration-300 max-w-2xl">
+          {/* General Settings Card */}
+          <div className="bg-[#1C1C1E] border border-[#2a2a2a] rounded-xl p-6 mb-6 shadow-sm">
+            <h2 className="text-base font-bold text-white mb-5">General</h2>
+
+            <div className="space-y-5">
+              <div>
+                <label className="block text-xs font-medium text-[#a1a1a1] mb-2">
+                  Workspace Name
+                </label>
+                <input
+                  type="text"
+                  defaultValue={activeWorkspace.name}
+                  className="w-full h-10 bg-[#151517] border border-[#2a2a2a] rounded-md px-3 text-sm text-white focus:outline-none focus:border-[#7C6EF5] transition-colors"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-[#a1a1a1] mb-2">
+                  Slug
+                </label>
+                {/* Notice the default purple border here to match the active state in your screenshot */}
+                <input
+                  type="text"
+                  defaultValue={activeWorkspace.slug}
+                  className="w-full h-10 bg-[#151517] border border-[#7C6EF5] rounded-md px-3 text-sm text-white focus:outline-none transition-colors shadow-[0_0_0_1px_rgba(124,110,245,0.2)]"
+                />
+              </div>
+
+              <button className="h-9 px-4 mt-2 bg-[#7C6EF5] hover:bg-[#6b5ee6] text-white rounded-md text-sm font-semibold transition-all shadow-sm">
+                Save Changes
+              </button>
+            </div>
+          </div>
+
+          {/* Danger Zone Card */}
+          <div className="bg-[#1C1C1E] border border-red-900/50 rounded-xl p-6 shadow-sm">
+            <h2 className="text-base font-bold text-red-500 mb-2">
+              Danger Zone
+            </h2>
+            <p className="text-sm text-[#a1a1a1] mb-5">
+              Deleting your workspace is permanent. All projects, boards, and
+              cards will be lost.
+            </p>
+
+            <button className="h-9 px-4 bg-transparent border border-red-900/60 text-red-500 hover:bg-red-500/10 hover:border-red-500/50 rounded-md text-sm font-semibold transition-all">
+              Delete Workspace
+            </button>
+          </div>
+        </div>
+      )}
+
       <CreateProjectModal
         isOpen={isProjectModalOpen}
         onClose={() => setIsProjectModalOpen(false)}
@@ -308,33 +356,34 @@ function ProjectCard({ project, activeWorkspaceSlug, colorHash }: ProjectCard) {
         {/* Mock Overlapping Avatars */}
         <div className="flex items-center">
           <div className="flex -space-x-1.5">
-            {project.assignees.slice(0, 3).map((a, i) =>
-              a.avatarUrl ? (
-                <div
-                  key={i}
-                  className="w-6 h-6 rounded-full border-2 border-[#1C1C1E] bg-emerald-500 flex items-center justify-center text-[9px] font-bold text-white z-10 overflow-hidden relative shrink-0"
-                >
-                  <Image
-                    src={a.avatarUrl}
-                    alt={a.firstName || "User avatar"}
-                    width={24}
-                    height={24}
-                    className="object-cover w-full h-full"
-                    unoptimized
-                    referrerPolicy="no-referrer"
-                  />
-                </div>
-              ) : (
-                <div
-                  key={i}
-                  className="w-6 h-6 rounded-full border-2 border-[#1C1C1E] bg-emerald-500 flex items-center justify-center text-[9px] font-bold text-white z-10 shrink-0"
-                >
-                  {a.firstName ? a.firstName.charAt(0).toUpperCase() : "U"}
-                </div>
-              ),
-            )}
+            {project.assignees &&
+              project.assignees.slice(0, 3).map((a, i) =>
+                a.avatarUrl ? (
+                  <div
+                    key={i}
+                    className="w-6 h-6 rounded-full border-2 border-[#1C1C1E] bg-emerald-500 flex items-center justify-center text-[9px] font-bold text-white z-10 overflow-hidden relative shrink-0"
+                  >
+                    <Image
+                      src={a.avatarUrl}
+                      alt={a.firstName || "User avatar"}
+                      width={24}
+                      height={24}
+                      className="object-cover w-full h-full"
+                      unoptimized
+                      referrerPolicy="no-referrer"
+                    />
+                  </div>
+                ) : (
+                  <div
+                    key={i}
+                    className="w-6 h-6 rounded-full border-2 border-[#1C1C1E] bg-emerald-500 flex items-center justify-center text-[9px] font-bold text-white z-10 shrink-0"
+                  >
+                    {a.firstName ? a.firstName.charAt(0).toUpperCase() : "U"}
+                  </div>
+                ),
+              )}
 
-            {project.assignees.length > 3 && (
+            {project.assignees && project.assignees.length > 3 && (
               <div className="w-6 h-6 rounded-full border-2 border-[#1C1C1E] bg-[#2a2a2a] flex items-center justify-center text-[9px] font-bold text-white z-0 shrink-0">
                 +{project.assignees.length - 3}
               </div>

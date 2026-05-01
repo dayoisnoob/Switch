@@ -49,7 +49,7 @@ export class WorkspaceService {
         .values({
           workspaceId: workspace?.id,
           userId,
-          role: 'owner',
+          role: 'Owner',
         })
         .returning();
 
@@ -204,6 +204,7 @@ export class WorkspaceService {
         lastName: usersTable.lastName,
         avatarUrl: usersTable.avatarUrl,
         role: workspaceMembershipsTable.role,
+        joinedAt: workspaceMembershipsTable.joinedAt,
         userId: workspaceMembershipsTable.userId,
       })
       .from(workspaceMembershipsTable)
@@ -231,7 +232,7 @@ export class WorkspaceService {
       throw new ApiError(404, 'This member does not exist in this workspace.');
     }
 
-    if (member.role === 'owner') {
+    if (member.role === 'Owner') {
       throw new ApiError(403, 'You cannot remove the owner of this workspace.');
     }
 

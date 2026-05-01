@@ -25,7 +25,7 @@ router.post(
   validateUrlParams(paramsSchema),
   validateInput(createColumnSchema),
   requireWorkspaceMember,
-  requireWorkspaceRole(['owner', 'admin']),
+  requireWorkspaceRole(['Owner', 'Admin']),
   asyncHandler(ColumnsController.createColumn)
 );
 
@@ -35,7 +35,7 @@ router.patch(
   validateUrlParams(paramsSchema),
   validateInput(createColumnSchema),
   requireWorkspaceMember,
-  requireWorkspaceRole(['owner', 'admin']),
+  requireWorkspaceRole(['Owner', 'Admin']),
   asyncHandler(ColumnsController.updateColumnName)
 );
 
@@ -45,7 +45,7 @@ router.patch(
   validateUrlParams(paramsSchema),
   validateInput(columnOrderSchema),
   requireWorkspaceMember,
-  requireWorkspaceRole(['owner', 'admin']),
+  requireWorkspaceRole(['Owner', 'Admin']),
   asyncHandler(ColumnsController.updateColumnOrder)
 );
 
@@ -54,7 +54,7 @@ router.delete(
   authenticate,
   validateUrlParams(paramsSchema),
   requireWorkspaceMember,
-  requireWorkspaceRole(['owner', 'admin']),
+  requireWorkspaceRole(['Owner', 'Admin']),
   asyncHandler(ColumnsController.deleteColumn)
 );
 

@@ -134,3 +134,25 @@ export const getInitials = (text: string) => {
   }
   return text.substring(0, 2).toUpperCase();
 };
+
+export const getConsistentColor = (id: string) => {
+  const colors = [
+    "#38bdf8",
+    "#818cf8",
+    "#a855f7",
+    "#fb7185",
+    "#fbbf24",
+    "#34d399",
+  ];
+  let hash = 0;
+  for (let i = 0; i < id.length; i++) {
+    hash = id.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return colors[Math.abs(hash) % colors.length];
+};
+
+// export const formatDate = (date: string) => {new Intl.DateTimeFormat("en-US", {
+//   month: "short",
+//   day: "numeric",
+//   year: "numeric",
+// }).format(new Date(member.joinedAt));};

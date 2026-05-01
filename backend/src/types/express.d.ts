@@ -1,4 +1,5 @@
 import type { Request } from 'express';
+import type { WorkspaceRoles } from './auth.types';
 
 declare global {
   namespace Express {
@@ -6,7 +7,7 @@ declare global {
       workspace?: {
         workspaceId: string;
         workspaceName: string;
-        role: 'owner' | 'admin' | 'member';
+        role: WorkspaceRoles;
       };
 
       resolvedProject?: { id: string; workspaceId: string; name: string };

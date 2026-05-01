@@ -23,4 +23,4 @@ export interface UserType {
   role: 'user' | 'admin';
 }
 
-export type WorkspaceRoles = 'member' | 'admin' | 'owner';
+export type WorkspaceRoles = 'Member' | 'Admin' | 'Owner';

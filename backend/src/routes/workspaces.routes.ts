@@ -45,7 +45,7 @@ router.patch(
   authenticate,
   validateUrlParams(paramsSchema),
   requireWorkspaceMember,
-  requireWorkspaceRole(['admin', 'owner']),
+  requireWorkspaceRole(['Owner', 'Admin']),
   asyncHandler(WorkspaceController.updateWorkspace)
 );
 
@@ -54,7 +54,7 @@ router.delete(
   authenticate,
   validateUrlParams(paramsSchema),
   requireWorkspaceMember,
-  requireWorkspaceRole(['owner']),
+  requireWorkspaceRole(['Owner']),
   asyncHandler(WorkspaceController.deleteWorkspace)
 );
 
@@ -72,7 +72,7 @@ router.delete(
   authenticate,
   validateUrlParams(paramsSchema),
   requireWorkspaceMember,
-  requireWorkspaceRole(['owner', 'admin']),
+  requireWorkspaceRole(['Owner', 'Admin']),
   asyncHandler(WorkspaceController.removeMember)
 );
 
@@ -83,7 +83,7 @@ router.post(
   validateUrlParams(paramsSchema),
   validateInput(sendInvitationSchema),
   requireWorkspaceMember,
-  requireWorkspaceRole(['owner', 'admin']),
+  requireWorkspaceRole(['Owner', 'Admin']),
   asyncHandler(WorkspaceController.sendInvitation)
 );
 

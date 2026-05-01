@@ -25,7 +25,7 @@ router.post(
   validateUrlParams(paramsSchema),
   validateInput(createLabelSchema),
   requireWorkspaceMember,
-  requireWorkspaceRole(['owner', 'admin']),
+  requireWorkspaceRole(['Owner', 'Admin']),
   asyncHandler(LabelController.createLabel)
 );
 
@@ -43,7 +43,7 @@ router.patch(
   validateUrlParams(paramsSchema),
   validateInput(updateLabelSchema),
   requireWorkspaceMember,
-  requireWorkspaceRole(['owner', 'admin']),
+  requireWorkspaceRole(['Owner', 'Admin']),
   asyncHandler(LabelController.updateLabel)
 );
 
@@ -52,7 +52,7 @@ router.delete(
   authenticate,
   validateUrlParams(paramsSchema),
   requireWorkspaceMember,
-  requireWorkspaceRole(['owner', 'admin']),
+  requireWorkspaceRole(['Owner', 'Admin']),
   asyncHandler(LabelController.deleteLabel)
 );
 

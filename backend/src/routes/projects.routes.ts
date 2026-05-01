@@ -53,7 +53,7 @@ router.patch(
   validateUrlParams(paramsSchema),
   validateInput(projectInputSchema),
   requireWorkspaceMember,
-  requireWorkspaceRole(['owner', 'admin']),
+  requireWorkspaceRole(['Owner', 'Admin']),
   asyncHandler(ProjectController.updateProject)
 );
 
@@ -62,7 +62,7 @@ router.delete(
   authenticate,
   validateUrlParams(paramsSchema),
   requireWorkspaceMember,
-  requireWorkspaceRole(['owner']),
+  requireWorkspaceRole(['Owner']),
   asyncHandler(ProjectController.deleteProject)
 );
 

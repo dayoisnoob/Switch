@@ -36,6 +36,8 @@ export default function DashboardPage() {
     isFetched,
   } = useGetWorkspaces();
 
+  console.log(workspaces);
+
   useEffect(() => {
     if (isFetched && workspaces.length === 0) {
       router.replace("/");
