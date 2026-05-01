@@ -9,6 +9,12 @@ export interface Project {
   icon: string;
   description: string;
   createdBy: string;
+  cardsCount: number;
+  finishedCards: number;
+  assignees: {
+    firstName: string;
+    avatarUrl: string | null;
+  }[];
 }
 export interface ProjectCount {
   count: number;
@@ -31,8 +37,8 @@ export const ProjectService = {
     });
   },
 
-  getWorkspaceProjects: async (workspaceId: string): Promise<Project[]> => {
-    return api.get(`/workspaces/${workspaceId}/projects`);
+  getWorkspaceProjects: async (workspaceSlug: string): Promise<Project[]> => {
+    return api.get(`/workspaces/${workspaceSlug}/projects`);
   },
 
   getProjectBySlug: async (projectSlug: string): Promise<Project> => {

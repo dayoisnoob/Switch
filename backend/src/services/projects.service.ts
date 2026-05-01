@@ -1,10 +1,14 @@
-import { and, count, desc, eq } from 'drizzle-orm';
+import { and, count, countDistinct, desc, eq, sql } from 'drizzle-orm';
 import { db } from '../config/db';
 import {
   boardsTable,
+  cardAssigneesTable,
+  cardsTable,
   columnsTable,
   projectsTable,
+  usersTable,
   workspaceMembershipsTable,
+  workspacesTable,
 } from '../db';
 import { ApiError } from '../utils/api-response';
 import { slugGen } from '../utils/helpers';
@@ -85,6 +89,39 @@ export class ProjectService {
   }
 
   static async getWorkspaceProjects(workspaceId: string) {
+    const cardsCount = db
+      .select({
+        projectId: boardsTable.projectId,
+        totalCards: count(cardsTable.id).as('total-cards'),
+        doneCards:
+          sql<number>`count(${cardsTable.id}) filter (where ${cardsTable.status} = 'DONE')`
+            .mapWith(Number)
+            .as('done_cards'),
+      })
+      .from(cardsTable)
+      .innerJoin(boardsTable, eq(cardsTable.boardId, boardsTable.id))
+      .groupBy(boardsTable.projectId)
+      .as('cards-count');
+
+    const projectAssignees = db
+      .select({
+        projectId: boardsTable.projectId,
+        members: sql<{ name: string; avatarUrl: string | null }[]>`
+        json_agg(
+          distinct jsonb_build_object(
+            'firstName', ${usersTable.firstName},
+            'avatarUrl', ${usersTable.avatarUrl}
+          )
+        )
+      `.as('assignees_array'),
+      })
+      .from(cardAssigneesTable)
+      .innerJoin(usersTable, eq(cardAssigneesTable.userId, usersTable.id))
+      .innerJoin(cardsTable, eq(cardAssigneesTable.cardId, cardsTable.id))
+      .innerJoin(boardsTable, eq(cardsTable.boardId, boardsTable.id))
+      .groupBy(boardsTable.projectId)
+      .as('project_assignees_sq');
+
     const projects = await db
       .select({
         id: projectsTable.id,
@@ -95,8 +132,16 @@ export class ProjectService {
         icon: projectsTable.icon,
         description: projectsTable.description,
         createdBy: projectsTable.createdBy,
+        cardsCount: cardsCount.totalCards,
+        finishedCards: cardsCount.doneCards,
+        assignees: projectAssignees.members,
       })
       .from(projectsTable)
+      .leftJoin(cardsCount, eq(projectsTable.id, cardsCount.projectId))
+      .leftJoin(
+        projectAssignees,
+        eq(projectsTable.id, projectAssignees.projectId)
+      )
       .orderBy(desc(projectsTable.createdAt))
       .where(eq(projectsTable.workspaceId, workspaceId));
 

@@ -24,11 +24,11 @@ export function useCreateProject() {
   });
 }
 
-export function useGetWorkspaceProjects(workspaceId?: string) {
+export function useWorkspaceProjects(workspaceSlug?: string) {
   return useQuery({
-    queryKey: ["projects", workspaceId],
-    queryFn: () => ProjectService.getWorkspaceProjects(workspaceId!),
-    enabled: !!workspaceId,
+    queryKey: ["projects", workspaceSlug],
+    queryFn: () => ProjectService.getWorkspaceProjects(workspaceSlug!),
+    enabled: !!workspaceSlug,
     staleTime: 1000 * 60 * 5,
   });
 }

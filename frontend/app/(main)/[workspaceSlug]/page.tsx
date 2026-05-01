@@ -4,8 +4,8 @@ import CreateProjectModal, {
   PROJECT_ICON_MAP,
   PROJECT_ICONS,
 } from "@/components/modals/CreateProjectModal";
-import { useGetWorkspaceProjects } from "@/hooks/useProjects";
-import { useGetMembers } from "@/hooks/useWorkspace";
+import { useWorkspaceProjects } from "@/hooks/useProjects";
+import { useGetMembers, useGetWorkspaces } from "@/hooks/useWorkspace";
 import { cn } from "@/lib/utils";
 import { Project } from "@/services/projects.service";
 import { useWorkspaceStore } from "@/store/workspace.store";
@@ -19,6 +19,7 @@ import {
   MoreVertical,
   UserPlus,
 } from "lucide-react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -30,8 +31,10 @@ export default function WorkspacePage() {
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
 
   const { data: members } = useGetMembers(activeWorkspace?.slug);
-  const { data: projects, isLoading: projectsLoading } =
-    useGetWorkspaceProjects(activeWorkspace?.slug);
+  const { data: wp } = useGetWorkspaces();
+  const { data: projects, isLoading: projectsLoading } = useWorkspaceProjects(
+    activeWorkspace?.slug,
+  );
 
   if (!activeWorkspace) return null;
 
@@ -223,14 +226,11 @@ interface ProjectCard {
 
 function ProjectCard({ project, activeWorkspaceSlug, colorHash }: ProjectCard) {
   const router = useRouter();
-  // Fake data fallbacks to make the UI look premium until your backend catches up
-  const status = project.status || "Active"; // "Active", "Paused", "Planning"
+  const status = project.status;
+  const totalCards = project.cardsCount || 0;
+  const cardsDone = project.finishedCards || 0;
   const progressPercent =
-    project.progress || Math.floor(Math.random() * 60) + 10;
-  const cardsDone =
-    project.completedCards || Math.floor((progressPercent / 100) * 25);
-  const totalCards = project.totalCards || 25;
-  const priority = project.priority || "Medium";
+    totalCards > 0 ? Math.round((cardsDone / totalCards) * 100) : 0;
 
   const Icon = PROJECT_ICON_MAP[project.icon] || "Palette";
 
@@ -244,21 +244,6 @@ function ProjectCard({ project, activeWorkspaceSlug, colorHash }: ProjectCard) {
         return "bg-blue-500/10 text-blue-400";
       default:
         return "bg-[#2a2a2a] text-[#a1a1a1]";
-    }
-  };
-
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case "Urgent":
-        return "bg-rose-500";
-      case "High":
-        return "bg-blue-500";
-      case "Medium":
-        return "bg-amber-500";
-      case "Low":
-        return "bg-[#a1a1a1]";
-      default:
-        return "bg-[#a1a1a1]";
     }
   };
 
@@ -315,31 +300,44 @@ function ProjectCard({ project, activeWorkspaceSlug, colorHash }: ProjectCard) {
       <div className="flex items-center justify-between mt-5 pt-4 border-t border-[#2a2a2a]">
         <div className="flex items-center gap-3 text-xs font-medium text-[#a1a1a1]">
           <span className="flex items-center gap-1.5">
-            <LayoutGrid size={14} /> {totalCards}
-          </span>
-          <span className="flex items-center gap-1.5">
-            <div
-              className={cn(
-                "w-1.5 h-1.5 rounded-full",
-                getPriorityColor(priority),
-              )}
-            />
-            {priority}
+            <LayoutGrid size={14} /> {totalCards} cards
           </span>
         </div>
 
         {/* Mock Overlapping Avatars */}
         <div className="flex items-center">
           <div className="flex -space-x-1.5">
-            <div className="w-6 h-6 rounded-full border-2 border-[#1C1C1E] bg-blue-500 flex items-center justify-center text-[9px] font-bold text-white z-20">
-              J
-            </div>
-            <div className="w-6 h-6 rounded-full border-2 border-[#1C1C1E] bg-emerald-500 flex items-center justify-center text-[9px] font-bold text-white z-10">
-              A
-            </div>
-            <div className="w-6 h-6 rounded-full border-2 border-[#1C1C1E] bg-[#2a2a2a] flex items-center justify-center text-[9px] font-bold text-white z-0">
-              +2
-            </div>
+            {project.assignees.slice(0, 3).map((a, i) =>
+              a.avatarUrl ? (
+                <div
+                  key={i}
+                  className="w-6 h-6 rounded-full border-2 border-[#1C1C1E] bg-emerald-500 flex items-center justify-center text-[9px] font-bold text-white z-10 overflow-hidden relative shrink-0"
+                >
+                  <Image
+                    src={a.avatarUrl}
+                    alt={a.firstName || "User avatar"}
+                    width={24}
+                    height={24}
+                    className="object-cover w-full h-full"
+                    unoptimized
+                    referrerPolicy="no-referrer"
+                  />
+                </div>
+              ) : (
+                <div
+                  key={i}
+                  className="w-6 h-6 rounded-full border-2 border-[#1C1C1E] bg-emerald-500 flex items-center justify-center text-[9px] font-bold text-white z-10 shrink-0"
+                >
+                  {a.firstName ? a.firstName.charAt(0).toUpperCase() : "U"}
+                </div>
+              ),
+            )}
+
+            {project.assignees.length > 3 && (
+              <div className="w-6 h-6 rounded-full border-2 border-[#1C1C1E] bg-[#2a2a2a] flex items-center justify-center text-[9px] font-bold text-white z-0 shrink-0">
+                +{project.assignees.length - 3}
+              </div>
+            )}
           </div>
         </div>
       </div>

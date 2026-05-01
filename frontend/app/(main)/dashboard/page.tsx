@@ -18,10 +18,13 @@ import {
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { ReactNode, useEffect, useState } from "react";
+import { Workspace } from "@/services/workspace.service";
+import { useWorkspaceStore } from "@/store/workspace.store";
 
 export default function DashboardPage() {
   const router = useRouter();
   const [isAddWorkspaceOpen, setIsAddWorkspaceOpen] = useState(false);
+  const setActiveWorkspace = useWorkspaceStore((s) => s.setActiveWorkspace);
 
   const { data: user } = useMe();
   const { data: cards } = useOpenCards();
@@ -38,6 +41,11 @@ export default function DashboardPage() {
       router.replace("/");
     }
   }, [isFetched, router, workspaces]);
+
+  const handleRedirectWorkspace = (ws: Workspace) => {
+    setActiveWorkspace(ws);
+    router.push(`/${ws.slug}`);
+  };
 
   // Helper to generate consistent colors for avatars based on name
   // const getAvatarColor = (name: string) => {
@@ -148,7 +156,7 @@ export default function DashboardPage() {
             {workspaces.map((ws) => (
               <div
                 key={ws.id}
-                onClick={() => router.push(`/${ws.slug}`)}
+                onClick={() => handleRedirectWorkspace(ws)}
                 className="bg-[#1c1728] border border-[#262626] cursor-pointer rounded-xl p-5 hover:border-[#3f3f46] transition-all group flex flex-col h-50"
               >
                 <div className="flex items-start justify-between mb-4">

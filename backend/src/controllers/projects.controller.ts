@@ -6,7 +6,6 @@ import { ApiResponse } from '../utils/api-response';
 export class ProjectController {
   static async createProject(req: AuthenticatedRequest, res: Response) {
     const userId = req.user.id;
-
     const project = await ProjectService.createProject(userId, req.body);
 
     res

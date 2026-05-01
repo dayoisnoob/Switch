@@ -2,7 +2,7 @@
 
 import CreateWorkspaceModal from "@/components/modals/AddWorkspaceModal";
 import { useLogout, useMe } from "@/hooks/useAuth";
-import { useGetWorkspaceProjects } from "@/hooks/useProjects";
+import { useWorkspaceProjects } from "@/hooks/useProjects";
 import { useGetMembers, useGetWorkspaces } from "@/hooks/useWorkspace";
 import { cn } from "@/lib/utils";
 import { useWorkspaceStore } from "@/store/workspace.store";
@@ -20,12 +20,14 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { useParams, usePathname, useRouter } from "next/navigation";
 import { ReactNode, useEffect, useState } from "react";
 
 export default function MainLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
+  const params = useParams();
+  const workspaceIdentifier = params?.workspaceSlug;
 
   const [isFirstWorkspaceOpen, setIsFirstWorkspaceOpen] = useState(false);
   const [isAddWorkspaceOpen, setIsAddWorkspaceOpen] = useState(false);
@@ -40,13 +42,24 @@ export default function MainLayout({ children }: { children: ReactNode }) {
   const { data: workspaces = [], isLoading: workspacesLoading } =
     useGetWorkspaces();
   const { data: projects = [], isLoading: projectsLoading } =
-    useGetWorkspaceProjects(activeWorkspace?.slug);
+    useWorkspaceProjects(activeWorkspace?.slug);
 
   useEffect(() => {
     if (workspaces.length > 0 && !activeWorkspace) {
+      if (workspaceIdentifier) {
+        const matchedWorkspace = workspaces.find(
+          (w) => w.slug === workspaceIdentifier,
+        );
+
+        if (matchedWorkspace) {
+          setActiveWorkspace(matchedWorkspace);
+          return;
+        }
+      }
+
       setActiveWorkspace(workspaces[0]);
     }
-  }, [workspaces, activeWorkspace, setActiveWorkspace]);
+  }, [workspaces, activeWorkspace, setActiveWorkspace, workspaceIdentifier]);
 
   const { data: members = [], isLoading: membersLoading } = useGetMembers(
     activeWorkspace?.slug,
