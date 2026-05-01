@@ -3,8 +3,8 @@ import { Workspace, WorkspaceMembers } from "@/services/workspace.service";
 import { ChevronDown, Plus, Search, Trash2 } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
-import InviteMemberModal from "../modals/InviteMemberModal";
 import RemoveMemberModal from "../modals/RemoveMemberModal";
+import InviteMemberModal from "../modals/InviteMemberModal";
 
 export const MembersTab = ({
   members,
@@ -15,14 +15,14 @@ export const MembersTab = ({
   activeWorkspace: Workspace;
   canManageMembers: boolean;
 }) => {
-  const [inviteModal, setInviteModal] = useState(false);
-  const [memberToRemove, setMemberToRemove] = useState<WorkspaceMembers | null>(
-    null,
-  );
-
   // 1. Add state for search and filtering
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState("All");
+
+  const [memberToRemove, setMemberToRemove] = useState<WorkspaceMembers | null>(
+    null,
+  );
+  const [inviteModal, setInviteModal] = useState(false);
 
   // 2. Derive the filtered array before rendering
   const filteredMembers = members?.filter((member) => {

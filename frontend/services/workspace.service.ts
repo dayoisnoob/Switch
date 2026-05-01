@@ -47,6 +47,11 @@ export interface PendingInvites {
   createdAt: string;
 }
 
+export interface UpdateWp {
+  name?: string;
+  slug?: string;
+}
+
 export const WorkspaceService = {
   getWorkspaces: async (): Promise<Workspace[]> => {
     return api.get("/workspaces");
@@ -82,5 +87,16 @@ export const WorkspaceService = {
     return api.post(`/workspaces/${workspaceSlug}/invitations/resend`, {
       email,
     });
+  },
+
+  updateWorkspace: async (
+    workspaceSlug: string,
+    data: UpdateWp,
+  ): Promise<{ name: string; slug: string }> => {
+    return api.patch(`/workspaces/${workspaceSlug}`, data);
+  },
+
+  deleteWorkspace: async (workspaceSlug: string) => {
+    return api.delete(`/workspaces/${workspaceSlug}`);
   },
 };

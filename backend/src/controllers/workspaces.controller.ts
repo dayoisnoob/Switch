@@ -35,8 +35,8 @@ export class WorkspaceController {
     const workspaceId = req.workspace?.workspaceId!;
 
     const updatedWorkspace = await WorkspaceService.updateWorkspace(
-      req.body.name,
-      workspaceId
+      workspaceId,
+      req.body
     );
 
     res.json(

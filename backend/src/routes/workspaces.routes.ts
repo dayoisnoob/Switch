@@ -16,6 +16,7 @@ import {
   createWorkspaceSchema,
   resendInvitationSchema,
   sendInvitationSchema,
+  updateWorkspaceSchema,
 } from '../validations/workspaces.validation';
 
 const router = Router();
@@ -45,6 +46,7 @@ router.patch(
   '/:workspaceSlug',
   authenticate,
   validateUrlParams(paramsSchema),
+  validateInput(updateWorkspaceSchema),
   requireWorkspaceMember,
   requireWorkspaceRole(['Owner', 'Admin']),
   asyncHandler(WorkspaceController.updateWorkspace)

@@ -21,5 +21,17 @@ export const resendInvitationSchema = z.object({
   email: z.string().email('Please enter a valid email').trim().toLowerCase(),
 });
 
+export const updateWorkspaceSchema = z.object({
+  name: z
+    .string()
+    .min(1, 'Workspace needs to have a name')
+    .max(100)
+    .trim()
+    .transform(capitalize)
+    .optional(),
+  slug: z.string().trim().toLowerCase().optional(),
+});
+
 export type CreateWP = z.infer<typeof createWorkspaceSchema>;
 export type SendInvite = z.infer<typeof sendInvitationSchema>;
+export type UpdateWP = z.infer<typeof updateWorkspaceSchema>;

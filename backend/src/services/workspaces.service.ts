@@ -14,12 +14,11 @@ import { tempTokens } from '../utils/tokens.util';
 import type {
   CreateWP,
   SendInvite,
+  UpdateWP,
 } from '../validations/workspaces.validation';
 
 export class WorkspaceService {
-  static async createWorkspace(userId: string, data: CreateWP) {
-    const { name, slug, colour } = data;
-
+  private static async checkExistingSlug(slug: string) {
     const [existingSlug] = await db
       .select({ slug: workspacesTable.slug })
       .from(workspacesTable)
@@ -31,6 +30,12 @@ export class WorkspaceService {
         409,
         'This URL slug is already taken. Please use a different slug'
       );
+  }
+
+  static async createWorkspace(userId: string, data: CreateWP) {
+    const { name, slug, colour } = data;
+
+    await WorkspaceService.checkExistingSlug(slug);
 
     const { workspace, membership } = await db.transaction(async (tx) => {
       const [workspace] = await tx
@@ -164,10 +169,12 @@ export class WorkspaceService {
     return workspaces;
   }
 
-  static async updateWorkspace(name: string, workspaceId: string) {
+  static async updateWorkspace(workspaceId: string, data: UpdateWP) {
+    if (data.slug) await WorkspaceService.checkExistingSlug(data.slug);
+
     const [updatedWorkspace] = await db
       .update(workspacesTable)
-      .set({ name })
+      .set({ name: data.name, slug: data.slug })
       .where(eq(workspacesTable.id, workspaceId))
       .returning();
 
@@ -175,7 +182,10 @@ export class WorkspaceService {
       throw new ApiError(500, 'Error updating workspace. Please try again');
     }
 
-    return updatedWorkspace;
+    return {
+      name: updatedWorkspace.name,
+      slug: updatedWorkspace.slug,
+    };
   }
 
   static async deleteWorkspace(userId: string, workspaceId: string) {

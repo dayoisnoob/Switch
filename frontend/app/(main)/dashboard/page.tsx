@@ -173,9 +173,9 @@ export default function DashboardPage() {
                   <span
                     className={cn(
                       "px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest",
-                      ws.role === "owner"
+                      ws.role === "Owner"
                         ? "bg-[#7C6EF5]/10 text-[#7C6EF5]"
-                        : ws.role === "admin"
+                        : ws.role === "Admin"
                           ? "bg-[#192d33] text-[#039752]"
                           : "bg-[#2a2a2a] text-[#a1a1a1]",
                     )}

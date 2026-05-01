@@ -2,6 +2,7 @@ import { getErrorMessage } from "@/lib/utils";
 import {
   CreateWP,
   SendInvite,
+  UpdateWp,
   WorkspaceService,
 } from "@/services/workspace.service";
 import { useWorkspaceStore } from "@/store/workspace.store";
@@ -39,6 +40,31 @@ export const useGetWorkspaces = () => {
     staleTime: 1000 * 60 * 5,
   });
 };
+
+export function useUpdateWorkspace(workspaceSlug: string) {
+  const router = useRouter();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (data: UpdateWp) =>
+      WorkspaceService.updateWorkspace(workspaceSlug, data),
+
+    onSuccess: (updatedWorkspace) => {
+      toast.success("Workspace Updated");
+      queryClient.invalidateQueries({
+        queryKey: ["workspaces"],
+      });
+
+      if (updatedWorkspace?.slug && updatedWorkspace.slug !== workspaceSlug) {
+        router.push(`/${updatedWorkspace.slug}?tab=settings`);
+      }
+    },
+
+    onError: (err) => {
+      toast.error(getErrorMessage(err));
+    },
+  });
+}
 
 export const useGetMembers = (workspaceSlug?: string) => {
   return useQuery({
@@ -129,6 +155,25 @@ export function useRemoveMember(workspaceSlug: string) {
       toast.success("User removed");
       queryClient.invalidateQueries({
         queryKey: ["members", workspaceSlug],
+      });
+    },
+
+    onError: (err) => {
+      toast.error(getErrorMessage(err));
+    },
+  });
+}
+
+export function useDeleteWorkspace(workspaceSlug: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async () => WorkspaceService.deleteWorkspace(workspaceSlug),
+
+    onSuccess: () => {
+      toast.success("Workspace deleted");
+      queryClient.invalidateQueries({
+        queryKey: ["workspaces"],
       });
     },
 
