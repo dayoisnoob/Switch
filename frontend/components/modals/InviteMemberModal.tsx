@@ -63,15 +63,12 @@ export default function InviteMemberModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-0">
-      {/* Backdrop */}
-      <div
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
-        onClick={onClose}
-      />
-
+    <div
+      onClick={onClose}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-[#000000]/80 backdrop-blur-sm px-4 animate-in fade-in duration-200"
+    >
       {/* Modal Container */}
-      <div className="relative w-full max-w-115 bg-[#151517] border border-[#2a2a2a] rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+      <div className="relative flex w-112.5 max-w-lg flex-col rounded-xl border border-md bg-surface shadow-soft animate-in zoom-in-95 duration-200">
         {/* Close Button */}
         <button
           onClick={onClose}
@@ -134,7 +131,7 @@ export default function InviteMemberModal({
           </div>
 
           {/* Info Callout */}
-          <div className="bg-[#2a1a3a]/40 border border-[#4a2a6a]/60 rounded-xl p-3.5 flex gap-3 items-start">
+          <div className="bg-[#7c6ef5]/10 border border-[#7c6ef5]/20 rounded-xl p-3.5 flex gap-3 items-start">
             <Info size={16} className="text-[#a855f7] shrink-0 mt-0.5" />
             <p className="text-[13px] text-[#a1a1aa] leading-relaxed">
               <span className="text-white font-semibold">Members</span> can view

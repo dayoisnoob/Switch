@@ -60,6 +60,10 @@ export const WorkspaceService = {
     return api.get(`/workspaces/${workspaceSlug}/members`);
   },
 
+  removeMember: async (workspaceSlug: string, userId: string) => {
+    return api.delete(`/workspaces/${workspaceSlug}/members/${userId}`);
+  },
+
   sendInvite: async (workspaceSlug: string, data: SendInvite) => {
     return api.post(`/workspaces/${workspaceSlug}/invitations`, data);
   },

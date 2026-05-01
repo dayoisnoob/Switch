@@ -117,3 +117,23 @@ export function useResendInvite(workspaceSlug: string) {
     },
   });
 }
+
+export function useRemoveMember(workspaceSlug: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (userId: string) =>
+      WorkspaceService.removeMember(workspaceSlug, userId),
+
+    onSuccess: () => {
+      toast.success("User removed");
+      queryClient.invalidateQueries({
+        queryKey: ["members", workspaceSlug],
+      });
+    },
+
+    onError: (err) => {
+      toast.error(getErrorMessage(err));
+    },
+  });
+}

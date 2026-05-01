@@ -117,7 +117,7 @@ export default function CreateProjectModal({
     >
       {/* Modal Container */}
       <div
-        className="relative flex w-full max-w-lg flex-col rounded-xl border border-md bg-surface shadow-soft animate-in zoom-in-95 duration-200"
+        className="relative flex w-112.5 max-w-lg flex-col rounded-xl border border-md bg-surface shadow-soft animate-in zoom-in-95 duration-200"
         onClick={(e) => e.stopPropagation()}
       >
         <button

@@ -2,8 +2,9 @@ import { formatDate, getConsistentColor } from "@/lib/utils";
 import { Workspace, WorkspaceMembers } from "@/services/workspace.service";
 import { ChevronDown, Plus, Search, Trash2 } from "lucide-react";
 import Image from "next/image";
-import React, { useState } from "react";
+import { useState } from "react";
 import InviteMemberModal from "../modals/InviteMemberModal";
+import RemoveMemberModal from "../modals/RemoveMemberModal";
 
 export const MembersTab = ({
   members,
@@ -15,11 +16,35 @@ export const MembersTab = ({
   canManageMembers: boolean;
 }) => {
   const [inviteModal, setInviteModal] = useState(false);
+  const [memberToRemove, setMemberToRemove] = useState<WorkspaceMembers | null>(
+    null,
+  );
+
+  // 1. Add state for search and filtering
+  const [searchQuery, setSearchQuery] = useState("");
+  const [roleFilter, setRoleFilter] = useState("All");
+
+  // 2. Derive the filtered array before rendering
+  const filteredMembers = members?.filter((member) => {
+    // Search match (checks name and email)
+    const searchLower = searchQuery.toLowerCase();
+    const fullName =
+      `${member.firstName || ""} ${member.lastName || ""}`.toLowerCase();
+    const email = (member.email || "").toLowerCase();
+    const matchesSearch =
+      fullName.includes(searchLower) || email.includes(searchLower);
+
+    // Role match
+    const matchesRole = roleFilter === "All" || member.role === roleFilter;
+
+    return matchesSearch && matchesRole;
+  });
 
   return (
     <div className="animate-in fade-in duration-300">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
+          {/* SEARCH INPUT */}
           <div className="relative">
             <Search
               size={16}
@@ -28,13 +53,31 @@ export const MembersTab = ({
             <input
               type="text"
               placeholder="Search members..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
               className="h-9 w-70 bg-[#1C1C1E] border border-[#2a2a2a] rounded-md pl-9 pr-4 text-sm text-white placeholder:text-[#a1a1a1] focus:outline-none focus:border-[#7C6EF5] transition-colors"
             />
           </div>
-          <button className="h-9 px-3 bg-[#1C1C1E] border border-[#2a2a2a] rounded-md text-sm font-semibold text-[#a1a1a1] hover:text-white transition-colors flex items-center gap-2">
-            Role <ChevronDown size={14} />
-          </button>
+
+          {/* ROLE FILTER DROPDOWN */}
+          <div className="relative">
+            <select
+              value={roleFilter}
+              onChange={(e) => setRoleFilter(e.target.value)}
+              className="h-9 pl-3 pr-8 appearance-none bg-[#1C1C1E] border border-[#2a2a2a] rounded-md text-sm font-semibold text-[#a1a1a1] hover:text-white transition-colors cursor-pointer focus:outline-none focus:border-[#7C6EF5]"
+            >
+              <option value="All">All Roles</option>
+              <option value="Owner">Owner</option>
+              <option value="Admin">Admin</option>
+              <option value="Member">Member</option>
+            </select>
+            <ChevronDown
+              size={14}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-[#a1a1a1] pointer-events-none"
+            />
+          </div>
         </div>
+
         {canManageMembers && (
           <button
             onClick={() => setInviteModal(true)}
@@ -47,7 +90,6 @@ export const MembersTab = ({
 
       {/* MEMBERS TABLE */}
       <div className="bg-[#1C1C1E] border border-[#2a2a2a] rounded-xl overflow-hidden shadow-sm">
-        {/* Table Header */}
         <div className="grid grid-cols-[2fr_1fr_1fr_auto] gap-4 p-4 border-b border-[#2a2a2a] text-[11px] font-bold text-[#a1a1a1] uppercase tracking-wider">
           <div>Member</div>
           <div>Joined</div>
@@ -55,10 +97,10 @@ export const MembersTab = ({
           <div className="w-8"></div>
         </div>
 
-        {/* Table Body */}
         <div className="flex flex-col">
-          {members && members.length > 0 ? (
-            [...members]
+          {/* 3. Map over filteredMembers instead of members */}
+          {filteredMembers && filteredMembers.length > 0 ? (
+            [...filteredMembers]
               .sort((a, b) => {
                 if (a.role === "Owner") return -1;
                 if (b.role === "Owner") return 1;
@@ -66,7 +108,8 @@ export const MembersTab = ({
               })
               .map((member: WorkspaceMembers, index: number) => {
                 const name =
-                  member.firstName + " " + member.lastName || "Unknown User";
+                  (member.firstName + " " + member.lastName).trim() ||
+                  "Unknown User";
                 const email = member.email || "user@switch.io";
                 const role = member.role || "Member";
                 const joinedDate = formatDate(member.joinedAt);
@@ -115,14 +158,13 @@ export const MembersTab = ({
                     {/* 2. Joined Date */}
                     <div className="text-sm text-[#a1a1a1]">{joinedDate}</div>
 
-                    {/* 3. Role Selector (UPDATED FOR PERMISSIONS) */}
+                    {/* 3. Role Selector */}
                     <div>
                       {role === "Owner" ? (
                         <span className="inline-flex items-center px-2.5 py-1 rounded bg-[#7C6EF5]/10 text-[#7C6EF5] text-xs font-semibold">
                           Owner
                         </span>
                       ) : canManageMembers ? (
-                        // If they are an Admin/Owner, show the interactive dropdown
                         <div className="relative inline-block w-27.5">
                           <select
                             value={role}
@@ -150,17 +192,19 @@ export const MembersTab = ({
                           />
                         </div>
                       ) : (
-                        // If they are a standard member, just show the text
                         <span className="text-sm text-[#a1a1a1] pl-3">
                           {role}
                         </span>
                       )}
                     </div>
 
-                    {/* 4. Actions (UPDATED FOR PERMISSIONS) */}
+                    {/* 4. Actions */}
                     <div className="w-8 flex justify-end">
                       {role !== "Owner" && canManageMembers && (
-                        <button className="text-[#a1a1a1] hover:text-red-400 p-1.5 rounded-md hover:bg-red-400/10 transition-colors">
+                        <button
+                          onClick={() => setMemberToRemove(member)}
+                          className="text-[#a1a1a1] hover:text-red-400 p-1.5 rounded-md hover:bg-red-400/10 transition-colors"
+                        >
                           <Trash2 size={15} />
                         </button>
                       )}
@@ -169,8 +213,13 @@ export const MembersTab = ({
                 );
               })
           ) : (
-            <div className="p-8 text-center text-sm text-[#a1a1a1]">
-              No members found.
+            <div className="p-8 flex flex-col items-center justify-center text-center">
+              <span className="text-sm font-semibold text-white mb-1">
+                No members found
+              </span>
+              <span className="text-[13px] text-[#a1a1a1]">
+                Try adjusting your search or role filter.
+              </span>
             </div>
           )}
         </div>
@@ -179,6 +228,14 @@ export const MembersTab = ({
       <InviteMemberModal
         isOpen={inviteModal}
         onClose={() => setInviteModal(false)}
+        workspaceName={activeWorkspace.name}
+        workspaceSlug={activeWorkspace.slug}
+      />
+
+      <RemoveMemberModal
+        isOpen={!!memberToRemove}
+        onClose={() => setMemberToRemove(null)}
+        member={memberToRemove}
         workspaceName={activeWorkspace.name}
         workspaceSlug={activeWorkspace.slug}
       />
