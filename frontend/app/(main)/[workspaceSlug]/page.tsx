@@ -2,19 +2,13 @@
 
 import CreateProjectModal from "@/components/modals/CreateProjectModal";
 import DeleteWorkspaceModal from "@/components/modals/DeleteWorkspaceModal";
-import InviteMemberModal from "@/components/modals/InviteMemberModal";
-import RemoveMemberModal from "@/components/modals/RemoveMemberModal";
+import EmptyProjectState from "@/components/workspace/EmptyProjects";
 import { MembersTab } from "@/components/workspace/MembersTab";
 import { ProjectsTab } from "@/components/workspace/ProjectsTab";
 import { SettingsTab } from "@/components/workspace/SettingsTab";
 import { useWorkspaceProjects } from "@/hooks/useProjects";
-import {
-  useDeleteWorkspace,
-  useGetMembers,
-  useGetWorkspaces,
-} from "@/hooks/useWorkspace";
+import { useGetMembers, useGetWorkspaces } from "@/hooks/useWorkspace";
 import { cn } from "@/lib/utils";
-import { WorkspaceMembers } from "@/services/workspace.service";
 import { LayoutGrid, UserPlus } from "lucide-react";
 import {
   useParams,
@@ -25,21 +19,20 @@ import {
 import { useState } from "react";
 
 export default function WorkspacePage() {
-  const params = useParams();
   const router = useRouter();
+  const params = useParams();
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
   const workspaceSlug = params?.workspaceSlug as string;
+
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
 
   const { data: workspaces } = useGetWorkspaces();
   const activeWorkspace = workspaces?.find((w) => w.slug === workspaceSlug);
 
-  // 1. Read from URL instead of local state, default to "projects"
   const tabParam = searchParams.get("tab") || "projects";
-  // Capitalize the first letter so it perfectly matches your "Projects", "Members", "Settings" strings
   const activeTab =
     tabParam.charAt(0).toUpperCase() + tabParam.slice(1).toLowerCase();
 
@@ -49,18 +42,18 @@ export default function WorkspacePage() {
     useWorkspaceProjects(workspaceSlug);
 
   if (!activeWorkspace) return null;
+
   const canManageMembers =
     activeWorkspace.role === "Owner" || activeWorkspace.role === "Admin";
+
   const tabs = [{ id: "Projects" }, { id: "Members" }, { id: "Settings" }];
 
   if (projectsLoading || membersloading) return <div>Loading...</div>;
 
-  // 2. Function to update the URL when a tab is clicked
   const handleTabChange = (tabId: string) => {
     const params = new URLSearchParams(searchParams.toString());
-    params.set("tab", tabId.toLowerCase()); // Keep URL looking clean (e.g., ?tab=settings)
+    params.set("tab", tabId.toLowerCase());
 
-    // push new URL without refreshing the page
     router.push(`${pathname}?${params.toString()}`, { scroll: false });
   };
 
@@ -70,9 +63,9 @@ export default function WorkspacePage() {
       <div className="bg-[#1C1C1E] border border-[#2a2a2a] rounded-xl p-5 mb-8 flex items-center justify-between shadow-sm">
         <div className="flex items-center gap-4">
           <div
+            style={{ backgroundColor: activeWorkspace?.colour }}
             className={cn(
               "w-12 h-12 rounded-lg  flex items-center justify-center text-xl font-black text-white shrink-0",
-              activeWorkspace.colour,
             )}
           >
             {activeWorkspace.name.substring(0, 2).toUpperCase()}
@@ -119,14 +112,25 @@ export default function WorkspacePage() {
       </div>
 
       {/* ── TAB CONTENT: PROJECTS ── */}
-      {activeTab === "Projects" && (
-        <ProjectsTab
-          workspaceSlug={activeWorkspace.slug}
-          projects={projects}
-          projectsLoading={projectsLoading}
-          onOpenProjectModal={() => setIsProjectModalOpen(true)}
-        />
-      )}
+      {activeTab === "Projects" &&
+        (projects.length === 0 ? (
+          // Show the premium empty state if there are no projects
+          <div className="pt-8">
+            {" "}
+            {/* Optional: add a little top padding so it doesn't hug the tabs */}
+            <EmptyProjectState
+              onCreateProject={() => setIsProjectModalOpen(true)}
+            />
+          </div>
+        ) : (
+          // Show the populated grid if they have projects
+          <ProjectsTab
+            workspaceSlug={activeWorkspace.slug}
+            projects={projects}
+            projectsLoading={projectsLoading}
+            onOpenProjectModal={() => setIsProjectModalOpen(true)}
+          />
+        ))}
 
       {/* ── TAB CONTENT: MEMBERS ── */}
       {activeTab === "Members" && (
@@ -154,8 +158,8 @@ export default function WorkspacePage() {
         isOpen={isDeleteModalOpen}
         onClose={() => setIsDeleteModalOpen(false)}
         workspace={activeWorkspace}
-        projectCount={projects?.length || 0} // Dynamic stats!
-        memberCount={members?.length || 0} // Dynamic stats!
+        projectCount={projects?.length || 0}
+        memberCount={members?.length || 0}
       />
     </div>
   );

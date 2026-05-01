@@ -7,35 +7,35 @@ import {
   useSendInvite,
 } from "@/hooks/useWorkspace";
 import { timeAgo } from "@/lib/utils";
-import { PendingInvites } from "@/services/workspace.service";
+import { PendingInvites, Workspace } from "@/services/workspace.service";
 import { ArrowRight, ChevronDown, Info, UserPlus, X } from "lucide-react";
 import { useEffect, useState } from "react";
 
 interface InviteMemberModalProps {
   isOpen: boolean;
   onClose: () => void;
-  workspaceName?: string;
-  workspaceSlug?: string;
+  workspace: Workspace;
 }
 
 export default function InviteMemberModal({
   isOpen,
   onClose,
-  workspaceName,
-  workspaceSlug,
+  workspace,
 }: InviteMemberModalProps) {
   const [email, setEmail] = useState("");
   const [role, setRole] = useState("Member");
 
-  const { data: pendingInvites, isLoading } =
-    useGetPendingInvites(workspaceSlug);
-  const { mutate: sendInvite, isPending } = useSendInvite(workspaceSlug!);
-  const { mutate: revokeInvite } = useRevokeInvite(workspaceSlug!);
+  const { mutate: revokeInvite } = useRevokeInvite(workspace!.slug);
+  const { mutate: sendInvite, isPending } = useSendInvite(workspace!.slug!);
   const { mutate: resend, isPending: resendingInvite } = useResendInvite(
-    workspaceSlug!,
+    workspace!.slug,
+  );
+  const { data: pendingInvites, isLoading } = useGetPendingInvites(
+    workspace!.slug,
   );
 
-  // Prevent background scrolling when modal is open
+  console.log(workspace);
+
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden";
@@ -64,9 +64,7 @@ export default function InviteMemberModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#000000]/80 backdrop-blur-sm px-4 animate-in fade-in duration-200">
-      {/* Modal Container */}
       <div className="relative flex w-112.5 max-w-lg flex-col rounded-xl border border-md bg-surface shadow-soft animate-in zoom-in-95 duration-200">
-        {/* Close Button */}
         <button
           onClick={onClose}
           className="absolute top-4 right-4 text-[#a1a1a1] hover:text-white transition-colors"
@@ -75,20 +73,23 @@ export default function InviteMemberModal({
         </button>
 
         <div className="p-6">
-          {/* Top Icon */}
           <div className="w-10 h-10 rounded-xl bg-[#1A2332] text-[#3ABFF8] flex items-center justify-center mb-5 border border-[#1A2332]">
             <UserPlus size={20} />
           </div>
 
-          {/* Headers */}
           <h2 className="text-xl font-bold text-white mb-1.5 tracking-tight">
-            Invite to {workspaceName}
+            Invite to{" "}
+            <span
+              style={{ color: workspace?.colour }}
+              className={`px-2 py-1 rounded text-white`}
+            >
+              {workspace.name}
+            </span>
           </h2>
           <p className="text-sm text-[#8a8a93] mb-6">
             Invite team members via email. They&apos;ll receive a link to join.
           </p>
 
-          {/* Form Grid */}
           <div className="grid grid-cols-[2fr_1fr] gap-4 mb-4">
             <div>
               <label className="block text-xs font-semibold text-[#8a8a93] mb-2">
@@ -127,7 +128,6 @@ export default function InviteMemberModal({
             </div>
           </div>
 
-          {/* Info Callout */}
           <div className="bg-[#7c6ef5]/10 border border-[#7c6ef5]/20 rounded-xl p-3.5 flex gap-3 items-start">
             <Info size={16} className="text-[#a855f7] shrink-0 mt-0.5" />
             <p className="text-[13px] text-[#a1a1aa] leading-relaxed">
@@ -138,10 +138,8 @@ export default function InviteMemberModal({
             </p>
           </div>
 
-          {/* Divider */}
           <div className="h-px w-full bg-[#2a2a2a] my-6" />
 
-          {/* Pending Invitations */}
           <div>
             <h3 className="text-[13px] font-semibold text-[#8a8a93] mb-4">
               Pending invitations
@@ -200,7 +198,6 @@ export default function InviteMemberModal({
             </div>
           </div>
 
-          {/* Footer Actions */}
           <div className="mt-8 flex items-center justify-end gap-3">
             <button
               onClick={onClose}

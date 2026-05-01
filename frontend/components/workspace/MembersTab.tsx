@@ -3,8 +3,8 @@ import { Workspace, WorkspaceMembers } from "@/services/workspace.service";
 import { ChevronDown, Plus, Search, Trash2 } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
-import RemoveMemberModal from "../modals/RemoveMemberModal";
 import InviteMemberModal from "../modals/InviteMemberModal";
+import RemoveMemberModal from "../modals/RemoveMemberModal";
 
 export const MembersTab = ({
   members,
@@ -15,18 +15,14 @@ export const MembersTab = ({
   activeWorkspace: Workspace;
   canManageMembers: boolean;
 }) => {
-  // 1. Add state for search and filtering
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState("All");
-
+  const [inviteModal, setInviteModal] = useState(false);
   const [memberToRemove, setMemberToRemove] = useState<WorkspaceMembers | null>(
     null,
   );
-  const [inviteModal, setInviteModal] = useState(false);
 
-  // 2. Derive the filtered array before rendering
   const filteredMembers = members?.filter((member) => {
-    // Search match (checks name and email)
     const searchLower = searchQuery.toLowerCase();
     const fullName =
       `${member.firstName || ""} ${member.lastName || ""}`.toLowerCase();
@@ -34,7 +30,6 @@ export const MembersTab = ({
     const matchesSearch =
       fullName.includes(searchLower) || email.includes(searchLower);
 
-    // Role match
     const matchesRole = roleFilter === "All" || member.role === roleFilter;
 
     return matchesSearch && matchesRole;
@@ -44,7 +39,6 @@ export const MembersTab = ({
     <div className="animate-in fade-in duration-300">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          {/* SEARCH INPUT */}
           <div className="relative">
             <Search
               size={16}
@@ -59,7 +53,6 @@ export const MembersTab = ({
             />
           </div>
 
-          {/* ROLE FILTER DROPDOWN */}
           <div className="relative">
             <select
               value={roleFilter}
@@ -88,7 +81,6 @@ export const MembersTab = ({
         )}
       </div>
 
-      {/* MEMBERS TABLE */}
       <div className="bg-[#1C1C1E] border border-[#2a2a2a] rounded-xl overflow-hidden shadow-sm">
         <div className="grid grid-cols-[2fr_1fr_1fr_auto] gap-4 p-4 border-b border-[#2a2a2a] text-[11px] font-bold text-[#a1a1a1] uppercase tracking-wider">
           <div>Member</div>
@@ -98,7 +90,6 @@ export const MembersTab = ({
         </div>
 
         <div className="flex flex-col">
-          {/* 3. Map over filteredMembers instead of members */}
           {filteredMembers && filteredMembers.length > 0 ? (
             [...filteredMembers]
               .sort((a, b) => {
@@ -119,7 +110,6 @@ export const MembersTab = ({
                     key={member.id || index}
                     className="grid grid-cols-[2fr_1fr_1fr_auto] gap-4 p-4 items-center border-b border-[#2a2a2a] last:border-b-0 hover:bg-[#252529]/40 transition-colors"
                   >
-                    {/* 1. Member Avatar & Name */}
                     <div className="flex items-center gap-3">
                       {member.avatarUrl ? (
                         <div className="w-8 h-8 rounded-full overflow-hidden shrink-0 border border-[#2a2a2a]">
@@ -155,10 +145,8 @@ export const MembersTab = ({
                       </div>
                     </div>
 
-                    {/* 2. Joined Date */}
                     <div className="text-sm text-[#a1a1a1]">{joinedDate}</div>
 
-                    {/* 3. Role Selector */}
                     <div>
                       {role === "Owner" ? (
                         <span className="inline-flex items-center px-2.5 py-1 rounded bg-[#7C6EF5]/10 text-[#7C6EF5] text-xs font-semibold">
@@ -198,7 +186,6 @@ export const MembersTab = ({
                       )}
                     </div>
 
-                    {/* 4. Actions */}
                     <div className="w-8 flex justify-end">
                       {role !== "Owner" && canManageMembers && (
                         <button
@@ -228,8 +215,7 @@ export const MembersTab = ({
       <InviteMemberModal
         isOpen={inviteModal}
         onClose={() => setInviteModal(false)}
-        workspaceName={activeWorkspace.name}
-        workspaceSlug={activeWorkspace.slug}
+        workspace={activeWorkspace}
       />
 
       <RemoveMemberModal
