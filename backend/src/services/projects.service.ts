@@ -48,21 +48,39 @@ export class ProjectService {
           throw new ApiError(500, 'Error creating board, please try again');
         }
 
-        await tx.insert(columnsTable).values([
-          {
-            boardId: board.id,
-            name: 'To Do',
-            order: 1.0,
-            mappedStatus: 'TODO',
-          },
-          {
-            boardId: board.id,
-            name: 'In Progress',
-            order: 2.0,
-            mappedStatus: 'IN_PROGRESS',
-          },
-          { boardId: board.id, name: 'Done', order: 3.0, mappedStatus: 'DONE' },
-        ]);
+        const columns = await tx
+          .insert(columnsTable)
+          .values([
+            {
+              boardId: board.id,
+              name: 'To Do',
+              order: 1.0,
+              mappedStatus: 'TODO',
+            },
+            {
+              boardId: board.id,
+              name: 'In Progress',
+              order: 2.0,
+              mappedStatus: 'IN_PROGRESS',
+            },
+            {
+              boardId: board.id,
+              name: 'Done',
+              order: 3.0,
+              mappedStatus: 'DONE',
+            },
+          ])
+          .returning();
+
+        await tx.insert(cardsTable).values({
+          columnId: columns[0]!.id,
+          boardId: board.id,
+          title: 'Welcome card',
+          status: columns[0]!.mappedStatus,
+          description: 'Welcome to your first card',
+          createdBy: userId,
+          order: 1,
+        });
 
         return { project, board };
       });

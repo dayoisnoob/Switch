@@ -1,6 +1,7 @@
 "use client";
 
 import CreateWorkspaceModal from "@/components/modals/AddWorkspaceModal";
+import WorkspaceSwitcherModal from "@/components/modals/SwitchWorkspaceModal";
 import { useLogout, useMe } from "@/hooks/useAuth";
 import { useWorkspaceProjects } from "@/hooks/useProjects";
 import { useGetMembers, useGetWorkspaces } from "@/hooks/useWorkspace";
@@ -31,7 +32,7 @@ export default function MainLayout({ children }: { children: ReactNode }) {
   const workspaceSlug = params?.workspaceSlug as string;
 
   const [isAddWorkspaceOpen, setIsAddWorkspaceOpen] = useState(false);
-  const [isWorkspaceDropdownOpen, setIsWorkspaceDropdownOpen] = useState(false);
+  const [isSwitcherOpen, setIsSwitcherOpen] = useState(false);
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
 
   const activeWorkspace = useWorkspaceStore((s) => s.activeWorkspace);
@@ -69,8 +70,9 @@ export default function MainLayout({ children }: { children: ReactNode }) {
     activeWorkspace,
   ]);
 
-  const { data: members = [], isLoading: membersLoading } =
-    useGetMembers(workspaceSlug);
+  const { data: members = [], isLoading: membersLoading } = useGetMembers(
+    activeWorkspace?.slug,
+  );
 
   // ── PREMIUM LOADING SKELETON ──
   if (workspacesLoading || userLoading || projectsLoading || membersLoading) {
@@ -178,12 +180,10 @@ export default function MainLayout({ children }: { children: ReactNode }) {
 
           <div className="relative">
             <button
-              onClick={() =>
-                setIsWorkspaceDropdownOpen(!isWorkspaceDropdownOpen)
-              }
+              onClick={() => setIsSwitcherOpen(!isSwitcherOpen)}
               className={cn(
                 "w-full flex items-center gap-3 p-2.5 rounded-xl transition-all duration-200 border",
-                isWorkspaceDropdownOpen
+                isSwitcherOpen
                   ? "bg-white/[0.05] border-white/[0.1] shadow-sm"
                   : "bg-white/[0.02] border-white/[0.05] hover:bg-white/[0.04] hover:border-white/[0.08]",
               )}
@@ -210,67 +210,10 @@ export default function MainLayout({ children }: { children: ReactNode }) {
                 size={14}
                 className={cn(
                   "text-white/40 shrink-0 ml-auto transition-transform duration-200 ease-out",
-                  isWorkspaceDropdownOpen && "rotate-180 text-white/80",
+                  isSwitcherOpen && "rotate-180 text-white/80",
                 )}
               />
             </button>
-
-            {/* Premium Dropdown Menu */}
-            {isWorkspaceDropdownOpen && (
-              <>
-                <div
-                  className="fixed inset-0 z-40"
-                  onClick={() => setIsWorkspaceDropdownOpen(false)}
-                />
-                <div className="absolute top-[calc(100%+8px)] left-0 right-0 bg-[#121212]/95 backdrop-blur-xl border border-white/[0.08] rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.5)] z-50 overflow-hidden flex flex-col animate-in fade-in slide-in-from-top-2 duration-200">
-                  <div className="max-h-[60vh] overflow-y-auto custom-scrollbar p-1.5 space-y-0.5">
-                    <div className="px-2.5 py-2 text-[10px] font-bold text-white/40 uppercase tracking-wider">
-                      Your Workspaces
-                    </div>
-
-                    {workspaces.map((ws) => {
-                      const isActive = activeWorkspace?.id === ws.id;
-                      return (
-                        <Link
-                          key={ws.id}
-                          href={`/${ws.slug}`}
-                          onClick={() => setIsWorkspaceDropdownOpen(false)}
-                          className={cn(
-                            "w-full flex items-center gap-3 p-2 rounded-lg transition-colors duration-150",
-                            isActive
-                              ? "bg-[#7C6EF5]/10 text-white"
-                              : "text-white/60 hover:bg-white/[0.05] hover:text-white",
-                          )}
-                        >
-                          <div className="w-6 h-6 shrink-0 rounded-md flex items-center justify-center text-[9px] font-black bg-white/10 text-white">
-                            {getInitials(ws.name)}
-                          </div>
-                          <span className="text-[13px] font-medium truncate flex-1 text-left">
-                            {ws.name}
-                          </span>
-                          {isActive && (
-                            <div className="w-1.5 h-1.5 rounded-full bg-[#7C6EF5] shadow-[0_0_8px_rgba(124,110,245,0.8)]" />
-                          )}
-                        </Link>
-                      );
-                    })}
-                  </div>
-
-                  <div className="p-1.5 border-t border-white/[0.05] bg-black/20">
-                    <button
-                      onClick={() => {
-                        setIsAddWorkspaceOpen(true);
-                        setIsWorkspaceDropdownOpen(false);
-                      }}
-                      className="w-full flex items-center gap-2.5 p-2 text-[13px] font-medium text-white/60 hover:text-white hover:bg-white/[0.05] rounded-lg transition-colors duration-150"
-                    >
-                      <Plus size={14} />
-                      <span>Create Workspace</span>
-                    </button>
-                  </div>
-                </div>
-              </>
-            )}
           </div>
         </div>
 
@@ -470,6 +413,18 @@ export default function MainLayout({ children }: { children: ReactNode }) {
       <CreateWorkspaceModal
         isOpen={isAddWorkspaceOpen}
         onClose={() => setIsAddWorkspaceOpen(false)}
+      />
+
+      <WorkspaceSwitcherModal
+        isOpen={isSwitcherOpen}
+        onClose={() => setIsSwitcherOpen(false)}
+        workspaces={workspaces}
+        activeWorkspace={activeWorkspace}
+        onSelectWorkspace={(ws) => {
+          setActiveWorkspace(ws);
+          router.push(`/${ws.slug}`);
+        }}
+        onCreateWorkspace={() => setIsAddWorkspaceOpen(true)}
       />
     </div>
   );
