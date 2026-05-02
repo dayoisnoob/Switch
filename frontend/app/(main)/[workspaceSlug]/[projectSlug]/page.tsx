@@ -2,8 +2,11 @@
 
 import { cn, getErrorMessage } from "@/lib/utils";
 import {
+  Activity,
+  Clock,
   Edit2,
   MessageSquare,
+  MessagesSquareIcon,
   MoreHorizontal,
   Plus,
   Trash2,
@@ -739,61 +742,213 @@ const SortableCard = memo(function SortableCard({
 
 const CardContent = memo(function CardContent({
   card,
+
   isDragging,
+
   onClick,
 }: {
   card: BoardCard;
+
   isDragging?: boolean;
+
   onClick?: () => void;
 }) {
   const pStyles = getPriorityStyles(card.priority);
+
+  // --- MOCK DATA GENERATORS (Based on string length to remain stable) ---
+  const titleLen = card.title?.length || 0;
+
+  // 1. Mock Labels
+  const mockLabels = [
+    { text: "Docs", color: "text-emerald-400 bg-emerald-400/10" },
+    { text: "Component", color: "text-purple-400 bg-purple-400/10" },
+    { text: "A11y", color: "text-blue-400 bg-blue-400/10" },
+    { text: "Tokens", color: "text-emerald-400 bg-emerald-400/10" },
+  ];
+  const label = mockLabels[titleLen % mockLabels.length];
+
+  // 2. Mock Dates & Status Colors
+  const mockDates = [
+    { date: "Apr 27", color: "text-rose-500" }, // Overdue
+    { date: "May 1", color: "text-amber-500" }, // Due soon
+    { date: "May 12", color: "text-white/40" }, // Normal
+    { date: "May 18", color: "text-white/40" },
+  ];
+  const dueDate = mockDates[titleLen % mockDates.length];
+
+  // 3. Mock Avatars
+  const mockAvatars = [
+    [{ initials: "AM", color: "bg-emerald-500" }],
+    [
+      { initials: "RK", color: "bg-purple-400" },
+      { initials: "JD", color: "bg-indigo-500" },
+    ],
+    [
+      { initials: "JD", color: "bg-purple-500" },
+      { initials: "AM", color: "bg-emerald-500" },
+    ],
+    [{ initials: "MR", color: "bg-amber-500" }],
+  ];
+  const avatars = mockAvatars[titleLen % mockAvatars.length];
 
   return (
     <div
       onClick={onClick}
       className={cn(
-        "group bg-white/3 border rounded-xl p-4 cursor-grab active:cursor-grabbing transition-all flex flex-col gap-3",
+        // Base structure & premium dark theme colors
+        "group bg-[#16161D] border rounded-xl p-4 cursor-grab active:cursor-grabbing transition-all flex flex-col",
         isDragging
-          ? "border-[#7C6EF5]/50 shadow-[0_0_20px_rgba(124,110,245,0.15)] scale-105 bg-[#121212]"
-          : "border-white/5 hover:border-white/15 hover:bg-white/4 shadow-sm",
+          ? "border-[#7C6EF5]/50 shadow-[0_0_30px_rgba(124,110,245,0.15)] scale-[1.02] bg-[#1A1A24]"
+          : "border-white/4 hover:border-white/10 shadow-sm",
       )}
     >
-      {/* TITLE */}
-      <p className="text-[13px] font-semibold text-white/90 leading-snug group-hover:text-white transition-colors">
+      {/* 1. TITLE */}
+      <p className="text-[14px] font-semibold text-white/90 leading-snug group-hover:text-white transition-colors mb-3">
         {card.title}
       </p>
 
-      {/* BOTTOM ROW: Priority & Mock Footer Info to match screenshot */}
-      <div className="flex items-center justify-between mt-1">
-        {/* Priority Badge */}
-        {card.priority !== "none" ? (
+      {/* 2. MIDDLE ROW: Priority & Label */}
+      <div className="flex items-center gap-2 mb-4">
+        {card.priority && (
           <div
             className={cn(
-              "flex items-center gap-1.5 px-2 py-1 rounded-md border text-[9px] font-bold uppercase tracking-wider",
+              "flex items-center gap-1.5 px-2 py-0.5 rounded-[5px] text-[10px] font-bold uppercase tracking-wider",
               pStyles,
             )}
           >
             <div className="w-1.5 h-1.5 rounded-full bg-current opacity-80" />
             {card.priority}
           </div>
-        ) : (
-          <div /> // Empty div to keep flex-between spacing if no priority
         )}
 
-        {/* Visual Footer Elements (Icons + Mock Avatars matching screenshot) */}
-        <div className="flex items-center gap-3">
-          {/* Mock comment count to match design density */}
-          {Math.random() > 0.5 && (
-            <div className="flex items-center gap-1 text-white/30 text-[10px] font-medium">
-              <MessageSquare size={10} /> 2
+        {/* Mock Category Label */}
+        {card.priority !== "none" && (
+          <div
+            className={cn(
+              "px-2 py-0.5 rounded-[5px] text-[10px] font-semibold",
+              label.color,
+            )}
+          >
+            {label.text}
+          </div>
+        )}
+      </div>
+
+      {/* 3. BOTTOM ROW: Metadata & Avatars */}
+      <div className="flex items-center justify-between mt-auto pt-1">
+        {/* Left: Icons & Stats */}
+        <div className="flex items-center gap-3.5 text-[11px] font-medium text-white/40">
+          {/* Due Date */}
+          <div className={cn("flex items-center gap-1.5", dueDate.color)}>
+            <Clock size={12} className="opacity-80" />
+            {dueDate.date}
+          </div>
+
+          {/* Comments */}
+          <div className="flex items-center gap-1.5 hover:text-white/70 transition-colors">
+            <MessagesSquareIcon size={12} className="opacity-80" />
+            {(titleLen % 5) + 1}
+          </div>
+
+          {/* Subtasks / Activity (Only show on some) */}
+          {titleLen % 2 === 0 && (
+            <div className="flex items-center gap-1.5 hover:text-white/70 transition-colors">
+              <Activity size={12} className="opacity-80" />2
             </div>
           )}
-          {/* Mock Avatar */}
-          <div className="w-5 h-5 rounded-full bg-[#7C6EF5] flex items-center justify-center text-[8px] font-black text-white shadow-sm ring-2 ring-[#0A0A0A]">
-            JD
-          </div>
+        </div>
+
+        {/* Right: Overlapping Avatars */}
+        <div className="flex -space-x-1.5">
+          {avatars.map((avatar, idx) => (
+            <div
+              key={idx}
+              className={cn(
+                "w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-bold text-white ring-2 ring-[#16161D] shadow-sm z-10",
+                avatar.color,
+              )}
+              style={{ zIndex: avatars.length - idx }} // Ensures left avatars stack on top
+            >
+              {avatar.initials}
+            </div>
+          ))}
         </div>
       </div>
     </div>
   );
 });
+
+// const CardContent = memo(function CardContent({
+//   card,
+
+//   isDragging,
+
+//   onClick,
+// }: {
+//   card: BoardCard;
+
+//   isDragging?: boolean;
+
+//   onClick?: () => void;
+// }) {
+//   const pStyles = getPriorityStyles(card.priority);
+
+//   return (
+//     <div
+//       onClick={onClick}
+//       className={cn(
+//         "group bg-white/3 border rounded-xl p-4 cursor-grab active:cursor-grabbing transition-all flex flex-col gap-3",
+
+//         isDragging
+//           ? "border-[#7C6EF5]/50 shadow-[0_0_20px_rgba(124,110,245,0.15)] scale-105 bg-[#121212]"
+//           : "border-white/5 hover:border-white/15 hover:bg-white/4 shadow-sm",
+//       )}
+//     >
+//       {/* TITLE */}
+
+//       <p className="text-[13px] font-semibold text-white/90 leading-snug group-hover:text-white transition-colors">
+//         {card.title}
+//       </p>
+
+//       {/* BOTTOM ROW: Priority & Mock Footer Info to match screenshot */}
+
+//       <div className="flex items-center justify-between mt-1">
+//         {/* Priority Badge */}
+
+//         {card.priority !== "none" ? (
+//           <div
+//             className={cn(
+//               "flex items-center gap-1.5 px-2 py-1 rounded-md border text-[9px] font-bold uppercase tracking-wider",
+
+//               pStyles,
+//             )}
+//           >
+//             <div className="w-1.5 h-1.5 rounded-full bg-current opacity-80" />
+
+//             {card.priority}
+//           </div>
+//         ) : (
+//           <div /> // Empty div to keep flex-between spacing if no priority
+//         )}
+
+//         {/* Visual Footer Elements (Icons + Mock Avatars matching screenshot) */}
+
+//         <div className="flex items-center gap-3">
+//           {/* Mock comment count to match design density */}
+
+//           {Math.random() > 0.5 && (
+//             <div className="flex items-center gap-1 text-white/30 text-[10px] font-medium">
+//               <MessageSquare size={10} /> 2
+//             </div>
+//           )}
+
+//           {/* Mock Avatar */}
+
+//           <div className="w-5 h-5 rounded-full bg-[#7C6EF5] flex items-center justify-center text-[8px] font-black text-white shadow-sm ring-2 ring-[#0A0A0A]">
+//             JD
+//           </div>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// });
