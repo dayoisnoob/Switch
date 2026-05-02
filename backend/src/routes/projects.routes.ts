@@ -34,13 +34,7 @@ router.get(
 );
 
 router.get(
-  '/count',
-  authenticate,
-  asyncHandler(ProjectController.getUserActiveProjectsCount)
-);
-
-router.get(
-  '/:projectId',
+  '/:projectSlug',
   authenticate,
   validateUrlParams(paramsSchema),
   requireWorkspaceMember,
@@ -48,7 +42,7 @@ router.get(
 );
 
 router.patch(
-  '/:projectId',
+  '/:projectSlug',
   authenticate,
   validateUrlParams(paramsSchema),
   validateInput(projectInputSchema),
@@ -58,7 +52,7 @@ router.patch(
 );
 
 router.delete(
-  '/:projectId',
+  '/:projectSlug',
   authenticate,
   validateUrlParams(paramsSchema),
   requireWorkspaceMember,

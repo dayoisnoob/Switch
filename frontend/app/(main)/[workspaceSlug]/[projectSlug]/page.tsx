@@ -2,16 +2,14 @@
 
 import { cn, getErrorMessage } from "@/lib/utils";
 import {
-  Clock,
   Edit2,
-  GripHorizontal,
   MessageSquare,
   MoreHorizontal,
   Plus,
   Trash2,
 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useRef, useState, memo } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { useBoard } from "@/hooks/board";
 import {
@@ -42,16 +40,16 @@ import { CSS } from "@dnd-kit/utilities";
 
 import { CreateInput } from "@/components/board/CreateInput";
 import CreateColumnModal from "@/components/modals/CreateColumnModal";
-import { useGetProjectBySlug } from "@/hooks/useProjects";
-import { useBoardStore } from "@/store/board.store";
-import { BoardCard, BoardColumn } from "@/types/board.types";
-import { toast } from "sonner";
+import { useCreateCard, useMoveCard } from "@/hooks/useCards";
 import {
   useDeleteColumn,
   useMoveColumn,
   useRenameColumn,
 } from "@/hooks/useColumns";
-import { useCreateCard, useMoveCard } from "@/hooks/useCards";
+import { useGetProjectBySlug } from "@/hooks/useProjects";
+import { useBoardStore } from "@/store/board.store";
+import { BoardCard, BoardColumn } from "@/types/board.types";
+import { toast } from "sonner";
 
 // ---------------------------------------------------------------------------
 // Helpers (Unchanged)
@@ -117,7 +115,7 @@ export default function KanbanBoardPage() {
 
   const router = useRouter();
 
-  const { data: project } = useGetProjectBySlug(projectSlug);
+  const { data: project } = useGetProjectBySlug(workspaceSlug, projectSlug);
   const { isLoading: isBoardLoading } = useBoard(projectSlug, workspaceSlug);
 
   const board = useBoardStore((s) => s.board);
@@ -335,7 +333,7 @@ export default function KanbanBoardPage() {
   return (
     <div className="h-full flex flex-col bg-[#0A0A0A]">
       {/* ── HEADER ── */}
-      <header className="px-8 h-16 border-b border-white/[0.05] flex items-center justify-between bg-[#0A0A0A]/80 backdrop-blur-md shrink-0 z-10">
+      <header className="px-8 h-16 border-b border-white/5 flex items-center justify-between bg-[#0A0A0A]/80 backdrop-blur-md shrink-0 z-10">
         <h1 className="text-lg font-bold text-white/90 tracking-tight">
           {project?.name || "Board"}
         </h1>
@@ -348,7 +346,7 @@ export default function KanbanBoardPage() {
             {[1, 2, 3].map((i) => (
               <div
                 key={i}
-                className="w-[340px] h-[500px] bg-white/[0.02] border border-white/[0.05] rounded-2xl animate-pulse"
+                className="w-85 h-125 bg-white/2 border border-white/5 rounded-2xl animate-pulse"
               />
             ))}
           </div>
@@ -379,7 +377,7 @@ export default function KanbanBoardPage() {
                 {/* ADD COLUMN BUTTON */}
                 <button
                   onClick={() => setIsColumnModalOpen(true)}
-                  className="flex items-center justify-center gap-2 w-[340px] shrink-0 h-[60px] rounded-2xl border border-dashed border-white/[0.1] bg-white/[0.01] text-white/40 font-medium hover:text-white/80 hover:bg-white/[0.03] hover:border-white/[0.2] transition-all group"
+                  className="flex items-center justify-center gap-2 w-85 shrink-0 h-15 rounded-2xl border border-dashed border-white/10 bg-white/1 text-white/40 font-medium hover:text-white/80 hover:bg-white/3 hover:border-white/20 transition-all group"
                 >
                   <Plus
                     size={16}
@@ -519,13 +517,13 @@ function SortableColumn({
     <div
       ref={setNodeRef}
       style={style}
-      className="flex flex-col h-max w-[340px] shrink-0 bg-white/[0.01] border border-white/[0.05] rounded-2xl overflow-hidden shadow-sm"
+      className="flex flex-col h-max w-85 shrink-0 bg-white/1 border border-white/5 rounded-2xl overflow-hidden shadow-sm"
     >
       {/* COLUMN HEADER */}
       <div
         {...attributes}
         {...listeners}
-        className="p-4 flex items-center justify-between border-b border-white/[0.05] cursor-grab active:cursor-grabbing hover:bg-white/[0.02] transition-colors group"
+        className="p-4 flex items-center justify-between border-b border-white/5 cursor-grab active:cursor-grabbing hover:bg-white/2 transition-colors group"
       >
         <div className="flex items-center gap-2.5 flex-1 min-w-0 mr-2">
           {isEditing ? (
@@ -566,7 +564,7 @@ function SortableColumn({
               <MoreHorizontal size={14} />
             </button>
             {isMenuOpen && (
-              <div className="absolute right-0 top-full mt-1 w-40 bg-[#121212] border border-white/[0.08] rounded-xl shadow-2xl z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-100">
+              <div className="absolute right-0 top-full mt-1 w-40 bg-[#121212] border border-white/8 rounded-xl shadow-2xl z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-100">
                 <div className="p-1 flex flex-col">
                   <button
                     onClick={() => {
@@ -578,7 +576,7 @@ function SortableColumn({
                   >
                     <Edit2 size={14} /> Rename
                   </button>
-                  <div className="h-px bg-white/[0.05] my-1 mx-1" />
+                  <div className="h-px bg-white/5 my-1 mx-1" />
                   <button
                     onClick={handleDeleteColumn}
                     onPointerDown={(e) => e.stopPropagation()}
@@ -593,7 +591,7 @@ function SortableColumn({
 
           {/* Count Badge */}
           {!isEditing && (
-            <div className="flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-white/5 border border-white/10 text-[11px] font-bold text-white/40 select-none shrink-0">
+            <div className="flex items-center justify-center min-w-5 h-5 px-1.5 rounded-full bg-white/5 border border-white/10 text-[11px] font-bold text-white/40 select-none shrink-0">
               {column.cards.length}
             </div>
           )}
@@ -601,11 +599,11 @@ function SortableColumn({
       </div>
 
       {/* COLUMN CONTENT (CARDS OR EMPTY STATE) */}
-      <div className="flex-1 min-h-[100px]">
+      <div className="flex-1 min-h-25">
         {column.cards.length === 0 ? (
           /* Premium Empty State */
           <div className="flex flex-col items-center justify-center py-10 px-4 text-center">
-            <div className="w-10 h-10 rounded-xl border border-dashed border-white/20 flex items-center justify-center mb-3 bg-white/[0.01]">
+            <div className="w-10 h-10 rounded-xl border border-dashed border-white/20 flex items-center justify-center mb-3 bg-white/1">
               <Plus size={16} className="text-white/20" />
             </div>
             <p className="text-[12px] text-white/30 mb-4 leading-relaxed">
@@ -634,7 +632,7 @@ function SortableColumn({
       </div>
 
       {/* COLUMN FOOTER / CREATE INPUT */}
-      <div className="p-3 border-t border-white/[0.02]">
+      <div className="p-3 border-t border-white/2">
         <div onPointerDown={(e) => e.stopPropagation()}>
           <CreateInput
             buttonText="Add card"
@@ -674,22 +672,22 @@ function ColumnContent({
   return (
     <div
       className={cn(
-        "flex flex-col h-max w-[340px] shrink-0 bg-[#0A0A0A] rounded-2xl overflow-hidden",
+        "flex flex-col h-max w-85 shrink-0 bg-[#0A0A0A] rounded-2xl overflow-hidden",
         isDragging
           ? "border border-[#7C6EF5]/50 shadow-[0_0_30px_rgba(124,110,245,0.15)] scale-[1.02] opacity-90"
-          : "border border-white/[0.05]",
+          : "border border-white/5",
       )}
     >
-      <div className="p-4 flex items-center justify-between border-b border-white/[0.05] bg-white/[0.02]">
+      <div className="p-4 flex items-center justify-between border-b border-white/5 bg-white/2">
         <div className="flex items-center gap-2.5">
           <div className={cn("w-2 h-2 rounded-full", dotColor)} />
           <h3 className="text-[14px] font-bold text-white/90">{column.name}</h3>
         </div>
-        <div className="flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-white/5 border border-white/10 text-[11px] font-bold text-white/40">
+        <div className="flex items-center justify-center min-w-5 h-5 px-1.5 rounded-full bg-white/5 border border-white/10 text-[11px] font-bold text-white/40">
           {column.cards.length}
         </div>
       </div>
-      <div className="p-6 text-center text-sm text-white/30 border-2 border-dashed border-white/10 mx-4 my-4 rounded-xl bg-white/[0.01]">
+      <div className="p-6 text-center text-sm text-white/30 border-2 border-dashed border-white/10 mx-4 my-4 rounded-xl bg-white/1">
         {column.cards.length} Cards inside
       </div>
     </div>
@@ -754,10 +752,10 @@ const CardContent = memo(function CardContent({
     <div
       onClick={onClick}
       className={cn(
-        "group bg-white/[0.03] border rounded-xl p-4 cursor-grab active:cursor-grabbing transition-all flex flex-col gap-3",
+        "group bg-white/3 border rounded-xl p-4 cursor-grab active:cursor-grabbing transition-all flex flex-col gap-3",
         isDragging
           ? "border-[#7C6EF5]/50 shadow-[0_0_20px_rgba(124,110,245,0.15)] scale-105 bg-[#121212]"
-          : "border-white/[0.05] hover:border-white/[0.15] hover:bg-white/[0.04] shadow-sm",
+          : "border-white/5 hover:border-white/15 hover:bg-white/4 shadow-sm",
       )}
     >
       {/* TITLE */}

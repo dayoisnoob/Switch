@@ -1,11 +1,9 @@
 import { ApiError } from "@/lib/ApiError";
 import { BoardService } from "@/services/board.service";
-import { CardService, CardUpdateType } from "@/services/card.service";
-import { ColumnService } from "@/services/columns.service";
-import { CreateLabelType, LabelService } from "@/services/labels.service";
+import { LabelService } from "@/services/labels.service";
 import { useBoardStore } from "@/store/board.store";
 import { BoardState } from "@/types/board.types";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { RefObject, useEffect } from "react";
 
 export const useBoard = (projectSlug: string, workspaceSlug: string) => {
@@ -14,7 +12,7 @@ export const useBoard = (projectSlug: string, workspaceSlug: string) => {
 
   const query = useQuery<BoardState, ApiError>({
     queryKey: ["board", projectSlug],
-    queryFn: () => BoardService.getBoard(projectSlug),
+    queryFn: () => BoardService.getBoard(workspaceSlug, projectSlug),
     enabled: !!projectSlug,
   });
 

@@ -33,10 +33,13 @@ export function useWorkspaceProjects(workspaceSlug?: string) {
   });
 }
 
-export function useGetProjectBySlug(projectSlug?: string) {
+export function useGetProjectBySlug(
+  workspaceSlug: string,
+  projectSlug?: string,
+) {
   return useQuery({
     queryKey: ["project", projectSlug],
-    queryFn: () => ProjectService.getProjectBySlug(projectSlug!),
+    queryFn: () => ProjectService.getProjectBySlug(workspaceSlug, projectSlug!),
     enabled: !!projectSlug,
     staleTime: 1000 * 60 * 5,
   });
@@ -50,12 +53,12 @@ export function useActiveProjectsCount() {
   });
 }
 
-export function useUpdateProject() {
+export function useUpdateProject(projectSlug: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (data: CreateProject) =>
-      ProjectService.updateProject(data),
+      ProjectService.updateProject(projectSlug, data),
 
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["project"] });

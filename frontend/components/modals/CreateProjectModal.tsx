@@ -67,7 +67,7 @@ export default function CreateProjectModal({
 }: {
   isOpen: boolean;
   onClose: () => void;
-  project?: Project; // Use the actual project object
+  project?: Project;
 }) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -84,7 +84,6 @@ export default function CreateProjectModal({
     setPrevProjectId(project?.id);
     setPrevIsOpen(isOpen);
 
-    // Only populate or reset the form data when the modal is actually opening
     if (isOpen) {
       setName(project?.name || "");
       setDescription(project?.description || "");
@@ -92,13 +91,15 @@ export default function CreateProjectModal({
     }
   }
 
+  console.log(project);
+
   const iconPickerRef = useRef<HTMLDivElement>(null);
 
   const { data: workspaces, isLoading: workspacesLoading } = useGetWorkspaces();
   const { mutate: createProject, isPending: creatingProject } =
     useCreateProject();
   const { mutate: updateProject, isPending: updatingProject } =
-    useUpdateProject();
+    useUpdateProject(project!.slug);
 
   const isEditMode = !!project;
   // const isPending = creatingProject || updatingProject;
@@ -149,11 +150,6 @@ export default function CreateProjectModal({
 
   const handleCloseModal = () => {
     onClose();
-    if (!isEditMode) {
-      setName("");
-      setDescription("");
-      setIcon("Palette");
-    }
     setShowIconPicker(false);
   };
 

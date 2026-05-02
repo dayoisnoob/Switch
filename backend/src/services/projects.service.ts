@@ -166,27 +166,7 @@ export class ProjectService {
     return projects;
   }
 
-  static async getUserActiveProjectsCount(userId: string) {
-    const [result] = await db
-      .select({
-        total: count(projectsTable.id),
-      })
-
-      .from(projectsTable)
-      .innerJoin(
-        workspaceMembershipsTable,
-        eq(projectsTable.workspaceId, workspaceMembershipsTable.workspaceId)
-      )
-      .where(
-        and(
-          eq(workspaceMembershipsTable.userId, userId),
-          eq(projectsTable.status, 'Active')
-        )
-      );
-
-    return result?.total;
-  }
-
+ 
   static async getProject(workspaceId: string, slug: string) {
     const project = await ProjectService.verifyProject(workspaceId, slug);
 
@@ -232,7 +212,7 @@ export class ProjectService {
     return deletedProject;
   }
 
-  private static async verifyProject(workspaceId: string, id: string) {
+  private static async verifyProject(workspaceId: string, slug: string) {
     const [project] = await db
       .select({
         id: projectsTable.id,
@@ -247,7 +227,7 @@ export class ProjectService {
       .innerJoin(boardsTable, eq(projectsTable.id, boardsTable.projectId))
       .where(
         and(
-          eq(projectsTable.id, id),
+          eq(projectsTable.slug, slug),
           eq(projectsTable.workspaceId, workspaceId)
         )
       )

@@ -42,15 +42,21 @@ export const ProjectService = {
     return api.get(`/workspaces/${workspaceSlug}/projects`);
   },
 
-  getProjectBySlug: async (projectSlug: string): Promise<Project> => {
-    return api.get(`/projects/${projectSlug}`);
+  getProjectBySlug: async (
+    workspaceSlug: string,
+    projectSlug: string,
+  ): Promise<Project> => {
+    return api.get(`/workspaces/${workspaceSlug}/projects/${projectSlug}`);
   },
 
   getActiveProjectsCount: async (): Promise<ProjectCount> => {
-    return api.get(`/projects/count`);
+    return api.get(`/users/me/projects/count`);
   },
 
-  updateProject: async (data: CreateProject) => {
-    return api.patch(`/projects/${data.projectId}`, data);
+  updateProject: async (projectSlug: string, data: CreateProject) => {
+    return api.patch(
+      `/workspaces/${data.workspaceSlug}/projects/${projectSlug}`,
+      data,
+    );
   },
 };

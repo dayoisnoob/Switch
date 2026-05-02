@@ -13,4 +13,10 @@ router.get(
   asyncHandler(UserController.getAllTeamMembersCount)
 );
 
+router.get(
+  '/me/projects/count',
+  authenticate,
+  asyncHandler(UserController.getUserActiveProjectsCount)
+);
+
 export default router;

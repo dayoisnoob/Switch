@@ -6,7 +6,6 @@ import { ApiResponse } from '../utils/api-response';
 export class BoardController {
   static async getBoardState(req: AuthenticatedRequest, res: Response) {
     const projectId = req.resolvedProject!.id;
-
     const boardState = await BoardService.getBoardState(projectId);
 
     res.json(new ApiResponse(200, 'Board successfully retrieved', boardState));

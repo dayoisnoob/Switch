@@ -263,12 +263,12 @@ export default function MainLayout({ children }: { children: ReactNode }) {
               </button>
             </div>
             <div className="space-y-0.5">
-              {projects.map((proj) => {
-                const dynamicColor = getConsistentColor(proj.id);
+              {projects.map((p) => {
+                const dynamicColor = getConsistentColor(p.id);
                 return (
                   <Link
-                    key={proj.id}
-                    href={`/dashboard/projects/${proj.id}`}
+                    key={p.id}
+                    href={`/${activeWorkspace?.slug}/${p.slug}`}
                     className="flex items-center gap-3 px-3 py-2 text-[13px] font-medium text-white/60 hover:bg-white/[0.04] hover:text-white rounded-lg transition-colors group"
                   >
                     <div
@@ -278,7 +278,7 @@ export default function MainLayout({ children }: { children: ReactNode }) {
                         boxShadow: `0 0 8px ${dynamicColor}40`,
                       }}
                     />
-                    <span className="truncate">{proj.name}</span>
+                    <span className="truncate">{p.name}</span>
                   </Link>
                 );
               })}

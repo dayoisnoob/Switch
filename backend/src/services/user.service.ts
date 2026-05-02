@@ -1,6 +1,6 @@
-import { and, countDistinct, eq, inArray, ne } from 'drizzle-orm';
+import { and, count, countDistinct, eq, inArray, ne } from 'drizzle-orm';
 import { db } from '../config/db';
-import { usersTable, workspaceMembershipsTable } from '../db';
+import { projectsTable, usersTable, workspaceMembershipsTable } from '../db';
 import { ApiError } from '../utils/api-response';
 
 export class UserService {
@@ -37,6 +37,27 @@ export class UserService {
         and(
           inArray(workspaceMembershipsTable.workspaceId, userWorkspaceIds),
           ne(workspaceMembershipsTable.userId, userId)
+        )
+      );
+
+    return result?.total;
+  }
+
+  static async getUserActiveProjectsCount(userId: string) {
+    const [result] = await db
+      .select({
+        total: count(projectsTable.id),
+      })
+
+      .from(projectsTable)
+      .innerJoin(
+        workspaceMembershipsTable,
+        eq(projectsTable.workspaceId, workspaceMembershipsTable.workspaceId)
+      )
+      .where(
+        and(
+          eq(workspaceMembershipsTable.userId, userId),
+          eq(projectsTable.status, 'Active')
         )
       );
 

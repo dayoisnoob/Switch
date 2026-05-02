@@ -35,20 +35,26 @@ export const requireWorkspaceMember = asyncHandler(
 
       if (!workspace) throw new ApiError(404, 'Workspace not found.');
       workspaceId = workspace.id;
-    } else if (req.params.projectId) {
-      const [project] = await db
-        .select({
-          id: projectsTable.id,
-          workspaceId: projectsTable.workspaceId,
-          name: projectsTable.name,
-        })
-        .from(projectsTable)
-        .where(eq(projectsTable.id, req.params.projectId as string))
-        .limit(1);
 
-      if (!project) throw new ApiError(404, 'Project not found.');
-      workspaceId = project.workspaceId;
-      req.resolvedProject = project;
+      if (req.params.projectSlug) {
+        const [project] = await db
+          .select({
+            id: projectsTable.id,
+            workspaceId: projectsTable.workspaceId,
+            name: projectsTable.name,
+          })
+          .from(projectsTable)
+          .where(
+            and(
+              eq(projectsTable.slug, req.params.projectSlug as string),
+              eq(projectsTable.workspaceId, workspaceId)
+            )
+          )
+          .limit(1);
+
+        if (!project) throw new ApiError(404, 'Project not found.');
+        req.resolvedProject = project;
+      }
     } else if (req.params.boardId) {
       const [board] = await db
         .select({

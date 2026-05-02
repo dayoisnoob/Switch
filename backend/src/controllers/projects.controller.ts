@@ -20,18 +20,6 @@ export class ProjectController {
     res.json(new ApiResponse(200, 'Projects retrieved successfully', projects));
   }
 
-  static async getUserActiveProjectsCount(
-    req: AuthenticatedRequest,
-    res: Response
-  ) {
-    const userId = req.user.id;
-    const count = await ProjectService.getUserActiveProjectsCount(userId);
-
-    res.json(
-      new ApiResponse(200, 'Projects retrieved successfully', { count })
-    );
-  }
-
   static async getProject(req: AuthenticatedRequest, res: Response) {
     const slug = req.params.projectSlug as string;
     const workspaceId = req.workspace?.workspaceId as string;
