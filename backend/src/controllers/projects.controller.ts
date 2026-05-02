@@ -43,10 +43,13 @@ export class ProjectController {
   }
 
   static async deleteProject(req: AuthenticatedRequest, res: Response) {
-    const projectId = req.params.projectId as string;
+    const projectSlug = req.params.projectSlug as string;
     const workspaceId = req.workspace?.workspaceId as string;
 
-    const project = await ProjectService.deleteProject(workspaceId, projectId);
+    const project = await ProjectService.deleteProject(
+      workspaceId,
+      projectSlug
+    );
 
     res.json(new ApiResponse(200, 'Project deleted successfully', project));
   }

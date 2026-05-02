@@ -76,3 +76,27 @@ export function useUpdateProject() {
     },
   });
 }
+
+export function useDeleteProject() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      workspaceSlug,
+      projectSlug,
+    }: {
+      workspaceSlug: string;
+      projectSlug: string;
+    }) => ProjectService.deleteProject(workspaceSlug, projectSlug),
+
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
+      queryClient.invalidateQueries({ queryKey: ["workspaces"] });
+    },
+
+    onError: (err) => {
+      const message = getErrorMessage(err);
+      toast.error(message);
+    },
+  });
+}

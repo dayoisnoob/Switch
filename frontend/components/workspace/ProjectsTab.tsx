@@ -7,17 +7,22 @@ import {
   ChevronDown,
   Edit2,
   Filter,
+  Layout,
   LayoutGrid,
   List,
   Palette,
   Plus,
   Search,
+  Trash2,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import CreateProjectModal, {
   PROJECT_ICON_MAP,
 } from "../modals/CreateProjectModal";
+import DeleteProjectModal from "../modals/DeleteProjectModal";
+import Image from "next/image";
+import { useDeleteProject } from "@/hooks/useProjects";
 
 interface ProjectsTab {
   workspaceSlug: string;
@@ -122,7 +127,7 @@ export const ProjectsTab = ({
   );
 };
 
-interface ProjectCard {
+interface ProjectCardProps {
   project: Project;
   workspace: Workspace;
   activeWorkspaceSlug: string;
@@ -134,11 +139,12 @@ export const ProjectCard = ({
   workspace,
   activeWorkspaceSlug,
   colorHash,
-}: ProjectCard) => {
+}: ProjectCardProps) => {
   const router = useRouter();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const { mutate: deleteProject, isPending } = useDeleteProject();
 
-  // Check permissions: Adjust this based on your exact user object/role structure
   const isAdminOrOwner =
     workspace.role === "Owner" || workspace.role === "Admin";
 
@@ -148,64 +154,154 @@ export const ProjectCard = ({
       ? Math.round((project.finishedCards / project.cardsCount) * 100)
       : 0;
 
+  const handleDelete = async () => {
+    if (!project.id) return;
+    deleteProject({
+      workspaceSlug: activeWorkspaceSlug,
+      projectSlug: project.slug,
+    });
+  };
   return (
     <div
       onClick={() => router.push(`/${activeWorkspaceSlug}/${project.slug}`)}
-      className="group/card bg-[#1C1C1E] border border-[#2a2a2a] hover:border-[#3f3f46] rounded-2xl p-6 transition-all cursor-pointer flex flex-col min-h-60 relative overflow-hidden"
+      className="group/card bg-[#141419] border border-white/[0.04] hover:border-white/10 rounded-[20px] p-5 transition-all duration-300 cursor-pointer flex flex-col min-h-[220px] relative overflow-hidden shadow-sm hover:shadow-md"
     >
-      <div className="flex items-start justify-between mb-5">
-        <div className="w-10 h-10 rounded-xl bg-[#252529] border border-white/5 flex items-center justify-center text-xl shadow-sm">
-          <Icon />
+      {/* --- HEADER --- */}
+      <div className="flex items-start justify-between mb-4">
+        {/* Project Icon (Tinted Background) */}
+        <div className="w-11 h-11 rounded-[14px] bg-[#7C6EF5]/10 flex items-center justify-center text-xl shrink-0">
+          <Icon className="text-[#7C6EF5]" size={20} />
         </div>
 
-        <div className="flex items-center gap-3">
-          <span className="px-2 py-0.5 rounded-lg text-[10px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/10">
-            {project.status}
+        {/* Status & Actions */}
+        <div className="flex items-center gap-2.5 shrink-0">
+          <span className="px-2.5 py-1 rounded-md text-[11px] font-bold tracking-wide bg-emerald-500/10 text-emerald-400">
+            {project.status || "Active"}
           </span>
 
-          {/* Only show pencil if user has permissions */}
           {isAdminOrOwner && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setIsEditModalOpen(true);
-              }}
-              className="p-2 rounded-lg bg-white/5 border border-white/10 text-white/20 hover:text-white hover:bg-white/10 opacity-0 group-hover/card:opacity-100 transition-all"
-            >
-              <Edit2 size={14} />
-            </button>
+            <div className="flex items-center opacity-0 group-hover/card:opacity-100 transition-opacity duration-200">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsEditModalOpen(true);
+                }}
+                className="p-1.5 rounded-md text-white/30 hover:text-white hover:bg-white/5 transition-all"
+                title="Edit Project"
+              >
+                <Edit2 size={14} />
+              </button>
+
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsDeleteModalOpen(true);
+                }}
+                className="p-1.5 rounded-md text-white/30 hover:text-rose-400 hover:bg-rose-500/10 transition-all"
+                title="Delete Project"
+              >
+                <Trash2 size={14} />
+              </button>
+            </div>
           )}
         </div>
       </div>
 
-      <div className="flex-1">
-        <h3 className="text-lg font-bold text-white mb-2 leading-tight">
+      {/* --- TEXT CONTENT --- */}
+      <div className="flex-1 mt-1">
+        <h3 className="text-[17px] font-semibold text-white tracking-tight mb-1.5 line-clamp-1">
           {project.name}
         </h3>
-        <p className="text-[13px] text-white/40 leading-relaxed line-clamp-2">
+        <p className="text-[13px] text-white/40 leading-relaxed line-clamp-2 pr-4">
           {project.description || "No description provided."}
         </p>
       </div>
 
-      <div className="mt-8 space-y-3">
-        <div className="flex items-center justify-between text-[11px] font-bold uppercase tracking-widest text-white/20">
-          <span>Progress</span>
-          <span>{progressPercent}%</span>
-        </div>
-        <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+      {/* --- PROGRESS SECTION --- */}
+      <div className="mt-6">
+        <div className="h-1.5 w-full bg-white/[0.04] rounded-full overflow-hidden">
           <div
             className="h-full rounded-full transition-all duration-1000 ease-out"
-            style={{ width: `${progressPercent}%`, backgroundColor: colorHash }}
+            style={{
+              width: `${progressPercent}%`,
+              backgroundColor: colorHash || "#7C6EF5",
+            }}
           />
+        </div>
+        <div className="mt-2.5 text-[12px] font-medium text-white/30">
+          {progressPercent}% · {project.finishedCards} of {project.cardsCount}{" "}
+          cards done
         </div>
       </div>
 
+      {/* --- DIVIDER --- */}
+      <div className="h-px w-full bg-white/[0.04] my-4" />
+
+      {/* --- FOOTER --- */}
+      <div className="flex items-center justify-between mt-auto">
+        {/* Left Side: Stats & Priority */}
+        <div className="flex items-center gap-4 text-[12px] font-medium text-white/40">
+          <div className="flex items-center gap-1.5">
+            <Layout size={14} className="text-white/30" />
+            <span>{project.cardsCount || 0}</span>
+          </div>
+        </div>
+
+        {/* Right Side: Member Avatars (Mocked to match design) */}
+        <div className="flex items-center">
+          <div className="flex -space-x-1.5">
+            {project.assignees &&
+              project.assignees.slice(0, 3).map((a, i) =>
+                a.avatarUrl ? (
+                  <div
+                    key={i}
+                    className="w-6 h-6 rounded-full border-2 border-[#1C1C1E] bg-emerald-500 flex items-center justify-center text-[9px] font-bold text-white z-10 overflow-hidden relative shrink-0"
+                  >
+                    <Image
+                      src={a.avatarUrl}
+                      alt={a.firstName || "User avatar"}
+                      width={24}
+                      height={24}
+                      className="object-cover w-full h-full"
+                      unoptimized
+                      referrerPolicy="no-referrer"
+                    />
+                  </div>
+                ) : (
+                  <div
+                    key={i}
+                    className="w-6 h-6 rounded-full border-2 border-[#1C1C1E] bg-emerald-500 flex items-center justify-center text-[9px] font-bold text-white z-10 shrink-0"
+                  >
+                    {a.firstName ? a.firstName.charAt(0).toUpperCase() : "U"}
+                  </div>
+                ),
+              )}
+
+            {project.assignees && project.assignees.length > 3 && (
+              <div className="w-6 h-6 rounded-full border-2 border-[#1C1C1E] bg-[#2a2a2a] flex items-center justify-center text-[9px] font-bold text-white z-0 shrink-0">
+                +{project.assignees.length - 3}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* --- MODALS --- */}
       {isAdminOrOwner && (
-        <CreateProjectModal
-          isOpen={isEditModalOpen}
-          onClose={() => setIsEditModalOpen(false)}
-          project={project}
-        />
+        <>
+          <CreateProjectModal
+            isOpen={isEditModalOpen}
+            onClose={() => setIsEditModalOpen(false)}
+            project={project}
+          />
+          <DeleteProjectModal
+            isOpen={isDeleteModalOpen}
+            onClose={() => setIsDeleteModalOpen(false)}
+            project={project}
+            onDelete={handleDelete}
+            isDeleting={isPending}
+          />
+        </>
       )}
     </div>
   );

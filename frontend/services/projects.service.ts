@@ -59,4 +59,8 @@ export const ProjectService = {
       data,
     );
   },
+
+  deleteProject: async (workspaceSlug: string, projectSlug: string) => {
+    return api.delete(`/workspaces/${workspaceSlug}/projects/${projectSlug}`);
+  },
 };
