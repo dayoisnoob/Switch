@@ -128,6 +128,7 @@ export class CardsService {
         order: true,
         createdBy: true,
         updatedAt: true,
+        createdAt: true,
       },
       with: {
         assignees: {
@@ -160,10 +161,23 @@ export class CardsService {
 
     if (!card) throw new ApiError(404, 'Card not found.');
 
+    const [creatorName] = await db
+      .select({
+        firstName: usersTable.firstName,
+        lastName: usersTable.lastName,
+      })
+      .from(usersTable)
+      .where(eq(usersTable.id, card?.createdBy))
+      .limit(1);
+
     return {
       ...card,
       assignees: card.assignees.map((a) => a.user),
       labels: card.labels.map((l) => l.label),
+      createdBy: {
+        firstName: creatorName?.firstName,
+        lastName: creatorName?.lastName,
+      },
     };
   }
 

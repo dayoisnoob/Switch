@@ -48,3 +48,10 @@ export function useMoveCard() {
     },
   });
 }
+
+export function useGetCard(cardId: string) {
+  return useQuery({
+    queryKey: ["card", cardId],
+    queryFn: async () => CardService.getCardById(cardId),
+  });
+}

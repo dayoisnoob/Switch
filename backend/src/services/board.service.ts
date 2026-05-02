@@ -31,7 +31,6 @@ export const BoardService = {
                 description: true,
                 priority: true,
                 dueDate: true,
-                coverImageUrl: true,
                 order: true,
               },
               with: {

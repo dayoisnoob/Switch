@@ -10,45 +10,14 @@ export function useUpdateCard(cardId: string) {
     mutationFn: async (data: CardUpdateType) =>
       CardService.update(cardId, data),
 
-    onMutate: async (newData) => {
-      await queryClient.cancelQueries({ queryKey: ["card", cardId] });
-
-      const previousCard = queryClient.getQueryData<BoardCard>([
-        "card",
-        cardId,
-      ]);
-
-      if (previousCard) {
-        const { dueDate, ...restOfData } = newData;
-
-        let formattedDate = previousCard.dueDate;
-        if (dueDate !== undefined) {
-          formattedDate =
-            dueDate instanceof Date ? dueDate.toISOString() : dueDate;
-        }
-
-        queryClient.setQueryData<BoardCard>(["card", cardId], {
-          ...previousCard,
-          ...restOfData,
-          ...(dueDate !== undefined && { dueDate: formattedDate }),
-        });
-      }
-
-      return { previousCard };
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["card", cardId] });
+      queryClient.invalidateQueries({ queryKey: ["board"] });
     },
 
-    onError: (err, newData, context) => {
-      if (context?.previousCard) {
-        queryClient.setQueryData(["card", cardId], context.previousCard);
-      }
+    onError: (err) => {
       toast.error("Failed to update card details");
       console.error(err);
-    },
-
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["card", cardId] });
-
-      queryClient.invalidateQueries({ queryKey: ["activities", cardId] });
     },
   });
 }

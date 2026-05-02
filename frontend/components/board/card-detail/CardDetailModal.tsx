@@ -2,15 +2,22 @@
 
 import { DeleteCardModal } from "@/components/modals/DeleteCardModal";
 import { Portal } from "@/components/ui/Portal";
+import { formatAvatarUrls } from "@/components/workspace/WorkspaceCard";
 import { useBoard } from "@/hooks/board/index";
-import { useMoveCard } from "@/hooks/useCards";
+import { useGetCard, useMoveCard } from "@/hooks/useCards";
 import { useDeleteCard } from "@/hooks/useDeleteCard";
 import { useGetProjectBySlug } from "@/hooks/useProjects";
 import { useUpdateCard } from "@/hooks/useUpdateCard";
-import { cn, formatDateShort } from "@/lib/utils";
+import {
+  cn,
+  formatDate,
+  formatDateShort,
+  getConsistentColor,
+} from "@/lib/utils";
+import { CardPriority } from "@/services/card.service";
 import { useBoardStore } from "@/store/board.store";
 import { useWorkspaceStore } from "@/store/workspace.store";
-import { BoardCard, BoardColumn } from "@/types/board.types";
+import { BoardAssignee, BoardCard, BoardColumn } from "@/types/board.types";
 import {
   Activity,
   AlignLeft,
@@ -29,6 +36,7 @@ import {
   Upload,
   X,
 } from "lucide-react";
+import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 
 // --- Helpers to match priority styles ---
@@ -66,11 +74,16 @@ export function CardDetailModal({
   workspaceSlug,
 }: CardDetailModalProps) {
   useBoard(projectSlug, workspaceSlug);
+  const { data: detailedCard, isLoading: isCardLoading } = useGetCard(card.id);
 
   const [activeTab, setActiveTab] = useState<"activity" | "comments">(
     "activity",
   );
+
+  const isEditingDescRef = useRef(false);
+  const isEditingTitleRef = useRef(false);
   const [isEditingDesc, setIsEditingDesc] = useState(false);
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [descValue, setDescValue] = useState(card.description || "");
   const [titleValue, setTitleValue] = useState(card.title);
 
@@ -95,11 +108,35 @@ export function CardDetailModal({
         .find((c) => c.id === card.id) ?? card,
   );
 
+  const handleSetEditingDesc = (val: boolean) => {
+    isEditingDescRef.current = val;
+    setIsEditingDesc(val);
+  };
+  const handleSetEditingTitle = (val: boolean) => {
+    isEditingTitleRef.current = val;
+    setIsEditingTitle(val);
+  };
+
   const { mutate: updateCard } = useUpdateCard(card.id);
   const currentColumn = columns.find((c) =>
     c.cards.some((c2) => c2.id === card.id),
   );
-  const { mutate: deleteCard } = useDeleteCard(card.id, currentColumn!.id);
+  const { mutate: deleteCard } = useDeleteCard(
+    card.id,
+    currentColumn!.id ?? "",
+  );
+
+  // Add this useEffect below your useState hooks
+  useEffect(() => {
+    if (!detailedCard) return;
+
+    if (!isEditingDescRef.current) {
+      setDescValue(detailedCard.description || "");
+    }
+    if (!isEditingTitleRef.current) {
+      setTitleValue(detailedCard.title || "");
+    }
+  }, [detailedCard?.description, detailedCard?.title]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -159,6 +196,8 @@ export function CardDetailModal({
     if (titleValue !== card.title) updateCard({ title: titleValue });
   };
 
+  console.log(detailedCard);
+
   const handleDescSave = () => {
     setIsEditingDesc(false);
     if (descValue !== (card.description || ""))
@@ -177,7 +216,7 @@ export function CardDetailModal({
       >
         {/* DRAWER CONTAINER */}
         <div
-          className="w-full max-w-[800px] h-full bg-[#0E0E14] shadow-2xl flex flex-col border-l border-white/5 animate-in slide-in-from-right duration-200"
+          className="w-full max-w-[860px] h-full bg-[#0E0E14] shadow-2xl flex flex-col border-l border-white/5 animate-in slide-in-from-right duration-200"
           onClick={(e) => e.stopPropagation()}
         >
           {/* ── TOP HEADER (Breadcrumbs & Actions) ── */}
@@ -616,7 +655,9 @@ export function CardDetailModal({
                             if (
                               priority.value !== card.priority?.toLowerCase()
                             ) {
-                              updateCard({ priority: priority.value });
+                              updateCard({
+                                priority: priority.value as CardPriority,
+                              });
                             }
                             setIsPriorityMenuOpen(false);
                           }}
@@ -665,22 +706,42 @@ export function CardDetailModal({
                     Assignees
                   </label>
                   <div className="space-y-2">
-                    <div className="flex items-center gap-3 group cursor-pointer">
-                      <div className="w-6 h-6 rounded-full bg-purple-500 flex items-center justify-center text-[9px] font-bold text-white">
-                        JD
-                      </div>
-                      <span className="text-[13px] font-medium text-white/80 group-hover:text-white">
-                        James Dalton
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-3 group cursor-pointer">
-                      <div className="w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center text-[9px] font-bold text-white">
-                        AM
-                      </div>
-                      <span className="text-[13px] font-medium text-white/80 group-hover:text-white">
-                        Aisha Mensah
-                      </span>
-                    </div>
+                    {detailedCard?.assignees &&
+                      detailedCard.assignees.map((a) => (
+                        <div
+                          key={a.id}
+                          className="flex items-center gap-3 group cursor-pointer"
+                        >
+                          {a.avatarUrl ? (
+                            <div className="w-8 h-8 rounded-full overflow-hidden shrink-0 border border-[#2a2a2a]">
+                              <Image
+                                src={a.avatarUrl}
+                                alt={a.firstName}
+                                width={32}
+                                height={32}
+                                className="object-cover w-full h-full"
+                                unoptimized
+                                referrerPolicy="no-referrer"
+                              />
+                            </div>
+                          ) : (
+                            <div
+                              className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0"
+                              style={{
+                                backgroundColor: getConsistentColor(
+                                  a.id || a.firstName,
+                                ),
+                              }}
+                            >
+                              {`${a.firstName.charAt(0).toUpperCase()}${a.lastName.charAt(0).toUpperCase()}`}
+                            </div>
+                          )}
+                          <span className="text-[13px] font-medium text-white/80 group-hover:text-white">
+                            {`${a.firstName} ${a.lastName}`}
+                          </span>
+                        </div>
+                      ))}
+
                     <button className="flex items-center gap-3 text-white/30 hover:text-white/70 transition-colors pt-1">
                       <div className="w-6 h-6 border border-dashed border-white/20 rounded-full flex items-center justify-center">
                         <Plus size={12} />
@@ -698,16 +759,19 @@ export function CardDetailModal({
                     Labels
                   </label>
                   <div className="flex flex-wrap gap-1.5">
-                    <div className="px-2.5 py-1 rounded-full text-[11px] font-semibold text-cyan-400 bg-cyan-400/10">
-                      Component
-                    </div>
-                    <div className="px-2.5 py-1 rounded-full text-[11px] font-semibold text-purple-400 bg-purple-400/10">
-                      Frontend
-                    </div>
-                    <button className="px-2.5 py-1 rounded-full text-[11px] font-semibold text-white/30 border border-white/10 border-dashed hover:bg-white/5 transition-colors">
-                      + Label
-                    </button>
+                    {detailedCard?.labels &&
+                      detailedCard?.labels.map((l) => (
+                        <div
+                          key={l.id}
+                          className="px-2.5 py-1 rounded-full text-[11px] font-semibold text-cyan-400 bg-cyan-400/10"
+                        >
+                          {l.name}
+                        </div>
+                      ))}
                   </div>
+                  <button className="px-2.5 py-1 rounded-full text-[11px] font-semibold text-white/30 border border-white/10 border-dashed hover:bg-white/5 transition-colors">
+                    + Label
+                  </button>
                 </div>
 
                 {/* Metadata Divider */}
@@ -720,25 +784,41 @@ export function CardDetailModal({
                       Created
                     </label>
                     <div className="text-[12px] text-white/40 font-medium">
-                      Apr 24, 2025 <span className="opacity-50">by</span> Marcus
-                      Reid
+                      {/* Fallback to localCard if detailedCard is still fetching */}
+                      {detailedCard?.createdAt
+                        ? formatDate(detailedCard.createdAt)
+                        : ""}
+                      <span className="opacity-50">by</span>{" "}
+                      {/* Show a mini skeleton or fallback while fetching the name */}
+                      {isCardLoading ? (
+                        <span className="inline-block w-16 h-3 bg-white/10 rounded animate-pulse align-middle" />
+                      ) : (
+                        <span className="text-white/70">
+                          {detailedCard?.createdBy?.firstName}{" "}
+                          {detailedCard?.createdBy?.lastName}
+                        </span>
+                      )}
                     </div>
                   </div>
+
                   <div className="space-y-1">
                     <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">
                       Last Updated
                     </label>
                     <div className="text-[12px] text-white/40 font-medium">
-                      Apr 27, 2025{" "}
-                      <span className="opacity-50">at 1:42 PM</span>
+                      {detailedCard?.updatedAt
+                        ? formatDate(detailedCard.updatedAt)
+                        : ""}
                     </div>
                   </div>
+
                   <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">
+                    <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest ">
                       Card ID
                     </label>
-                    <div className="text-[12px] text-white/30 font-mono">
-                      DS-042
+                    <div className="text-[12px] text-white/30 font-mono mt-2">
+                      {/* We can use localCard for this since we already have the ID! */}
+                      {detailedCard?.id.slice(0, 6).toUpperCase() ?? "-"}
                     </div>
                   </div>
                 </div>
@@ -758,7 +838,7 @@ export function CardDetailModal({
         }}
         card={activeCard}
         columnName={currentColumn?.name || "Unknown"}
-        projectName={project.name}
+        projectName={project?.name ?? ""}
       />
     </Portal>
   );
