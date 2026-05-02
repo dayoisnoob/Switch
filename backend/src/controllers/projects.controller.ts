@@ -30,12 +30,12 @@ export class ProjectController {
   }
 
   static async updateProject(req: AuthenticatedRequest, res: Response) {
-    const projectId = req.params.projectId as string;
+    const projectSlug = req.params.projectSlug as string;
     const workspaceId = req.workspace?.workspaceId as string;
 
     const project = await ProjectService.updateProject(
       workspaceId,
-      projectId,
+      projectSlug,
       req.body
     );
 

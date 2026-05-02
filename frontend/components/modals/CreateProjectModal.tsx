@@ -91,15 +91,13 @@ export default function CreateProjectModal({
     }
   }
 
-  console.log(project);
-
   const iconPickerRef = useRef<HTMLDivElement>(null);
 
   const { data: workspaces, isLoading: workspacesLoading } = useGetWorkspaces();
   const { mutate: createProject, isPending: creatingProject } =
     useCreateProject();
   const { mutate: updateProject, isPending: updatingProject } =
-    useUpdateProject(project!.slug);
+    useUpdateProject();
 
   const isEditMode = !!project;
   // const isPending = creatingProject || updatingProject;
@@ -124,11 +122,16 @@ export default function CreateProjectModal({
     };
 
     if (isEditMode) {
+      const updatePayload = {
+        ...payload,
+        projectId: project.id,
+        workspaceId: activeWorkspace.id,
+        workspaceSlug: activeWorkspace.slug,
+      };
       updateProject(
         {
-          ...payload,
-          projectId: project.id,
-          workspaceId: activeWorkspace.id,
+          projectSlug: project.slug,
+          data: updatePayload,
         },
         {
           onSuccess: () => handleCloseModal(),

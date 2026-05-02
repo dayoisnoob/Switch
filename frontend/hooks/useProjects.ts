@@ -53,12 +53,17 @@ export function useActiveProjectsCount() {
   });
 }
 
-export function useUpdateProject(projectSlug: string) {
+export function useUpdateProject() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (data: CreateProject) =>
-      ProjectService.updateProject(projectSlug, data),
+    mutationFn: async ({
+      projectSlug,
+      data,
+    }: {
+      projectSlug: string;
+      data: CreateProject;
+    }) => ProjectService.updateProject(projectSlug, data),
 
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["project"] });
