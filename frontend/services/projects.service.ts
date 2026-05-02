@@ -23,7 +23,8 @@ export interface CreateProject {
   icon: string;
   name: string;
   description: string;
-  workspaceSlug: string;
+  workspaceSlug?: string;
+  projectId?: string;
   workspaceId: string;
 }
 
@@ -47,5 +48,9 @@ export const ProjectService = {
 
   getActiveProjectsCount: async (): Promise<ProjectCount> => {
     return api.get(`/projects/count`);
+  },
+
+  updateProject: async (data: CreateProject) => {
+    return api.patch(`/projects/${data.projectId}`, data);
   },
 };

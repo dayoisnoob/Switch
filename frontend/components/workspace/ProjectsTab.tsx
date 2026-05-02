@@ -1,20 +1,27 @@
-import { cn, getConsistentColor } from "@/lib/utils";
+"use client";
+
+import { getConsistentColor } from "@/lib/utils";
 import { Project } from "@/services/projects.service";
+import { Workspace } from "@/services/workspace.service";
 import {
   ChevronDown,
+  Edit2,
   Filter,
   LayoutGrid,
   List,
-  MoreVertical,
+  Palette,
   Plus,
   Search,
 } from "lucide-react";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { PROJECT_ICON_MAP } from "../modals/CreateProjectModal";
+import { useState } from "react";
+import CreateProjectModal, {
+  PROJECT_ICON_MAP,
+} from "../modals/CreateProjectModal";
 
 interface ProjectsTab {
   workspaceSlug: string;
+  workspace: Workspace;
   projects: Project[];
   projectsLoading: boolean;
   onOpenProjectModal: () => void;
@@ -22,6 +29,7 @@ interface ProjectsTab {
 
 export const ProjectsTab = ({
   workspaceSlug,
+  workspace,
   projects,
   projectsLoading,
   onOpenProjectModal,
@@ -72,6 +80,7 @@ export const ProjectsTab = ({
               <ProjectCard
                 key={project.id}
                 project={project}
+                workspace={workspace}
                 activeWorkspaceSlug={workspaceSlug}
                 colorHash={getConsistentColor(project.id)}
               />
@@ -115,128 +124,89 @@ export const ProjectsTab = ({
 
 interface ProjectCard {
   project: Project;
+  workspace: Workspace;
   activeWorkspaceSlug: string;
   colorHash: string;
 }
 
-function ProjectCard({ project, activeWorkspaceSlug, colorHash }: ProjectCard) {
+export const ProjectCard = ({
+  project,
+  workspace,
+  activeWorkspaceSlug,
+  colorHash,
+}: ProjectCard) => {
   const router = useRouter();
-  const status = project.status;
-  const totalCards = project.cardsCount || 0;
-  const cardsDone = project.finishedCards || 0;
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+
+  // Check permissions: Adjust this based on your exact user object/role structure
+  const isAdminOrOwner =
+    workspace.role === "Owner" || workspace.role === "Admin";
+
+  const Icon = PROJECT_ICON_MAP[project.icon] || Palette;
   const progressPercent =
-    totalCards > 0 ? Math.round((cardsDone / totalCards) * 100) : 0;
-
-  const Icon = PROJECT_ICON_MAP[project.icon] || "Palette";
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "Active":
-        return "bg-emerald-500/10 text-emerald-400";
-      case "Paused":
-        return "bg-amber-500/10 text-amber-400";
-      case "Planning":
-        return "bg-blue-500/10 text-blue-400";
-      default:
-        return "bg-[#2a2a2a] text-[#a1a1a1]";
-    }
-  };
+    project.cardsCount > 0
+      ? Math.round((project.finishedCards / project.cardsCount) * 100)
+      : 0;
 
   return (
     <div
       onClick={() => router.push(`/${activeWorkspaceSlug}/${project.slug}`)}
-      className="bg-[#1C1C1E] border border-[#2a2a2a] hover:border-[#3f3f46] rounded-xl p-5 transition-all cursor-pointer flex flex-col min-h-55"
+      className="group/card bg-[#1C1C1E] border border-[#2a2a2a] hover:border-[#3f3f46] rounded-2xl p-6 transition-all cursor-pointer flex flex-col min-h-60 relative overflow-hidden"
     >
-      <div className="flex items-start justify-between mb-4">
-        {/* Dynamic Project Icon */}
-        <div className="w-8 h-8 rounded bg-[#252529] flex items-center justify-center text-lg shadow-sm">
+      <div className="flex items-start justify-between mb-5">
+        <div className="w-10 h-10 rounded-xl bg-[#252529] border border-white/5 flex items-center justify-center text-xl shadow-sm">
           <Icon />
         </div>
 
-        <div className="flex items-center gap-2">
-          <span
-            className={cn(
-              "px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider",
-              getStatusColor(status),
-            )}
-          >
-            {status}
+        <div className="flex items-center gap-3">
+          <span className="px-2 py-0.5 rounded-lg text-[10px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/10">
+            {project.status}
           </span>
-          <button className="text-[#a1a1a1] hover:text-white p-1 rounded hover:bg-[#252529] transition-colors">
-            <MoreVertical size={14} />
-          </button>
+
+          {/* Only show pencil if user has permissions */}
+          {isAdminOrOwner && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsEditModalOpen(true);
+              }}
+              className="p-2 rounded-lg bg-white/5 border border-white/10 text-white/20 hover:text-white hover:bg-white/10 opacity-0 group-hover/card:opacity-100 transition-all"
+            >
+              <Edit2 size={14} />
+            </button>
+          )}
         </div>
       </div>
 
-      <div className="mb-auto">
-        <h3 className="text-base font-bold text-white mb-1.5">
+      <div className="flex-1">
+        <h3 className="text-lg font-bold text-white mb-2 leading-tight">
           {project.name}
         </h3>
-        <p className="text-[13px] text-[#a1a1a1] leading-relaxed line-clamp-2">
-          {project.description ||
-            "Manage your team's workflow and coordinate tasks effectively within this project workspace."}
+        <p className="text-[13px] text-white/40 leading-relaxed line-clamp-2">
+          {project.description || "No description provided."}
         </p>
       </div>
 
-      {/* Progress Bar Section */}
-      <div className="mt-6">
-        <div className="h-1 w-full bg-[#2a2a2a] rounded-full overflow-hidden mb-2">
+      <div className="mt-8 space-y-3">
+        <div className="flex items-center justify-between text-[11px] font-bold uppercase tracking-widest text-white/20">
+          <span>Progress</span>
+          <span>{progressPercent}%</span>
+        </div>
+        <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
           <div
-            className="h-full rounded-full transition-all duration-1000"
+            className="h-full rounded-full transition-all duration-1000 ease-out"
             style={{ width: `${progressPercent}%`, backgroundColor: colorHash }}
           />
         </div>
-        <div className="text-[11px] font-medium text-[#a1a1a1]">
-          {progressPercent}% · {cardsDone} of {totalCards} cards done
-        </div>
       </div>
 
-      {/* Bottom Meta Row */}
-      <div className="flex items-center justify-between mt-5 pt-4 border-t border-[#2a2a2a]">
-        <div className="flex items-center gap-3 text-xs font-medium text-[#a1a1a1]">
-          <span className="flex items-center gap-1.5">
-            <LayoutGrid size={14} /> {totalCards} cards
-          </span>
-        </div>
-
-        {/* Mock Overlapping Avatars */}
-        <div className="flex items-center">
-          <div className="flex -space-x-1.5">
-            {project.assignees &&
-              project.assignees.slice(0, 3).map((a, i) =>
-                a.avatarUrl ? (
-                  <div
-                    key={i}
-                    className="w-6 h-6 rounded-full border-2 border-[#1C1C1E] bg-emerald-500 flex items-center justify-center text-[9px] font-bold text-white z-10 overflow-hidden relative shrink-0"
-                  >
-                    <Image
-                      src={a.avatarUrl}
-                      alt={a.firstName || "User avatar"}
-                      width={24}
-                      height={24}
-                      className="object-cover w-full h-full"
-                      unoptimized
-                      referrerPolicy="no-referrer"
-                    />
-                  </div>
-                ) : (
-                  <div
-                    key={i}
-                    className="w-6 h-6 rounded-full border-2 border-[#1C1C1E] bg-emerald-500 flex items-center justify-center text-[9px] font-bold text-white z-10 shrink-0"
-                  >
-                    {a.firstName ? a.firstName.charAt(0).toUpperCase() : "U"}
-                  </div>
-                ),
-              )}
-
-            {project.assignees && project.assignees.length > 3 && (
-              <div className="w-6 h-6 rounded-full border-2 border-[#1C1C1E] bg-[#2a2a2a] flex items-center justify-center text-[9px] font-bold text-white z-0 shrink-0">
-                +{project.assignees.length - 3}
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
+      {isAdminOrOwner && (
+        <CreateProjectModal
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          project={project}
+        />
+      )}
     </div>
   );
-}
+};

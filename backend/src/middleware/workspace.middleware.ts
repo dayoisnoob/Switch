@@ -35,7 +35,7 @@ export const requireWorkspaceMember = asyncHandler(
 
       if (!workspace) throw new ApiError(404, 'Workspace not found.');
       workspaceId = workspace.id;
-    } else if (req.params.projectSlug) {
+    } else if (req.params.projectId) {
       const [project] = await db
         .select({
           id: projectsTable.id,
@@ -43,7 +43,7 @@ export const requireWorkspaceMember = asyncHandler(
           name: projectsTable.name,
         })
         .from(projectsTable)
-        .where(eq(projectsTable.slug, req.params.projectSlug as string))
+        .where(eq(projectsTable.id, req.params.projectId as string))
         .limit(1);
 
       if (!project) throw new ApiError(404, 'Project not found.');

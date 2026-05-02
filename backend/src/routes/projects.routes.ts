@@ -40,7 +40,7 @@ router.get(
 );
 
 router.get(
-  '/:projectSlug',
+  '/:projectId',
   authenticate,
   validateUrlParams(paramsSchema),
   requireWorkspaceMember,

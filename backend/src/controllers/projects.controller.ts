@@ -45,12 +45,10 @@ export class ProjectController {
     const projectId = req.params.projectId as string;
     const workspaceId = req.workspace?.workspaceId as string;
 
-    const { name, description } = req.body;
     const project = await ProjectService.updateProject(
       workspaceId,
       projectId,
-      name,
-      description
+      req.body
     );
 
     res.json(new ApiResponse(200, 'Project updated successfully', project));

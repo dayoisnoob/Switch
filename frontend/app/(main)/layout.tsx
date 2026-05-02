@@ -30,6 +30,7 @@ export default function MainLayout({ children }: { children: ReactNode }) {
   const router = useRouter();
   const params = useParams();
   const workspaceSlug = params?.workspaceSlug as string;
+  const projectSlug = params?.projectSlug as string;
 
   const [isAddWorkspaceOpen, setIsAddWorkspaceOpen] = useState(false);
   const [isSwitcherOpen, setIsSwitcherOpen] = useState(false);
@@ -405,8 +406,15 @@ export default function MainLayout({ children }: { children: ReactNode }) {
         </header>
 
         {/* Content Area */}
-        <main className="flex-1 overflow-y-auto custom-scrollbar bg-[#0A0A0A] transition-all duration-700 ease-in-out">
-          <div className="max-w-6xl mx-auto w-full p-10">{children}</div>
+        <main className="flex-1 overflow-y-auto custom-scrollbar bg-[#0A0A0A] transition-all duration-700 ease-in-out flex flex-col">
+          <div
+            className={cn(
+              "w-full flex-1 flex flex-col",
+              !projectSlug && "max-w-6xl mx-auto p-10",
+            )}
+          >
+            {children}
+          </div>
         </main>
       </div>
 

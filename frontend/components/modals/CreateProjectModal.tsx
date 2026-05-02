@@ -1,8 +1,9 @@
 "use client";
 import { Portal } from "@/components/ui/Portal";
 
-import { useCreateProject } from "@/hooks/useProjects";
+import { useCreateProject, useUpdateProject } from "@/hooks/useProjects";
 import { useGetWorkspaces } from "@/hooks/useWorkspace";
+import { Project } from "@/services/projects.service";
 import {
   AlignLeft,
   BarChart3,
@@ -62,49 +63,97 @@ export const PROJECT_ICON_MAP: Record<string, LucideIcon> = {
 export default function CreateProjectModal({
   isOpen,
   onClose,
+  project,
 }: {
   isOpen: boolean;
   onClose: () => void;
+  project?: Project; // Use the actual project object
 }) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [icon, setIcon] = useState("Palette");
   const [showIconPicker, setShowIconPicker] = useState(false);
-
-  const iconPickerRef = useRef<HTMLDivElement>(null);
-
-  const { data: workspaces, isLoading: workspacesLoading } = useGetWorkspaces();
   const [manualWorkspaceId, setManualWorkspaceId] = useState<string | null>(
     null,
   );
 
-  const activeWorkspaceId = manualWorkspaceId ?? (workspaces?.[0]?.id || "");
+  const [prevProjectId, setPrevProjectId] = useState(project?.id);
+  const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
+
+  if (project?.id !== prevProjectId || isOpen !== prevIsOpen) {
+    setPrevProjectId(project?.id);
+    setPrevIsOpen(isOpen);
+
+    // Only populate or reset the form data when the modal is actually opening
+    if (isOpen) {
+      setName(project?.name || "");
+      setDescription(project?.description || "");
+      setIcon(project?.icon || "Palette");
+    }
+  }
+
+  const iconPickerRef = useRef<HTMLDivElement>(null);
+
+  const { data: workspaces, isLoading: workspacesLoading } = useGetWorkspaces();
+  const { mutate: createProject, isPending: creatingProject } =
+    useCreateProject();
+  const { mutate: updateProject, isPending: updatingProject } =
+    useUpdateProject();
+
+  const isEditMode = !!project;
+  // const isPending = creatingProject || updatingProject;
+
+  const activeWorkspaceId =
+    manualWorkspaceId ?? (project?.workspaceId || workspaces?.[0]?.id || "");
   const activeWorkspace =
     workspaces?.find((w) => w.id === activeWorkspaceId) || null;
 
-  const { mutate: createProject, isPending: creatingProject } =
-    useCreateProject();
   const selectedIcon =
     PROJECT_ICONS.find((item) => item.value === icon) || PROJECT_ICONS[0];
-
   const CurrentIcon = selectedIcon.Icon;
 
+  // 2. TREAT BOTH SUBMITS
   const handleSubmit = () => {
     if (!name || !activeWorkspace || !icon) return;
 
-    createProject({
+    const payload = {
       name,
       description,
       icon,
-      workspaceId: activeWorkspace.id,
-      workspaceSlug: activeWorkspace.slug,
-    });
+    };
+
+    if (isEditMode) {
+      updateProject(
+        {
+          ...payload,
+          projectId: project.id,
+          workspaceId: activeWorkspace.id,
+        },
+        {
+          onSuccess: () => handleCloseModal(),
+        },
+      );
+    } else {
+      createProject(
+        {
+          ...payload,
+          workspaceId: activeWorkspace.id,
+          workspaceSlug: activeWorkspace.slug,
+        },
+        {
+          onSuccess: () => handleCloseModal(),
+        },
+      );
+    }
   };
 
   const handleCloseModal = () => {
     onClose();
-    setName("");
-    setDescription("");
+    if (!isEditMode) {
+      setName("");
+      setDescription("");
+      setIcon("Palette");
+    }
     setShowIconPicker(false);
   };
 
@@ -114,7 +163,10 @@ export default function CreateProjectModal({
     <Portal>
       <div
         className="fixed inset-0 z-50 flex items-center justify-center bg-[#000000]/80 backdrop-blur-sm px-4 animate-in fade-in duration-200"
-        onClick={handleCloseModal}
+        onClick={(e) => {
+          e.stopPropagation();
+          handleCloseModal();
+        }}
       >
         {/* Modal Container */}
         <div
@@ -135,12 +187,16 @@ export default function CreateProjectModal({
                 <AlignLeft size={18} strokeWidth={1.5} />
               </div>
 
-              <h1 className="heading-md mb-1.5 text-primary">New project</h1>
+              <h1 className="heading-md mb-1.5 text-primary">
+                {project ? "EditProject" : "New Project"}
+              </h1>
 
-              <p className="text-sm leading-relaxed text-secondary pr-6">
-                Projects contain boards, columns, and cards for your team&apos;s
-                work.
-              </p>
+              {!project && (
+                <p className="text-sm leading-relaxed text-secondary pr-6">
+                  Projects contain boards, columns, and cards for your
+                  team&apos;s work.
+                </p>
+              )}
             </div>
 
             <div className="space-y-5">
@@ -275,11 +331,21 @@ export default function CreateProjectModal({
 
             <button
               onClick={handleSubmit}
-              disabled={!name.trim() || creatingProject || workspacesLoading}
+              disabled={
+                !name.trim() ||
+                creatingProject ||
+                workspacesLoading ||
+                updatingProject
+              }
               className="btn-primary flex h-9 items-center gap-2 px-4 text-sm font-semibold focus-ring disabled:cursor-not-allowed disabled:opacity-50"
             >
-              <Plus size={14} strokeWidth={2} />
-              Create project
+              {project ? (
+                <Check size={14} strokeWidth={2} />
+              ) : (
+                <Plus size={14} strokeWidth={2} />
+              )}
+
+              {project ? "Save changes" : "Create project"}
             </button>
           </div>
         </div>

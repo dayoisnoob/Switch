@@ -196,9 +196,9 @@ export class ProjectService {
   static async updateProject(
     workspaceId: string,
     slug: string,
-    name: string,
-    description: string
+    data: ProjectInput
   ) {
+    const { name, description, icon, workspaceId: toWorkspaceId } = data;
     const project = await ProjectService.verifyProject(workspaceId, slug);
 
     const [updatedProject] = await db
@@ -206,6 +206,8 @@ export class ProjectService {
       .set({
         ...(name && { name }),
         ...(description && { description }),
+        ...(icon && { icon }),
+        ...(workspaceId && { workspaceId: toWorkspaceId }),
       })
       .where(eq(projectsTable.id, project.id))
       .returning();
@@ -230,7 +232,7 @@ export class ProjectService {
     return deletedProject;
   }
 
-  private static async verifyProject(workspaceId: string, slug: string) {
+  private static async verifyProject(workspaceId: string, id: string) {
     const [project] = await db
       .select({
         id: projectsTable.id,
@@ -245,7 +247,7 @@ export class ProjectService {
       .innerJoin(boardsTable, eq(projectsTable.id, boardsTable.projectId))
       .where(
         and(
-          eq(projectsTable.slug, slug),
+          eq(projectsTable.id, id),
           eq(projectsTable.workspaceId, workspaceId)
         )
       )

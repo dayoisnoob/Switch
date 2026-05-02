@@ -49,3 +49,22 @@ export function useActiveProjectsCount() {
     staleTime: 1000 * 60 * 5,
   });
 }
+
+export function useUpdateProject() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (data: CreateProject) =>
+      ProjectService.updateProject(data),
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["project"] });
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
+    },
+
+    onError: (err) => {
+      const message = getErrorMessage(err);
+      toast.error(message);
+    },
+  });
+}

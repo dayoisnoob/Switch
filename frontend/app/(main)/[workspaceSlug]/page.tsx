@@ -126,6 +126,7 @@ export default function WorkspacePage() {
           // Show the populated grid if they have projects
           <ProjectsTab
             workspaceSlug={activeWorkspace.slug}
+            workspace={activeWorkspace}
             projects={projects}
             projectsLoading={projectsLoading}
             onOpenProjectModal={() => setIsProjectModalOpen(true)}
