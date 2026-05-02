@@ -2,37 +2,46 @@
 
 import { cn } from "@/lib/utils";
 import { Portal } from "@/components/ui/Portal";
+import { CreateCard } from "@/services/card.service";
+import { WorkspaceMembers } from "@/services/workspace.service";
 import { ChevronDown, Plus, X } from "lucide-react";
+import Image from "next/image";
 import { useState } from "react";
 
-// Mock Data for Assignees to match your screenshot
-const MOCK_ASSIGNEES = [
-  {
-    id: "d093f52f-6f7e-4ad3-80c4-bf4c9e2c37cc",
-    name: "James Dalton",
-    email: "james@acme.io",
-    initials: "JD",
-    color: "bg-purple-500",
-  },
-];
+export type AddCardFormData = Omit<CreateCard, "status" | "dueDate"> & {
+  dueDate: string;
+  column: string;
+};
+
+function getInitials(member: WorkspaceMembers) {
+  const first = member.firstName?.[0] ?? "";
+  const last = member.lastName?.[0] ?? "";
+  return (
+    `${first}${last}`.toUpperCase() || member.email?.[0]?.toUpperCase() || "?"
+  );
+}
 
 export default function AddCardModal({
   isOpen,
   onClose,
   columnName = "In Progress",
   projectName = "Design System",
+  workspaceMembers = [],
+  membersLoading = false,
   onAdd,
 }: {
   isOpen: boolean;
   onClose: () => void;
   columnName?: string;
   projectName?: string;
-  onAdd: (data: any) => void;
+  workspaceMembers?: WorkspaceMembers[];
+  membersLoading?: boolean;
+  onAdd: (data: AddCardFormData) => void;
 }) {
   const [formData, setFormData] = useState({
     title: "",
     description: "",
-    priority: "Medium",
+    priority: "medium" as AddCardFormData["priority"],
     dueDate: "",
     assignees: [] as string[],
     column: columnName,
@@ -126,9 +135,12 @@ export default function AddCardModal({
                 <div className="relative">
                   {/* FIX: Added [color-scheme:dark] and styled options */}
                   <select
-                    value={formData.priority}
+                    defaultValue={formData.priority}
                     onChange={(e) =>
-                      setFormData({ ...formData, priority: e.target.value })
+                      setFormData({
+                        ...formData,
+                        priority: e.target.value as AddCardFormData["priority"],
+                      })
                     }
                     className="w-full bg-white/[0.03] border border-white/[0.08] rounded-[10px] px-3.5 py-2.5 text-[13px] text-white appearance-none outline-none focus:border-[#7C6EF5]/50 [color-scheme:dark] [&>option]:bg-[#0D0D12]"
                   >
@@ -168,39 +180,61 @@ export default function AddCardModal({
                 Assignees
               </label>
               <div className="space-y-0.5">
-                {MOCK_ASSIGNEES.map((user) => (
-                  <div
-                    key={user.id}
-                    onClick={() => toggleAssignee(user.id)}
-                    className="flex items-center justify-between p-1.5 rounded-[10px] hover:bg-white/[0.03] cursor-pointer group transition-colors"
-                  >
-                    <div className="flex items-center gap-2.5">
+                {membersLoading ? (
+                  <div className="flex items-center justify-center py-5">
+                    <div className="w-4 h-4 border-2 border-[#7C6EF5]/30 border-t-[#7C6EF5] rounded-full animate-spin" />
+                  </div>
+                ) : workspaceMembers.length > 0 ? (
+                  workspaceMembers.map((member) => (
+                    <div
+                      key={member.id}
+                      onClick={() => toggleAssignee(member.userId)}
+                      className="flex items-center justify-between p-1.5 rounded-[10px] hover:bg-white/[0.03] cursor-pointer group transition-colors"
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        {member.avatarUrl ? (
+                          <Image
+                            src={member.avatarUrl}
+                            alt={`${member.firstName} ${member.lastName}`}
+                            width={28}
+                            height={28}
+                            className="w-7 h-7 rounded-full object-cover border border-white/10 shrink-0"
+                            unoptimized
+                            referrerPolicy="no-referrer"
+                          />
+                        ) : (
+                          <div className="w-7 h-7 rounded-full bg-[#7C6EF5]/20 border border-white/10 flex items-center justify-center text-[9px] font-bold text-[#B8B0FF] shrink-0">
+                            {getInitials(member)}
+                          </div>
+                        )}
+                        <div className="flex flex-col min-w-0">
+                          <span className="text-[12px] font-medium text-white/90 truncate">
+                            {member.firstName} {member.lastName}
+                          </span>
+                          <span className="text-[10px] text-white/30 truncate">
+                            {member.email}
+                          </span>
+                        </div>
+                      </div>
                       <div
                         className={cn(
-                          "w-7 h-7 rounded-full flex items-center justify-center text-[9px] font-bold text-white",
-                          user.color,
+                          "w-4 h-4 rounded border transition-all flex items-center justify-center mr-1 shrink-0",
+                          formData.assignees.includes(member.userId)
+                            ? "bg-[#7C6EF5] border-[#7C6EF5]"
+                            : "border-white/10 bg-transparent group-hover:border-white/20",
                         )}
                       >
-                        {user.initials}
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="text-[12px] font-medium text-white/90">
-                          {user.name}
-                        </span>
+                        {formData.assignees.includes(member.userId) && (
+                          <CheckIcon />
+                        )}
                       </div>
                     </div>
-                    <div
-                      className={cn(
-                        "w-4 h-4 rounded border transition-all flex items-center justify-center mr-1",
-                        formData.assignees.includes(user.id)
-                          ? "bg-[#7C6EF5] border-[#7C6EF5]"
-                          : "border-white/10 bg-transparent group-hover:border-white/20",
-                      )}
-                    >
-                      {formData.assignees.includes(user.id) && <CheckIcon />}
-                    </div>
+                  ))
+                ) : (
+                  <div className="px-2 py-4 text-center text-[12px] text-white/30">
+                    No workspace members found.
                   </div>
-                ))}
+                )}
               </div>
             </div>
           </div>
@@ -228,7 +262,6 @@ export default function AddCardModal({
   );
 }
 
-// Small Check Helper
 function CheckIcon() {
   return (
     <svg

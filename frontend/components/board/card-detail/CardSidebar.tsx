@@ -50,8 +50,6 @@ export function CardSidebar({
   const dateInputRef = useRef<HTMLInputElement>(null);
   const assigneeRef = useRef<HTMLDivElement>(null);
 
-  const workspaceMembers = useWorkspaceStore((s) => s.workspaceMembers);
-  const membersLoading = useWorkspaceStore((s) => s.membersLoading);
   useClickOutside(assigneeRef, () => setAssigneeDropdownOpen(false));
 
   const { mutate: moveCard } = useMoveCard();
@@ -60,7 +58,6 @@ export function CardSidebar({
   const { mutate: createAndAttachLabel } = useCreateLabel(card, workspaceSlug);
   const { mutate: toggleLabel } = useToggleLabel(card);
   const { mutate: toggleAssignee } = useToggleAssignee(card);
-  const { mutate: updateCard } = useUpdateCard(card.id);
 
   const handlePriorityChange = (val: string) => {
     const priority = val as PriorityEnum;

@@ -1,6 +1,6 @@
 "use client";
 
-import { cn, formatDate, formatDateShort, getErrorMessage } from "@/lib/utils";
+import { cn, formatDateShort, getErrorMessage } from "@/lib/utils";
 import {
   Activity,
   ArrowLeft,
@@ -26,9 +26,10 @@ import {
   DragOverlay,
   DragStartEvent,
   KeyboardSensor,
+  MeasuringStrategy,
   MouseSensor,
   TouchSensor,
-  closestCorners,
+  closestCenter,
   defaultDropAnimationSideEffects,
   rectIntersection,
   useSensor,
@@ -44,8 +45,11 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
+import AddCardModal, {
+  AddCardFormData,
+} from "@/components/modals/AddCardModal"; // Make sure this path is correct
 import CreateColumnModal from "@/components/modals/CreateColumnModal";
-import AddCardModal from "@/components/modals/AddCardModal"; // Make sure this path is correct
+import { formatAvatarUrls } from "@/components/workspace/WorkspaceCard";
 import { useCreateCard, useMoveCard } from "@/hooks/useCards";
 import {
   useDeleteColumn,
@@ -53,15 +57,11 @@ import {
   useRenameColumn,
 } from "@/hooks/useColumns";
 import { useGetProjectBySlug } from "@/hooks/useProjects";
+import { useGetMembers } from "@/hooks/useWorkspace";
+import { WorkspaceMembers } from "@/services/workspace.service";
 import { useBoardStore } from "@/store/board.store";
 import { BoardCard, BoardColumn } from "@/types/board.types";
 import { toast } from "sonner";
-import { CreateCard } from "@/services/card.service";
-import { formatAvatarUrls } from "@/components/workspace/WorkspaceCard";
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
 
 function findColumnInSnapshot(
   id: string,
@@ -82,7 +82,7 @@ const collisionDetection: CollisionDetection = (args) => {
       ),
     });
   }
-  return closestCorners(args);
+  return closestCenter(args);
 };
 
 const getColumnColor = (name: string) => {
@@ -110,10 +110,6 @@ const getPriorityStyles = (priority: string) => {
   }
 };
 
-// ---------------------------------------------------------------------------
-// Page
-// ---------------------------------------------------------------------------
-
 export default function KanbanBoardPage() {
   const { workspaceSlug, projectSlug } = useParams() as {
     workspaceSlug: string;
@@ -124,6 +120,8 @@ export default function KanbanBoardPage() {
 
   const { data: project } = useGetProjectBySlug(workspaceSlug, projectSlug);
   const { isLoading: isBoardLoading } = useBoard(projectSlug, workspaceSlug);
+  const { data: workspaceMembers = [], isLoading: membersLoading } =
+    useGetMembers(workspaceSlug);
 
   const board = useBoardStore((s) => s.board);
 
@@ -165,24 +163,24 @@ export default function KanbanBoardPage() {
   const sourceColumnIdRef = useRef<string | null>(null);
   const targetColumnIdRef = useRef<string | null>(null);
   const lastOverKeyRef = useRef<string | null>(null);
+  const dragOverFrameRef = useRef<number | null>(null);
+  const pendingDragOverRef = useRef<DragOverEvent | null>(null);
+  const dragStartColumnsRef = useRef<BoardColumn[] | null>(null);
 
-  const handleDragStart = useCallback(
-    (event: DragStartEvent) => {
-      const { active } = event;
-      const type = active.data.current?.type;
+  const resetCardDragRefs = useCallback(() => {
+    sourceColumnIdRef.current = null;
+    targetColumnIdRef.current = null;
+    dragStartColumnsRef.current = null;
+  }, []);
 
-      if (type === "Column") {
-        setActiveDragColumn(active.data.current?.column ?? null);
-      } else if (type === "Card") {
-        setActiveDragCard(active.data.current?.card ?? null);
-        const sourceCol = findColumnInSnapshot(active.id as string, columns);
-        sourceColumnIdRef.current = sourceCol?.id ?? null;
-      }
-    },
-    [columns],
-  );
+  const restoreCardDragSnapshot = useCallback(() => {
+    if (dragStartColumnsRef.current) {
+      setColumns(dragStartColumnsRef.current);
+    }
+    resetCardDragRefs();
+  }, [resetCardDragRefs]);
 
-  const handleDragOver = useCallback((event: DragOverEvent) => {
+  const applyDragOver = useCallback((event: DragOverEvent) => {
     const { active, over } = event;
     if (!over) return;
 
@@ -207,6 +205,8 @@ export default function KanbanBoardPage() {
       targetColumnIdRef.current = overCol.id;
 
       const activeIndex = activeCol.cards.findIndex((c) => c.id === activeId);
+      if (activeIndex === -1) return prev;
+
       const overIndex = overCol.cards.findIndex((c) => c.id === overId);
       const isOverColumn = over.data.current?.type === "Column";
 
@@ -240,17 +240,71 @@ export default function KanbanBoardPage() {
     });
   }, []);
 
+  useEffect(() => {
+    return () => {
+      if (dragOverFrameRef.current !== null) {
+        cancelAnimationFrame(dragOverFrameRef.current);
+      }
+    };
+  }, []);
+
+  const handleDragStart = useCallback(
+    (event: DragStartEvent) => {
+      const { active } = event;
+      const type = active.data.current?.type;
+
+      if (type === "Column") {
+        setActiveDragColumn(active.data.current?.column ?? null);
+      } else if (type === "Card") {
+        setActiveDragCard(active.data.current?.card ?? null);
+        const sourceCol = findColumnInSnapshot(active.id as string, columns);
+        sourceColumnIdRef.current = sourceCol?.id ?? null;
+        dragStartColumnsRef.current = columns;
+      }
+    },
+    [columns],
+  );
+
+  const handleDragOver = useCallback(
+    (event: DragOverEvent) => {
+      pendingDragOverRef.current = event;
+
+      if (dragOverFrameRef.current !== null) return;
+
+      dragOverFrameRef.current = requestAnimationFrame(() => {
+        dragOverFrameRef.current = null;
+        const pendingEvent = pendingDragOverRef.current;
+        pendingDragOverRef.current = null;
+
+        if (pendingEvent) applyDragOver(pendingEvent);
+      });
+    },
+    [applyDragOver],
+  );
+
   const handleDragEnd = useCallback(
     (event: DragEndEvent) => {
       setActiveDragColumn(null);
       setActiveDragCard(null);
+      pendingDragOverRef.current = null;
+      if (dragOverFrameRef.current !== null) {
+        cancelAnimationFrame(dragOverFrameRef.current);
+        dragOverFrameRef.current = null;
+      }
       lastOverKeyRef.current = null;
 
       const { active, over } = event;
-      if (!over) return;
+      if (!over) {
+        restoreCardDragSnapshot();
+        return;
+      }
 
       const activeId = active.id as string;
       const overId = over.id as string;
+
+      if (active.data.current?.type === "Column") {
+        dragStartColumnsRef.current = null;
+      }
 
       const isCrossColumn =
         sourceColumnIdRef.current !== null &&
@@ -282,14 +336,16 @@ export default function KanbanBoardPage() {
 
       const activeCol = findColumnInSnapshot(activeId, columns);
       const overCol = findColumnInSnapshot(overId, columns);
-      if (!activeCol || !overCol) return;
+      if (!activeCol || !overCol) {
+        restoreCardDragSnapshot();
+        return;
+      }
 
       const fromIndex = activeCol.cards.findIndex((c) => c.id === activeId);
       const toIndex = overCol.cards.findIndex((c) => c.id === overId);
 
       if (fromIndex === toIndex && !isCrossColumn) {
-        sourceColumnIdRef.current = null;
-        targetColumnIdRef.current = null;
+        resetCardDragRefs();
         return;
       }
 
@@ -310,8 +366,7 @@ export default function KanbanBoardPage() {
 
       setColumns(reorderedCols);
 
-      sourceColumnIdRef.current = null;
-      targetColumnIdRef.current = null;
+      resetCardDragRefs();
 
       isMutatingRef.current = true;
       moveCard(
@@ -331,26 +386,26 @@ export default function KanbanBoardPage() {
         },
       );
     },
-    [columns, moveCard, moveColumn],
+    [columns, moveCard, moveColumn, resetCardDragRefs, restoreCardDragSnapshot],
   );
 
   const columnIds = useMemo(() => columns.map((c) => c.id), [columns]);
 
   return (
-    <div className="h-full flex flex-col bg-[#0E0E14]">
+    <div className="h-full min-h-0 flex flex-col bg-[#0E0E14]">
       <header className="px-8 h-16 border-b border-white/5 flex items-center justify-between bg-[#0A0A0A]/80 backdrop-blur-md shrink-0 z-10">
         <h1 className="text-lg font-bold text-white/90 tracking-tight">
           {project?.name || "Board"}
         </h1>
       </header>
 
-      <main className="flex-1 overflow-auto custom-scrollbar p-6">
+      <main className="flex-1 min-h-0 overflow-x-auto overflow-y-hidden custom-scrollbar p-6">
         {isBoardLoading ? (
-          <div className="flex gap-6 h-full">
+          <div className="flex gap-6 items-start">
             {[1, 2, 3].map((i) => (
               <div
                 key={i}
-                className="w-85 h-125 bg-white/2 border border-white/5 rounded-2xl animate-pulse"
+                className="w-85 h-105 bg-white/2 border border-white/5 rounded-2xl animate-pulse"
               />
             ))}
           </div>
@@ -361,12 +416,17 @@ export default function KanbanBoardPage() {
             onDragStart={handleDragStart}
             onDragOver={handleDragOver}
             onDragEnd={handleDragEnd}
+            measuring={{
+              droppable: {
+                strategy: MeasuringStrategy.Always,
+              },
+            }}
           >
             <SortableContext
               items={columnIds}
               strategy={horizontalListSortingStrategy}
             >
-              <div className="flex gap-6 items-start w-max min-h-full pb-8">
+              <div className="flex gap-6 items-start w-max min-h-0 pb-2">
                 {columns.map((column) => (
                   <SortableColumn
                     key={column.id}
@@ -374,14 +434,16 @@ export default function KanbanBoardPage() {
                     setColumns={setColumns}
                     workspaceSlug={workspaceSlug}
                     projectSlug={projectSlug}
-                    projectName={project?.name} // Passed down for the modal
+                    projectName={project?.name}
                     router={router}
+                    workspaceMembers={workspaceMembers}
+                    membersLoading={membersLoading}
                   />
                 ))}
 
                 <button
                   onClick={() => setIsColumnModalOpen(true)}
-                  className="flex items-center justify-center gap-2 w-85 shrink-0 h-15 rounded-2xl border border-dashed border-white/10 bg-white/1 text-white/40 font-medium hover:text-white/80 hover:bg-white/3 hover:border-white/20 transition-all group"
+                  className="self-start flex items-center justify-center gap-2 w-85 shrink-0 h-15 rounded-2xl border border-dashed border-white/10 bg-white/1 text-white/40 font-medium hover:text-white/80 hover:bg-white/3 hover:border-white/20 transition-all group"
                 >
                   <Plus
                     size={16}
@@ -421,24 +483,24 @@ export default function KanbanBoardPage() {
   );
 }
 
-// ---------------------------------------------------------------------------
-// SortableColumn
-// ---------------------------------------------------------------------------
-
-function SortableColumn({
+const SortableColumn = memo(function SortableColumn({
   column,
   setColumns,
   workspaceSlug,
   projectSlug,
   projectName,
   router,
+  workspaceMembers,
+  membersLoading,
 }: {
   column: BoardColumn;
   setColumns: React.Dispatch<React.SetStateAction<BoardColumn[]>>;
   workspaceSlug: string;
   projectSlug: string;
   projectName?: string;
-  router: any;
+  router: ReturnType<typeof useRouter>;
+  workspaceMembers: WorkspaceMembers[];
+  membersLoading: boolean;
 }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -518,17 +580,16 @@ function SortableColumn({
     }
   };
 
-  const handleAddCard = async (data: CreateCard) => {
+  const handleAddCard = async (data: AddCardFormData) => {
     console.log(data);
     await createCard({
       title: data.title,
       description: data.description,
       priority: data.priority,
       status: column.mappedStatus,
-      dueDate: data.dueDate,
+      dueDate: data.dueDate ? new Date(data.dueDate) : undefined,
       assignees: data.assignees,
     });
-    console.log("sent");
 
     setIsAddModalOpen(false);
   };
@@ -538,13 +599,13 @@ function SortableColumn({
     <div
       ref={setNodeRef}
       style={style}
-      className="flex flex-col h-max w-85 shrink-0 bg-[#0E0E14] border border-white/5 rounded-2xl overflow-hidden shadow-sm"
+      className="flex max-h-[min(680px,calc(100dvh-180px))] min-h-33 flex-col w-85 shrink-0 bg-[#111119] border border-white/5 rounded-2xl overflow-hidden shadow-sm"
     >
-      {/* COLUMN HEADER */}
+      {/* COLUMN HEADER (Stays pinned to top) */}
       <div
         {...attributes}
         {...listeners}
-        className="p-4 flex items-center justify-between border-b border-white/4 cursor-grab active:cursor-grabbing hover:bg-white/2 transition-colors group"
+        className="p-4 flex items-center justify-between border-b border-white/4 cursor-grab active:cursor-grabbing hover:bg-white/2 transition-colors group shrink-0"
       >
         <div className="flex items-center gap-2.5 flex-1 min-w-0 mr-2">
           {isEditing ? (
@@ -659,8 +720,7 @@ function SortableColumn({
         </div>
       </div>
 
-      {/* COLUMN CONTENT */}
-      <div className="flex-1 min-h-25">
+      <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar">
         {column.cards.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-10 px-4 text-center">
             <div className="w-10 h-10 rounded-xl border border-dashed border-white/20 flex items-center justify-center mb-3 bg-white/1">
@@ -676,7 +736,7 @@ function SortableColumn({
             items={column.cards.map((c) => c.id)}
             strategy={verticalListSortingStrategy}
           >
-            <div className="flex flex-col gap-3 p-3">
+            <div className="flex flex-col gap-3 p-3 pb-4">
               {column.cards.map((card) => (
                 <SortableCard
                   key={card.id}
@@ -691,8 +751,8 @@ function SortableColumn({
         )}
       </div>
 
-      {/* COLUMN FOOTER / NEW ADD CARD BUTTON */}
-      <div className="p-3 border-t border-white/4">
+      {/* COLUMN FOOTER / NEW ADD CARD BUTTON (Stays pinned to bottom) */}
+      <div className="p-3 border-t border-white/4 shrink-0">
         <button
           onPointerDown={(e) => e.stopPropagation()}
           onClick={() => setIsAddModalOpen(true)}
@@ -706,16 +766,14 @@ function SortableColumn({
           onClose={() => setIsAddModalOpen(false)}
           columnName={column.name}
           projectName={projectName}
+          workspaceMembers={workspaceMembers}
+          membersLoading={membersLoading}
           onAdd={handleAddCard}
         />
       </div>
     </div>
   );
-}
-
-// ---------------------------------------------------------------------------
-// ColumnContent (Drag Overlay specific to new styling)
-// ---------------------------------------------------------------------------
+});
 
 function ColumnContent({
   column,
@@ -728,13 +786,13 @@ function ColumnContent({
   return (
     <div
       className={cn(
-        "flex flex-col h-max w-85 shrink-0 bg-[#16161D] rounded-[20px] overflow-hidden",
+        "flex flex-col h-max w-85 shrink-0 bg-[#16161D] rounded-2xl overflow-hidden",
         isDragging
           ? "border border-[#7C6EF5]/50 shadow-[0_0_30px_rgba(124,110,245,0.15)] scale-[1.02] opacity-90"
           : "border border-white/5",
       )}
     >
-      <div className="p-4 flex items-center justify-between border-b border-white/[0.04] bg-white/[0.02]">
+      <div className="p-4 flex items-center justify-between border-b border-white/4 bg-white/2">
         <div className="flex items-center gap-2.5">
           <div className={cn("w-2 h-2 rounded-full", dotColor)} />
           <h3 className="text-[14px] font-bold text-white/90">{column.name}</h3>
@@ -749,10 +807,6 @@ function ColumnContent({
     </div>
   );
 }
-
-// ---------------------------------------------------------------------------
-// SortableCard (Unchanged wrapper)
-// ---------------------------------------------------------------------------
 
 const SortableCard = memo(function SortableCard({
   card,
@@ -774,6 +828,7 @@ const SortableCard = memo(function SortableCard({
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.3 : 1,
+    filter: isDragging ? "grayscale(1)" : "none",
   };
 
   return (
@@ -788,10 +843,6 @@ const SortableCard = memo(function SortableCard({
     </div>
   );
 });
-
-// ---------------------------------------------------------------------------
-// CardContent (Premium Styling)
-// ---------------------------------------------------------------------------
 
 const CardContent = memo(function CardContent({
   card,
@@ -851,10 +902,12 @@ const CardContent = memo(function CardContent({
 
       <div className="flex items-center justify-between mt-auto pt-1">
         <div className="flex items-center gap-3.5 text-[11px] font-medium text-white/40">
-          <div className={cn("flex items-center gap-1.5")}>
-            <Clock size={12} className="opacity-80" />
-            {formatDateShort(card.dueDate as string)}
-          </div>
+          {card.dueDate && (
+            <div className={cn("flex items-center gap-1.5")}>
+              <Clock size={12} className="opacity-80" />
+              {formatDateShort(card.dueDate as string)}
+            </div>
+          )}
 
           {card.commentCount !== 0 && (
             <div className="flex items-center gap-1.5 hover:text-white/70 transition-colors">

@@ -5,7 +5,10 @@ export const createCardSchema = z.object({
   status: z.enum(['BACKLOG', 'TODO', 'IN_PROGRESS', 'DONE', 'CANCELED']),
   description: z.string().trim().optional(),
   priority: z.enum(['none', 'low', 'medium', 'high', 'urgent']).optional(),
-  dueDate: z.coerce.date('Invalid date format').optional(),
+  dueDate: z.preprocess(
+    (arg) => (arg === '' || arg === null ? undefined : arg),
+    z.coerce.date('Invalid date format').optional()
+  ),
   assignees: z.array(z.string()).optional(),
 });
 
