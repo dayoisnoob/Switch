@@ -3,11 +3,14 @@
 import { cn, getErrorMessage } from "@/lib/utils";
 import {
   Activity,
+  ArrowLeft,
+  ArrowRight,
   Clock,
   Edit2,
+  Eraser,
   MessageSquare,
-  MessagesSquareIcon,
   MoreHorizontal,
+  Palette,
   Plus,
   Trash2,
 } from "lucide-react";
@@ -41,8 +44,8 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
-import { CreateInput } from "@/components/board/CreateInput";
 import CreateColumnModal from "@/components/modals/CreateColumnModal";
+import AddCardModal from "@/components/modals/AddCardModal"; // Make sure this path is correct
 import { useCreateCard, useMoveCard } from "@/hooks/useCards";
 import {
   useDeleteColumn,
@@ -55,7 +58,7 @@ import { BoardCard, BoardColumn } from "@/types/board.types";
 import { toast } from "sonner";
 
 // ---------------------------------------------------------------------------
-// Helpers (Unchanged)
+// Helpers
 // ---------------------------------------------------------------------------
 
 function findColumnInSnapshot(
@@ -80,34 +83,33 @@ const collisionDetection: CollisionDetection = (args) => {
   return closestCorners(args);
 };
 
-// --- Styling Helpers ---
 const getColumnColor = (name: string) => {
   const lower = name.toLowerCase();
-  if (lower.includes("backlog")) return "bg-[#52525b]"; // Zinc
-  if (lower.includes("progress")) return "bg-[#a855f7]"; // Purple
-  if (lower.includes("review")) return "bg-[#f59e0b]"; // Amber
-  if (lower.includes("done")) return "bg-[#10b981]"; // Emerald
-  return "bg-[#7C6EF5]"; // Default Primary
+  if (lower.includes("backlog")) return "bg-[#52525b]";
+  if (lower.includes("progress")) return "bg-[#a855f7]";
+  if (lower.includes("review")) return "bg-[#f59e0b]";
+  if (lower.includes("done")) return "bg-[#10b981]";
+  return "bg-[#7C6EF5]";
 };
 
 const getPriorityStyles = (priority: string) => {
   const p = priority?.toLowerCase() || "none";
   switch (p) {
     case "urgent":
-      return "bg-rose-500/10 text-rose-500 border-rose-500/20 dot-rose-500";
+      return "bg-rose-500/10 text-rose-500 border-rose-500/20";
     case "high":
-      return "bg-purple-500/10 text-purple-400 border-purple-500/20 dot-purple-500";
+      return "bg-purple-500/10 text-purple-400 border-purple-500/20";
     case "medium":
-      return "bg-amber-500/10 text-amber-500 border-amber-500/20 dot-amber-500";
+      return "bg-amber-500/10 text-amber-500 border-amber-500/20";
     case "low":
-      return "bg-emerald-500/10 text-emerald-500 border-emerald-500/20 dot-emerald-500";
+      return "bg-emerald-500/10 text-emerald-500 border-emerald-500/20";
     default:
-      return "bg-white/5 text-white/40 border-white/10 dot-white/40";
+      return "bg-white/5 text-white/40 border-white/10";
   }
 };
 
 // ---------------------------------------------------------------------------
-// Page (Logic Unchanged, Styled Wrapper)
+// Page
 // ---------------------------------------------------------------------------
 
 export default function KanbanBoardPage() {
@@ -162,7 +164,6 @@ export default function KanbanBoardPage() {
   const targetColumnIdRef = useRef<string | null>(null);
   const lastOverKeyRef = useRef<string | null>(null);
 
-  // [Drag Handlers Omitted for brevity - LEAVE YOUR EXACT DRAG FUNCTIONS HERE]
   const handleDragStart = useCallback(
     (event: DragStartEvent) => {
       const { active } = event;
@@ -335,14 +336,12 @@ export default function KanbanBoardPage() {
 
   return (
     <div className="h-full flex flex-col bg-[#0A0A0A]">
-      {/* ── HEADER ── */}
       <header className="px-8 h-16 border-b border-white/5 flex items-center justify-between bg-[#0A0A0A]/80 backdrop-blur-md shrink-0 z-10">
         <h1 className="text-lg font-bold text-white/90 tracking-tight">
           {project?.name || "Board"}
         </h1>
       </header>
 
-      {/* ── MAIN BOARD AREA ── */}
       <main className="flex-1 overflow-auto custom-scrollbar p-6">
         {isBoardLoading ? (
           <div className="flex gap-6 h-full">
@@ -373,11 +372,11 @@ export default function KanbanBoardPage() {
                     setColumns={setColumns}
                     workspaceSlug={workspaceSlug}
                     projectSlug={projectSlug}
+                    projectName={project?.name} // Passed down for the modal
                     router={router}
                   />
                 ))}
 
-                {/* ADD COLUMN BUTTON */}
                 <button
                   onClick={() => setIsColumnModalOpen(true)}
                   className="flex items-center justify-center gap-2 w-85 shrink-0 h-15 rounded-2xl border border-dashed border-white/10 bg-white/1 text-white/40 font-medium hover:text-white/80 hover:bg-white/3 hover:border-white/20 transition-all group"
@@ -391,7 +390,6 @@ export default function KanbanBoardPage() {
               </div>
             </SortableContext>
 
-            {/* DRAG OVERLAY */}
             <DragOverlay
               dropAnimation={{
                 sideEffects: defaultDropAnimationSideEffects({
@@ -422,7 +420,7 @@ export default function KanbanBoardPage() {
 }
 
 // ---------------------------------------------------------------------------
-// SortableColumn (Premium Styling)
+// SortableColumn
 // ---------------------------------------------------------------------------
 
 function SortableColumn({
@@ -430,17 +428,21 @@ function SortableColumn({
   setColumns,
   workspaceSlug,
   projectSlug,
+  projectName,
   router,
 }: {
   column: BoardColumn;
   setColumns: React.Dispatch<React.SetStateAction<BoardColumn[]>>;
   workspaceSlug: string;
   projectSlug: string;
+  projectName?: string;
   router: any;
 }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false); // Controls Add Card Modal
   const [editTitle, setEditTitle] = useState(column.name);
+
   const menuRef = useRef<HTMLDivElement>(null);
 
   const {
@@ -520,13 +522,13 @@ function SortableColumn({
     <div
       ref={setNodeRef}
       style={style}
-      className="flex flex-col h-max w-85 shrink-0 bg-white/1 border border-white/5 rounded-2xl overflow-hidden shadow-sm"
+      className="flex flex-col h-max w-85 shrink-0 bg-[#16161D] border border-white/5 rounded-[20px] overflow-hidden shadow-sm"
     >
       {/* COLUMN HEADER */}
       <div
         {...attributes}
         {...listeners}
-        className="p-4 flex items-center justify-between border-b border-white/5 cursor-grab active:cursor-grabbing hover:bg-white/2 transition-colors group"
+        className="p-4 flex items-center justify-between border-b border-white/[0.04] cursor-grab active:cursor-grabbing hover:bg-white/[0.02] transition-colors group"
       >
         <div className="flex items-center gap-2.5 flex-1 min-w-0 mr-2">
           {isEditing ? (
@@ -557,7 +559,7 @@ function SortableColumn({
         </div>
 
         <div className="flex items-center gap-2">
-          {/* Menu Button (Reveals on hover) */}
+          {/* UPDATED PREMIUM CONTEXT MENU */}
           <div className="relative shrink-0" ref={menuRef}>
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -567,32 +569,72 @@ function SortableColumn({
               <MoreHorizontal size={14} />
             </button>
             {isMenuOpen && (
-              <div className="absolute right-0 top-full mt-1 w-40 bg-[#121212] border border-white/8 rounded-xl shadow-2xl z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-100">
-                <div className="p-1 flex flex-col">
-                  <button
-                    onClick={() => {
-                      setIsEditing(true);
-                      setIsMenuOpen(false);
-                    }}
-                    onPointerDown={(e) => e.stopPropagation()}
-                    className="flex items-center gap-2 px-2.5 py-2 text-sm text-white/60 hover:bg-white/5 hover:text-white rounded-lg transition-colors w-full text-left"
-                  >
-                    <Edit2 size={14} /> Rename
-                  </button>
-                  <div className="h-px bg-white/5 my-1 mx-1" />
-                  <button
-                    onClick={handleDeleteColumn}
-                    onPointerDown={(e) => e.stopPropagation()}
-                    className="flex items-center gap-2 px-2.5 py-2 text-sm text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 rounded-lg transition-colors w-full text-left"
-                  >
-                    <Trash2 size={14} /> Delete
-                  </button>
-                </div>
+              <div className="absolute right-0 top-full mt-1 w-56 bg-[#18181B] border border-white/[0.08] rounded-xl shadow-2xl z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-100 py-1.5">
+                <button
+                  onClick={() => {
+                    setIsEditing(true);
+                    setIsMenuOpen(false);
+                  }}
+                  onPointerDown={(e) => e.stopPropagation()}
+                  className="flex items-center justify-between px-3 py-2 text-[13px] font-medium text-white/70 hover:bg-white/5 hover:text-white transition-colors w-full text-left"
+                >
+                  <span className="flex items-center gap-2.5">
+                    <Edit2 size={14} className="text-white/40" /> Rename column
+                  </span>
+                  <kbd className="hidden md:inline-flex bg-white/10 rounded px-1.5 py-0.5 text-[10px] text-white/40 font-sans">
+                    R
+                  </kbd>
+                </button>
+                <button
+                  onClick={() => setIsMenuOpen(false)}
+                  onPointerDown={(e) => e.stopPropagation()}
+                  className="flex items-center justify-between px-3 py-2 text-[13px] font-medium text-white/70 hover:bg-white/5 hover:text-white transition-colors w-full text-left"
+                >
+                  <span className="flex items-center gap-2.5">
+                    <Palette size={14} className="text-white/40" /> Change
+                    colour
+                  </span>
+                  <ArrowRight size={14} className="text-white/30" />
+                </button>
+
+                <div className="h-px bg-white/[0.04] my-1.5 mx-2" />
+
+                <button
+                  onClick={() => setIsMenuOpen(false)}
+                  onPointerDown={(e) => e.stopPropagation()}
+                  className="flex items-center gap-2.5 px-3 py-2 text-[13px] font-medium text-white/70 hover:bg-white/5 hover:text-white transition-colors w-full text-left"
+                >
+                  <ArrowLeft size={14} className="text-white/40" /> Move left
+                </button>
+                <button
+                  onClick={() => setIsMenuOpen(false)}
+                  onPointerDown={(e) => e.stopPropagation()}
+                  className="flex items-center gap-2.5 px-3 py-2 text-[13px] font-medium text-white/70 hover:bg-white/5 hover:text-white transition-colors w-full text-left"
+                >
+                  <ArrowRight size={14} className="text-white/40" /> Move right
+                </button>
+
+                <div className="h-px bg-white/[0.04] my-1.5 mx-2" />
+
+                <button
+                  onClick={() => setIsMenuOpen(false)}
+                  onPointerDown={(e) => e.stopPropagation()}
+                  className="flex items-center gap-2.5 px-3 py-2 text-[13px] font-medium text-white/70 hover:bg-white/5 hover:text-white transition-colors w-full text-left"
+                >
+                  <Eraser size={14} className="text-white/40" /> Clear all cards
+                </button>
+                <button
+                  onClick={handleDeleteColumn}
+                  onPointerDown={(e) => e.stopPropagation()}
+                  className="flex items-center gap-2.5 px-3 py-2 text-[13px] font-medium text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 transition-colors w-full text-left"
+                >
+                  <Trash2 size={14} className="text-rose-400/60" /> Delete
+                  column
+                </button>
               </div>
             )}
           </div>
 
-          {/* Count Badge */}
           {!isEditing && (
             <div className="flex items-center justify-center min-w-5 h-5 px-1.5 rounded-full bg-white/5 border border-white/10 text-[11px] font-bold text-white/40 select-none shrink-0">
               {column.cards.length}
@@ -601,10 +643,9 @@ function SortableColumn({
         </div>
       </div>
 
-      {/* COLUMN CONTENT (CARDS OR EMPTY STATE) */}
+      {/* COLUMN CONTENT */}
       <div className="flex-1 min-h-25">
         {column.cards.length === 0 ? (
-          /* Premium Empty State */
           <div className="flex flex-col items-center justify-center py-10 px-4 text-center">
             <div className="w-10 h-10 rounded-xl border border-dashed border-white/20 flex items-center justify-center mb-3 bg-white/1">
               <Plus size={16} className="text-white/20" />
@@ -634,27 +675,39 @@ function SortableColumn({
         )}
       </div>
 
-      {/* COLUMN FOOTER / CREATE INPUT */}
-      <div className="p-3 border-t border-white/2">
-        <div onPointerDown={(e) => e.stopPropagation()}>
-          <CreateInput
-            buttonText="Add card"
-            placeholder="Task title..."
-            onSubmit={async (title) => {
-              const newCard = await createCard({
-                title,
-                status: column.mappedStatus,
-              });
-              setColumns((prev) =>
-                prev.map((col) =>
-                  col.id === column.id
-                    ? { ...col, cards: [...col.cards, newCard] }
-                    : col,
-                ),
-              );
-            }}
-          />
-        </div>
+      {/* COLUMN FOOTER / NEW ADD CARD BUTTON */}
+      <div className="p-3 border-t border-white/[0.04]">
+        <button
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={() => setIsAddModalOpen(true)}
+          className="flex items-center gap-2 text-[13px] font-semibold text-white/40 hover:text-white hover:bg-white/5 w-full px-3 py-2 rounded-lg transition-colors"
+        >
+          <Plus size={14} /> Add card
+        </button>
+
+        <AddCardModal
+          isOpen={isAddModalOpen}
+          onClose={() => setIsAddModalOpen(false)}
+          columnName={column.name}
+          projectName={projectName}
+          onAdd={async (data) => {
+            const newCard = await createCard({
+              title: data.title,
+              description: data.description,
+              status: column.mappedStatus,
+              // priority: data.priority, // If supported by backend
+              // dueDate: data.dueDate, // If supported by backend
+            });
+            setColumns((prev) =>
+              prev.map((col) =>
+                col.id === column.id
+                  ? { ...col, cards: [...col.cards, newCard] }
+                  : col,
+              ),
+            );
+            setIsAddModalOpen(false);
+          }}
+        />
       </div>
     </div>
   );
@@ -675,13 +728,13 @@ function ColumnContent({
   return (
     <div
       className={cn(
-        "flex flex-col h-max w-85 shrink-0 bg-[#0A0A0A] rounded-2xl overflow-hidden",
+        "flex flex-col h-max w-85 shrink-0 bg-[#16161D] rounded-[20px] overflow-hidden",
         isDragging
           ? "border border-[#7C6EF5]/50 shadow-[0_0_30px_rgba(124,110,245,0.15)] scale-[1.02] opacity-90"
           : "border border-white/5",
       )}
     >
-      <div className="p-4 flex items-center justify-between border-b border-white/5 bg-white/2">
+      <div className="p-4 flex items-center justify-between border-b border-white/[0.04] bg-white/[0.02]">
         <div className="flex items-center gap-2.5">
           <div className={cn("w-2 h-2 rounded-full", dotColor)} />
           <h3 className="text-[14px] font-bold text-white/90">{column.name}</h3>
@@ -742,23 +795,17 @@ const SortableCard = memo(function SortableCard({
 
 const CardContent = memo(function CardContent({
   card,
-
   isDragging,
-
   onClick,
 }: {
   card: BoardCard;
-
   isDragging?: boolean;
-
   onClick?: () => void;
 }) {
   const pStyles = getPriorityStyles(card.priority);
 
-  // --- MOCK DATA GENERATORS (Based on string length to remain stable) ---
   const titleLen = card.title?.length || 0;
 
-  // 1. Mock Labels
   const mockLabels = [
     { text: "Docs", color: "text-emerald-400 bg-emerald-400/10" },
     { text: "Component", color: "text-purple-400 bg-purple-400/10" },
@@ -767,16 +814,14 @@ const CardContent = memo(function CardContent({
   ];
   const label = mockLabels[titleLen % mockLabels.length];
 
-  // 2. Mock Dates & Status Colors
   const mockDates = [
-    { date: "Apr 27", color: "text-rose-500" }, // Overdue
-    { date: "May 1", color: "text-amber-500" }, // Due soon
-    { date: "May 12", color: "text-white/40" }, // Normal
+    { date: "Apr 27", color: "text-rose-500" },
+    { date: "May 1", color: "text-amber-500" },
+    { date: "May 12", color: "text-white/40" },
     { date: "May 18", color: "text-white/40" },
   ];
   const dueDate = mockDates[titleLen % mockDates.length];
 
-  // 3. Mock Avatars
   const mockAvatars = [
     [{ initials: "AM", color: "bg-emerald-500" }],
     [
@@ -795,19 +840,16 @@ const CardContent = memo(function CardContent({
     <div
       onClick={onClick}
       className={cn(
-        // Base structure & premium dark theme colors
-        "group bg-[#16161D] border rounded-xl p-4 cursor-grab active:cursor-grabbing transition-all flex flex-col",
+        "group bg-[#1A1A24] border rounded-xl p-4 cursor-grab active:cursor-grabbing transition-all flex flex-col",
         isDragging
-          ? "border-[#7C6EF5]/50 shadow-[0_0_30px_rgba(124,110,245,0.15)] scale-[1.02] bg-[#1A1A24]"
-          : "border-white/4 hover:border-white/10 shadow-sm",
+          ? "border-[#7C6EF5]/50 shadow-[0_0_30px_rgba(124,110,245,0.15)] scale-[1.02] bg-[#1F1F2E]"
+          : "border-white/[0.04] hover:border-white/10 shadow-sm",
       )}
     >
-      {/* 1. TITLE */}
       <p className="text-[14px] font-semibold text-white/90 leading-snug group-hover:text-white transition-colors mb-3">
         {card.title}
       </p>
 
-      {/* 2. MIDDLE ROW: Priority & Label */}
       <div className="flex items-center gap-2 mb-4">
         {card.priority && (
           <div
@@ -821,7 +863,6 @@ const CardContent = memo(function CardContent({
           </div>
         )}
 
-        {/* Mock Category Label */}
         {card.priority !== "none" && (
           <div
             className={cn(
@@ -834,23 +875,18 @@ const CardContent = memo(function CardContent({
         )}
       </div>
 
-      {/* 3. BOTTOM ROW: Metadata & Avatars */}
       <div className="flex items-center justify-between mt-auto pt-1">
-        {/* Left: Icons & Stats */}
         <div className="flex items-center gap-3.5 text-[11px] font-medium text-white/40">
-          {/* Due Date */}
           <div className={cn("flex items-center gap-1.5", dueDate.color)}>
             <Clock size={12} className="opacity-80" />
             {dueDate.date}
           </div>
 
-          {/* Comments */}
           <div className="flex items-center gap-1.5 hover:text-white/70 transition-colors">
-            <MessagesSquareIcon size={12} className="opacity-80" />
+            <MessageSquare size={12} className="opacity-80" />
             {(titleLen % 5) + 1}
           </div>
 
-          {/* Subtasks / Activity (Only show on some) */}
           {titleLen % 2 === 0 && (
             <div className="flex items-center gap-1.5 hover:text-white/70 transition-colors">
               <Activity size={12} className="opacity-80" />2
@@ -858,16 +894,15 @@ const CardContent = memo(function CardContent({
           )}
         </div>
 
-        {/* Right: Overlapping Avatars */}
         <div className="flex -space-x-1.5">
           {avatars.map((avatar, idx) => (
             <div
               key={idx}
               className={cn(
-                "w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-bold text-white ring-2 ring-[#16161D] shadow-sm z-10",
+                "w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-bold text-white ring-2 ring-[#1A1A24] shadow-sm z-10",
                 avatar.color,
               )}
-              style={{ zIndex: avatars.length - idx }} // Ensures left avatars stack on top
+              style={{ zIndex: avatars.length - idx }}
             >
               {avatar.initials}
             </div>
@@ -877,78 +912,3 @@ const CardContent = memo(function CardContent({
     </div>
   );
 });
-
-// const CardContent = memo(function CardContent({
-//   card,
-
-//   isDragging,
-
-//   onClick,
-// }: {
-//   card: BoardCard;
-
-//   isDragging?: boolean;
-
-//   onClick?: () => void;
-// }) {
-//   const pStyles = getPriorityStyles(card.priority);
-
-//   return (
-//     <div
-//       onClick={onClick}
-//       className={cn(
-//         "group bg-white/3 border rounded-xl p-4 cursor-grab active:cursor-grabbing transition-all flex flex-col gap-3",
-
-//         isDragging
-//           ? "border-[#7C6EF5]/50 shadow-[0_0_20px_rgba(124,110,245,0.15)] scale-105 bg-[#121212]"
-//           : "border-white/5 hover:border-white/15 hover:bg-white/4 shadow-sm",
-//       )}
-//     >
-//       {/* TITLE */}
-
-//       <p className="text-[13px] font-semibold text-white/90 leading-snug group-hover:text-white transition-colors">
-//         {card.title}
-//       </p>
-
-//       {/* BOTTOM ROW: Priority & Mock Footer Info to match screenshot */}
-
-//       <div className="flex items-center justify-between mt-1">
-//         {/* Priority Badge */}
-
-//         {card.priority !== "none" ? (
-//           <div
-//             className={cn(
-//               "flex items-center gap-1.5 px-2 py-1 rounded-md border text-[9px] font-bold uppercase tracking-wider",
-
-//               pStyles,
-//             )}
-//           >
-//             <div className="w-1.5 h-1.5 rounded-full bg-current opacity-80" />
-
-//             {card.priority}
-//           </div>
-//         ) : (
-//           <div /> // Empty div to keep flex-between spacing if no priority
-//         )}
-
-//         {/* Visual Footer Elements (Icons + Mock Avatars matching screenshot) */}
-
-//         <div className="flex items-center gap-3">
-//           {/* Mock comment count to match design density */}
-
-//           {Math.random() > 0.5 && (
-//             <div className="flex items-center gap-1 text-white/30 text-[10px] font-medium">
-//               <MessageSquare size={10} /> 2
-//             </div>
-//           )}
-
-//           {/* Mock Avatar */}
-
-//           <div className="w-5 h-5 rounded-full bg-[#7C6EF5] flex items-center justify-center text-[8px] font-black text-white shadow-sm ring-2 ring-[#0A0A0A]">
-//             JD
-//           </div>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// });
