@@ -1,6 +1,6 @@
 "use client";
 
-import { cn, getErrorMessage } from "@/lib/utils";
+import { cn, formatDate, formatDateShort, getErrorMessage } from "@/lib/utils";
 import {
   Activity,
   ArrowLeft,
@@ -56,6 +56,8 @@ import { useGetProjectBySlug } from "@/hooks/useProjects";
 import { useBoardStore } from "@/store/board.store";
 import { BoardCard, BoardColumn } from "@/types/board.types";
 import { toast } from "sonner";
+import { CreateCard } from "@/services/card.service";
+import { formatAvatarUrls } from "@/components/workspace/WorkspaceCard";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -335,7 +337,7 @@ export default function KanbanBoardPage() {
   const columnIds = useMemo(() => columns.map((c) => c.id), [columns]);
 
   return (
-    <div className="h-full flex flex-col bg-[#0A0A0A]">
+    <div className="h-full flex flex-col bg-[#0E0E14]">
       <header className="px-8 h-16 border-b border-white/5 flex items-center justify-between bg-[#0A0A0A]/80 backdrop-blur-md shrink-0 z-10">
         <h1 className="text-lg font-bold text-white/90 tracking-tight">
           {project?.name || "Board"}
@@ -516,19 +518,33 @@ function SortableColumn({
     }
   };
 
+  const handleAddCard = async (data: CreateCard) => {
+    console.log(data);
+    await createCard({
+      title: data.title,
+      description: data.description,
+      priority: data.priority,
+      status: column.mappedStatus,
+      dueDate: data.dueDate,
+      assignees: data.assignees,
+    });
+    console.log("sent");
+
+    setIsAddModalOpen(false);
+  };
   const dotColor = getColumnColor(column.name);
 
   return (
     <div
       ref={setNodeRef}
       style={style}
-      className="flex flex-col h-max w-85 shrink-0 bg-[#16161D] border border-white/5 rounded-[20px] overflow-hidden shadow-sm"
+      className="flex flex-col h-max w-85 shrink-0 bg-[#0E0E14] border border-white/5 rounded-2xl overflow-hidden shadow-sm"
     >
       {/* COLUMN HEADER */}
       <div
         {...attributes}
         {...listeners}
-        className="p-4 flex items-center justify-between border-b border-white/[0.04] cursor-grab active:cursor-grabbing hover:bg-white/[0.02] transition-colors group"
+        className="p-4 flex items-center justify-between border-b border-white/4 cursor-grab active:cursor-grabbing hover:bg-white/2 transition-colors group"
       >
         <div className="flex items-center gap-2.5 flex-1 min-w-0 mr-2">
           {isEditing ? (
@@ -569,7 +585,7 @@ function SortableColumn({
               <MoreHorizontal size={14} />
             </button>
             {isMenuOpen && (
-              <div className="absolute right-0 top-full mt-1 w-56 bg-[#18181B] border border-white/[0.08] rounded-xl shadow-2xl z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-100 py-1.5">
+              <div className="absolute right-0 top-full mt-1 w-56 bg-[#18181B] border border-white/8 rounded-xl shadow-2xl z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-100 py-1.5">
                 <button
                   onClick={() => {
                     setIsEditing(true);
@@ -597,7 +613,7 @@ function SortableColumn({
                   <ArrowRight size={14} className="text-white/30" />
                 </button>
 
-                <div className="h-px bg-white/[0.04] my-1.5 mx-2" />
+                <div className="h-px bg-white/4 my-1.5 mx-2" />
 
                 <button
                   onClick={() => setIsMenuOpen(false)}
@@ -614,7 +630,7 @@ function SortableColumn({
                   <ArrowRight size={14} className="text-white/40" /> Move right
                 </button>
 
-                <div className="h-px bg-white/[0.04] my-1.5 mx-2" />
+                <div className="h-px bg-white/4 my-1.5 mx-2" />
 
                 <button
                   onClick={() => setIsMenuOpen(false)}
@@ -676,7 +692,7 @@ function SortableColumn({
       </div>
 
       {/* COLUMN FOOTER / NEW ADD CARD BUTTON */}
-      <div className="p-3 border-t border-white/[0.04]">
+      <div className="p-3 border-t border-white/4">
         <button
           onPointerDown={(e) => e.stopPropagation()}
           onClick={() => setIsAddModalOpen(true)}
@@ -690,23 +706,7 @@ function SortableColumn({
           onClose={() => setIsAddModalOpen(false)}
           columnName={column.name}
           projectName={projectName}
-          onAdd={async (data) => {
-            const newCard = await createCard({
-              title: data.title,
-              description: data.description,
-              status: column.mappedStatus,
-              // priority: data.priority, // If supported by backend
-              // dueDate: data.dueDate, // If supported by backend
-            });
-            setColumns((prev) =>
-              prev.map((col) =>
-                col.id === column.id
-                  ? { ...col, cards: [...col.cards, newCard] }
-                  : col,
-              ),
-            );
-            setIsAddModalOpen(false);
-          }}
+          onAdd={handleAddCard}
         />
       </div>
     </div>
@@ -804,53 +804,21 @@ const CardContent = memo(function CardContent({
 }) {
   const pStyles = getPriorityStyles(card.priority);
 
-  const titleLen = card.title?.length || 0;
-
-  const mockLabels = [
-    { text: "Docs", color: "text-emerald-400 bg-emerald-400/10" },
-    { text: "Component", color: "text-purple-400 bg-purple-400/10" },
-    { text: "A11y", color: "text-blue-400 bg-blue-400/10" },
-    { text: "Tokens", color: "text-emerald-400 bg-emerald-400/10" },
-  ];
-  const label = mockLabels[titleLen % mockLabels.length];
-
-  const mockDates = [
-    { date: "Apr 27", color: "text-rose-500" },
-    { date: "May 1", color: "text-amber-500" },
-    { date: "May 12", color: "text-white/40" },
-    { date: "May 18", color: "text-white/40" },
-  ];
-  const dueDate = mockDates[titleLen % mockDates.length];
-
-  const mockAvatars = [
-    [{ initials: "AM", color: "bg-emerald-500" }],
-    [
-      { initials: "RK", color: "bg-purple-400" },
-      { initials: "JD", color: "bg-indigo-500" },
-    ],
-    [
-      { initials: "JD", color: "bg-purple-500" },
-      { initials: "AM", color: "bg-emerald-500" },
-    ],
-    [{ initials: "MR", color: "bg-amber-500" }],
-  ];
-  const avatars = mockAvatars[titleLen % mockAvatars.length];
-
   return (
     <div
       onClick={onClick}
       className={cn(
-        "group bg-[#1A1A24] border rounded-xl p-4 cursor-grab active:cursor-grabbing transition-all flex flex-col",
+        "group bg-[#1A1A28] border rounded-xl p-4 cursor-grab active:cursor-grabbing transition-all flex flex-col",
         isDragging
           ? "border-[#7C6EF5]/50 shadow-[0_0_30px_rgba(124,110,245,0.15)] scale-[1.02] bg-[#1F1F2E]"
-          : "border-white/[0.04] hover:border-white/10 shadow-sm",
+          : "border-white/4 hover:border-white/10 shadow-sm",
       )}
     >
       <p className="text-[14px] font-semibold text-white/90 leading-snug group-hover:text-white transition-colors mb-3">
         {card.title}
       </p>
 
-      <div className="flex items-center gap-2 mb-4">
+      <div className="flex items-center gap-2 mb-4 flex-wrap">
         {card.priority && (
           <div
             className={cn(
@@ -863,51 +831,47 @@ const CardContent = memo(function CardContent({
           </div>
         )}
 
-        {card.priority !== "none" && (
-          <div
-            className={cn(
-              "px-2 py-0.5 rounded-[5px] text-[10px] font-semibold",
-              label.color,
-            )}
-          >
-            {label.text}
-          </div>
-        )}
+        {card.labels &&
+          card.labels.map((l, i) => (
+            <div
+              key={i}
+              className="px-2 py-0.5 rounded-[5px] text-[10px] font-semibold whitespace-nowrap"
+              style={{
+                color: l.colour,
+                backgroundColor: l.colour + "10",
+                border: `1px solid ${l.colour}15`,
+              }}
+            >
+              {l.name}
+            </div>
+          ))}
       </div>
+
+      <div className="border mb-2.5"></div>
 
       <div className="flex items-center justify-between mt-auto pt-1">
         <div className="flex items-center gap-3.5 text-[11px] font-medium text-white/40">
-          <div className={cn("flex items-center gap-1.5", dueDate.color)}>
+          <div className={cn("flex items-center gap-1.5")}>
             <Clock size={12} className="opacity-80" />
-            {dueDate.date}
+            {formatDateShort(card.dueDate as string)}
           </div>
 
-          <div className="flex items-center gap-1.5 hover:text-white/70 transition-colors">
-            <MessageSquare size={12} className="opacity-80" />
-            {(titleLen % 5) + 1}
-          </div>
-
-          {titleLen % 2 === 0 && (
+          {card.commentCount !== 0 && (
             <div className="flex items-center gap-1.5 hover:text-white/70 transition-colors">
-              <Activity size={12} className="opacity-80" />2
+              <MessageSquare size={12} className="opacity-80" />
+              {card.commentCount}
+            </div>
+          )}
+
+          {card.activityCount && (
+            <div className="flex items-center gap-1.5 hover:text-white/70 transition-colors">
+              <Activity size={12} className="opacity-80" />
+              {card.activityCount}
             </div>
           )}
         </div>
 
-        <div className="flex -space-x-1.5">
-          {avatars.map((avatar, idx) => (
-            <div
-              key={idx}
-              className={cn(
-                "w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-bold text-white ring-2 ring-[#1A1A24] shadow-sm z-10",
-                avatar.color,
-              )}
-              style={{ zIndex: avatars.length - idx }}
-            >
-              {avatar.initials}
-            </div>
-          ))}
-        </div>
+        {formatAvatarUrls(card.assignees)}
       </div>
     </div>
   );

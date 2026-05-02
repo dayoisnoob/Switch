@@ -133,7 +133,9 @@ export class WorkspaceService {
         members: sql<{ name: string; avatarUrl: string | null }[]>`
       json_agg(
         distinct jsonb_build_object(
-          'name', ${usersTable.firstName},
+          'id', ${usersTable.id},
+          'firstName', ${usersTable.firstName},
+          'lastName', ${usersTable.lastName},
           'avatarUrl', ${usersTable.avatarUrl}
         )
       )

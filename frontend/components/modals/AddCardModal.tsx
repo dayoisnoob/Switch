@@ -8,25 +8,11 @@ import { useState } from "react";
 // Mock Data for Assignees to match your screenshot
 const MOCK_ASSIGNEES = [
   {
-    id: "1",
+    id: "d093f52f-6f7e-4ad3-80c4-bf4c9e2c37cc",
     name: "James Dalton",
     email: "james@acme.io",
     initials: "JD",
     color: "bg-purple-500",
-  },
-  {
-    id: "2",
-    name: "Aisha Mensah",
-    email: "aisha@acme.io",
-    initials: "AM",
-    color: "bg-emerald-500",
-  },
-  {
-    id: "3",
-    name: "Marcus Reid",
-    email: "marcus@acme.io",
-    initials: "MR",
-    color: "bg-amber-500",
   },
 ];
 
@@ -66,12 +52,12 @@ export default function AddCardModal({
   return (
     <Portal>
       <div
-        className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4 animate-in fade-in duration-200"
+        className="fixed inset-0 z-[9999] flex items-center justify-center bg-[black]/60 backdrop-blur-sm px-4 animate-in fade-in duration-200"
         onClick={onClose}
       >
         <div
           onClick={(e) => e.stopPropagation()}
-          className="w-full max-w-[500px] bg-[#0D0D12] border border-white/[0.08] rounded-[20px] shadow-2xl relative flex flex-col overflow-hidden animate-in zoom-in-95 duration-200"
+          className="w-full max-w-[500px] bg-[#13131C] border border-white/[0.08] rounded-[20px] shadow-2xl relative flex flex-col overflow-hidden animate-in zoom-in-95 duration-200"
         >
           {/* Header - Tighter Padding */}
           <div className="p-5 pb-0 flex items-start justify-between">
@@ -82,9 +68,11 @@ export default function AddCardModal({
               <h2 className="text-lg font-bold text-white tracking-tight">
                 Add a card
               </h2>
-              <div className="text-[11px] font-medium text-white/30">
-                Adding to: <span className="text-white/60">{columnName}</span> ·{" "}
-                <span className="text-white/60">{projectName}</span>
+              <div className="text-[12px] font-medium text-white/30">
+                Adding to:{" "}
+                <span className="text-white/60 text-[12px]">{columnName}</span>{" "}
+                in{" "}
+                <span className="text-white/60 text-[12px]">{projectName}</span>
               </div>
             </div>
             <button
@@ -109,7 +97,7 @@ export default function AddCardModal({
                 onChange={(e) =>
                   setFormData({ ...formData, title: e.target.value })
                 }
-                className="w-full bg-white/[0.03] border border-white/[0.08] focus:border-[#7C6EF5]/50 rounded-xl px-3.5 py-2.5 text-[13px] text-white placeholder-white/10 outline-none transition-all"
+                className="w-full bg-white/[0.03] border border-white/[0.08] focus:border-[#7C6EF5]/50 rounded-[10px] px-3.5 py-2.5 text-[13px] text-white placeholder-white/10 outline-none transition-all"
               />
             </div>
 
@@ -125,7 +113,7 @@ export default function AddCardModal({
                 onChange={(e) =>
                   setFormData({ ...formData, description: e.target.value })
                 }
-                className="w-full bg-white/[0.03] border border-white/[0.08] focus:border-[#7C6EF5]/50 rounded-xl px-3.5 py-2.5 text-[13px] text-white placeholder-white/10 outline-none transition-all resize-none"
+                className="w-full bg-white/[0.03] border border-white/[0.08] focus:border-[#7C6EF5]/50 rounded-[10px] px-3.5 py-2.5 text-[13px] text-white placeholder-white/10 outline-none transition-all resize-none"
               />
             </div>
 
@@ -142,12 +130,13 @@ export default function AddCardModal({
                     onChange={(e) =>
                       setFormData({ ...formData, priority: e.target.value })
                     }
-                    className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-3.5 py-2.5 text-[13px] text-white appearance-none outline-none focus:border-[#7C6EF5]/50 [color-scheme:dark] [&>option]:bg-[#0D0D12]"
+                    className="w-full bg-white/[0.03] border border-white/[0.08] rounded-[10px] px-3.5 py-2.5 text-[13px] text-white appearance-none outline-none focus:border-[#7C6EF5]/50 [color-scheme:dark] [&>option]:bg-[#0D0D12]"
                   >
-                    <option value="Low">Low</option>
-                    <option value="Medium">Medium</option>
-                    <option value="High">High</option>
-                    <option value="Urgent">Urgent</option>
+                    <option value="none">None</option>
+                    <option value="low">Low</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
+                    <option value="urgent">Urgent</option>
                   </select>
                   <ChevronDown
                     size={14}
@@ -167,7 +156,7 @@ export default function AddCardModal({
                     onChange={(e) =>
                       setFormData({ ...formData, dueDate: e.target.value })
                     }
-                    className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-3.5 py-2.5 text-[13px] text-white outline-none focus:border-[#7C6EF5]/50 [color-scheme:dark]"
+                    className="w-full bg-white/[0.03] border border-white/[0.08] rounded-[10px] px-3.5 py-2.5 text-[13px] text-white outline-none focus:border-[#7C6EF5]/50 [color-scheme:dark]"
                   />
                 </div>
               </div>
@@ -183,7 +172,7 @@ export default function AddCardModal({
                   <div
                     key={user.id}
                     onClick={() => toggleAssignee(user.id)}
-                    className="flex items-center justify-between p-1.5 rounded-xl hover:bg-white/[0.03] cursor-pointer group transition-colors"
+                    className="flex items-center justify-between p-1.5 rounded-[10px] hover:bg-white/[0.03] cursor-pointer group transition-colors"
                   >
                     <div className="flex items-center gap-2.5">
                       <div
@@ -214,35 +203,10 @@ export default function AddCardModal({
                 ))}
               </div>
             </div>
-
-            {/* Column Selector */}
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">
-                Column
-              </label>
-              <div className="relative">
-                {/* FIX: Added [color-scheme:dark] and styled options */}
-                <select
-                  value={formData.column}
-                  onChange={(e) =>
-                    setFormData({ ...formData, column: e.target.value })
-                  }
-                  className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-3.5 py-2.5 text-[13px] text-white appearance-none outline-none focus:border-[#7C6EF5]/50 [color-scheme:dark] [&>option]:bg-[#0D0D12]"
-                >
-                  <option value="Backlog">Backlog</option>
-                  <option value="In Progress">In Progress</option>
-                  <option value="Done">Done</option>
-                </select>
-                <ChevronDown
-                  size={14}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-white/20 pointer-events-none"
-                />
-              </div>
-            </div>
           </div>
 
           {/* Footer - Tighter Padding */}
-          <div className="p-4 bg-[#09090D] border-t border-white/[0.05] flex justify-end gap-2.5">
+          <div className="p-4 bg-[#13131C] border-t border-white/[0.05] flex justify-end gap-2.5">
             <button
               onClick={onClose}
               className="px-4 py-2 text-[13px] font-medium text-white/40 hover:text-white transition-colors"

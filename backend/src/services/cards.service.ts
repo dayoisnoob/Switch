@@ -30,7 +30,8 @@ export class CardsService {
     projectId: string,
     data: CardDataType
   ) {
-    const { title, description, status, assignees } = data;
+    console.log(data);
+    const { title, description, status, priority, dueDate, assignees } = data;
 
     const [lastCard] = await db
       .select({ order: cardsTable.order })
@@ -49,6 +50,8 @@ export class CardsService {
           boardId: boardId,
           title,
           status,
+          priority,
+          dueDate,
           description,
           createdBy: userId,
           order: newOrder,
@@ -103,6 +106,7 @@ export class CardsService {
       description: newCard.description,
       priority: newCard.priority,
       dueDate: newCard.dueDate,
+      status: newCard.status,
       coverImageUrl: newCard.coverImageUrl,
       order: newCard.order,
       createdBy: newCard.createdBy,

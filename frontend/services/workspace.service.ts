@@ -1,4 +1,5 @@
 import { api } from "@/lib/api";
+import { BoardAssignee } from "@/types/board.types";
 
 export type WorkspaceRole = "Owner" | "Admin" | "Member";
 
@@ -21,12 +22,7 @@ export interface Workspace {
   colour: string;
   projectsCount: number;
   membersCount: number;
-  members: [
-    {
-      name: string;
-      avatarUrl: string | null;
-    },
-  ];
+  members: BoardAssignee[];
 }
 
 export interface CreateWP {

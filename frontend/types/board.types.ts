@@ -25,6 +25,8 @@ export interface BoardCard {
   createdBy: string;
   assignees: BoardAssignee[];
   labels: BoardLabel[];
+  commentCount: number;
+  activityCount: number;
 }
 
 export interface BoardColumn {

@@ -4,6 +4,8 @@ export const createCardSchema = z.object({
   title: z.string().min(2, 'card needs to have a title').max(50).trim(),
   status: z.enum(['BACKLOG', 'TODO', 'IN_PROGRESS', 'DONE', 'CANCELED']),
   description: z.string().trim().optional(),
+  priority: z.enum(['none', 'low', 'medium', 'high', 'urgent']).optional(),
+  dueDate: z.coerce.date('Invalid date format').optional(),
   assignees: z.array(z.string()).optional(),
 });
 

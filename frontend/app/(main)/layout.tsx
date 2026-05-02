@@ -167,7 +167,7 @@ export default function MainLayout({ children }: { children: ReactNode }) {
   return (
     <div className="flex h-screen bg-[#0A0A0A] overflow-hidden text-[#A1A1AA] font-sans selection:bg-[#7C6EF5]/30">
       {/* ── SIDEBAR ── */}
-      <aside className="w-64 shrink-0 bg-[#0A0A0A] border-r border-white/[0.05] flex flex-col z-20">
+      <aside className="w-64 shrink-0 bg-[#13131C] border-r border-white/[0.05] flex flex-col z-20">
         {/* Workspace Switcher */}
         <div className="p-4">
           <div className="flex items-center gap-3 mb-6 px-1">
@@ -406,7 +406,7 @@ export default function MainLayout({ children }: { children: ReactNode }) {
         </header>
 
         {/* Content Area */}
-        <main className="flex-1 overflow-y-auto custom-scrollbar bg-[#0A0A0A] transition-all duration-700 ease-in-out flex flex-col">
+        <main className="flex-1 overflow-y-auto custom-scrollbar bg-[#0E0E14] transition-all duration-700 ease-in-out flex flex-col">
           <div
             className={cn(
               "w-full flex-1 flex flex-col",

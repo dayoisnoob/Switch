@@ -44,7 +44,7 @@ export interface CreateCard {
   status: StatusType;
   priority?: "none" | "low" | "medium" | "high" | "urgent";
   dueDate?: Date;
-  assignes?: string;
+  assignees?: string[];
 }
 
 export interface MoveCard {

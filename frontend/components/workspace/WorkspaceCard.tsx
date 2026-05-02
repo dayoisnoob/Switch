@@ -1,5 +1,6 @@
 import { cn, getInitials } from "@/lib/utils";
 import { Workspace } from "@/services/workspace.service";
+import { BoardAssignee } from "@/types/board.types";
 import { Folder } from "lucide-react";
 import Image from "next/image";
 
@@ -15,7 +16,7 @@ export const WorkspaceCard = ({
       // Removed the key from here!
       onClick={handleRedirectWorkspace}
       // Fixed h-50 to an arbitrary value h-[200px] (or use h-48 / h-52)
-      className="bg-[#1c1728] border border-[#262626] cursor-pointer rounded-xl p-5 hover:border-[#3f3f46] transition-all group flex flex-col h-50"
+      className="bg-[#13131C] border border-[#262626] cursor-pointer rounded-xl p-5 hover:border-[#3f3f46] transition-all group flex flex-col h-50"
     >
       <div className="flex items-start justify-between mb-4">
         <div
@@ -52,44 +53,46 @@ export const WorkspaceCard = ({
           <Folder size={14} />{" "}
           {ws.projectsCount ? `${ws.projectsCount} Projects` : "0 Projects"}
         </div>
+        {formatAvatarUrls(ws.members)}
+      </div>
+    </div>
+  );
+};
 
-        <div className="flex items-center">
-          <div className="flex -space-x-2 mr-2">
-            {ws.members?.slice(0, 3).map((member, idx) => (
-              <div
-                key={idx}
-                className="w-6 h-6 rounded-full border border-[#131315] bg-[#2a2a2a] flex items-center justify-center overflow-hidden shrink-0"
-              >
-                {member.avatarUrl ? (
-                  <Image
-                    src={member.avatarUrl}
-                    alt={member.name || "Member"}
-                    width={24}
-                    height={24}
-                    className="w-full h-full object-cover"
-                    unoptimized
-                    referrerPolicy="no-referrer"
-                  />
-                ) : (
-                  <span className="text-[10px] font-bold text-white">
-                    {member.name?.charAt(0).toUpperCase()}
-                  </span>
-                )}
-              </div>
-            ))}
-
-            {ws.membersCount > 3 && (
-              <div className="w-6 h-6 rounded-full border-2 border-[#131315] bg-[#2a2a2a] flex items-center justify-center text-[9px] font-bold text-white z-10">
-                +{ws.membersCount - 3}
-              </div>
+export const formatAvatarUrls = (users: BoardAssignee[]) => {
+  return (
+    <div className="flex items-center">
+      <div className="flex -space-x-2 mr-2">
+        {users?.slice(0, 3).map((user, idx) => (
+          <div
+            key={idx}
+            className="w-6 h-6 rounded-full border border-[#131315] bg-[#2a2a2a] flex items-center justify-center overflow-hidden shrink-0"
+          >
+            {user.avatarUrl ? (
+              <Image
+                src={user.avatarUrl}
+                alt={user.firstName || "Member"}
+                width={24}
+                height={24}
+                className="w-full h-full object-cover"
+                unoptimized
+                referrerPolicy="no-referrer"
+              />
+            ) : (
+              <span className="text-[10px] font-bold text-white">
+                {`${user.firstName?.charAt(0).toUpperCase() ?? ""}${
+                  user.lastName?.charAt(0).toUpperCase() ?? ""
+                }`}
+              </span>
             )}
           </div>
-          <span className="text-[11px] text-[#a1a1a1]">
-            {ws.membersCount === 1
-              ? `${ws.membersCount} member`
-              : `${ws.membersCount || 0} members`}
-          </span>
-        </div>
+        ))}
+
+        {users.length > 3 && (
+          <div className="w-6 h-6 rounded-full border-2 border-[#131315] bg-[#2a2a2a] flex items-center justify-center text-[9px] font-bold text-white z-10">
+            +{users.length - 3}
+          </div>
+        )}
       </div>
     </div>
   );
