@@ -9,6 +9,12 @@ import { useDeleteCard } from "@/hooks/useDeleteCard";
 import { useGetProjectBySlug } from "@/hooks/useProjects";
 import { useUpdateCard } from "@/hooks/useUpdateCard";
 import {
+  differenceInCalendarDays,
+  format,
+  isBefore,
+  startOfDay,
+} from "date-fns";
+import {
   cn,
   formatDate,
   formatDateShort,
@@ -21,6 +27,7 @@ import { BoardAssignee, BoardCard, BoardColumn } from "@/types/board.types";
 import {
   Activity,
   AlignLeft,
+  Check,
   CheckSquare,
   ChevronRight,
   Clock,
@@ -38,6 +45,8 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
+import { useGetMembers } from "@/hooks/useWorkspace";
+import { useToggleAssignee } from "@/hooks/useToggleAssignee";
 
 // --- Helpers to match priority styles ---
 const getPriorityStyles = (priority: string) => {
@@ -87,6 +96,13 @@ export function CardDetailModal({
   const [descValue, setDescValue] = useState(card.description || "");
   const [titleValue, setTitleValue] = useState(card.title);
 
+  const [isAssigneeMenuOpen, setIsAssigneeMenuOpen] = useState(false);
+  const assigneeRef = useRef<HTMLDivElement>(null);
+
+  // Make sure you are fetching your members here!
+  const { data: workspaceMembers, isLoading: membersLoading } =
+    useGetMembers(workspaceSlug);
+
   const [isStatusMenuOpen, setIsStatusMenuOpen] = useState(false);
   const [isPriorityMenuOpen, setIsPriorityMenuOpen] = useState(false);
 
@@ -95,11 +111,29 @@ export function CardDetailModal({
 
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
-  const descRef = useRef<HTMLTextAreaElement>(null);
+  const { mutate: toggleAssignee } = useToggleAssignee(card);
 
+  const titleRef = useRef<HTMLTextAreaElement>(null);
+  const dateInputRef = useRef<HTMLInputElement>(null);
+  const descRef = useRef<HTMLTextAreaElement>(null);
   const { data: project } = useGetProjectBySlug(workspaceSlug, projectSlug);
 
   const { mutate: moveCard } = useMoveCard();
+
+  const currentDueDate = detailedCard?.dueDate || card.dueDate;
+  const dueDateObj = currentDueDate ? new Date(currentDueDate) : null;
+  const today = new Date();
+
+  // differenceInCalendarDays handles timezone shifts and daylight savings perfectly
+  const diffDays = dueDateObj ? differenceInCalendarDays(dueDateObj, today) : 0;
+
+  // startOfDay ensures we don't accidentally mark something overdue if it's due at 11:59 PM today
+  const isOverdue = dueDateObj
+    ? isBefore(startOfDay(dueDateObj), startOfDay(today))
+    : false;
+
+  // Native HTML5 date input requires strict YYYY-MM-DD format
+  const dateInputValue = dueDateObj ? format(dueDateObj, "yyyy-MM-dd") : "";
 
   const activeCard = useBoardStore(
     (state) =>
@@ -126,6 +160,13 @@ export function CardDetailModal({
     currentColumn!.id ?? "",
   );
 
+  useEffect(() => {
+    if (titleRef.current) {
+      titleRef.current.style.height = "0px"; // Reset first to shrink if deleting text
+      titleRef.current.style.height = `${titleRef.current.scrollHeight}px`;
+    }
+  }, [titleValue]);
+
   // Add this useEffect below your useState hooks
   useEffect(() => {
     if (!detailedCard) return;
@@ -149,6 +190,11 @@ export function CardDetailModal({
       ) {
         setIsPriorityMenuOpen(false);
       }
+      if (
+        assigneeRef.current &&
+        !assigneeRef.current.contains(e.target as Node)
+      )
+        setIsAssigneeMenuOpen(false);
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
@@ -259,13 +305,14 @@ export function CardDetailModal({
               {/* Title & Inline Badges */}
               <div className="mb-8">
                 <textarea
+                  ref={titleRef}
                   value={titleValue}
-                  onChange={(e) => {
-                    setTitleValue(e.target.value);
-                    e.target.style.height = "auto";
-                    e.target.style.height = `${e.target.scrollHeight}px`;
+                  onFocus={() => handleSetEditingTitle(true)}
+                  onChange={(e) => setTitleValue(e.target.value)}
+                  onBlur={(e) => {
+                    handleSetEditingTitle(false);
+                    handleTitleSave();
                   }}
-                  onBlur={handleTitleSave}
                   onKeyDown={(e) => {
                     if (e.key === "Enter") {
                       e.preventDefault();
@@ -682,30 +729,82 @@ export function CardDetailModal({
                   )}
                 </div>
 
-                {/* Due Date (Overdue State) */}
+                {/* Due Date (Interactive Native Picker) */}
                 <div className="space-y-2">
                   <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">
                     Due Date
                   </label>
-                  <button className="w-full flex items-center justify-between p-2.5 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 rounded-lg transition-colors group">
-                    <div className="flex items-center gap-2 text-rose-500">
-                      <Clock size={14} />
-                      <span className="text-[13px] font-semibold">
-                        Apr 27, 2025
-                      </span>
-                    </div>
-                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/20 text-rose-500">
-                      2d overdue
-                    </span>
-                  </button>
+                  <div className="relative w-full">
+                    {/* Hidden native picker */}
+                    <input
+                      ref={dateInputRef}
+                      type="date"
+                      value={dateInputValue}
+                      onChange={(e) => {
+                        if (e.target.value) {
+                          updateCard({ dueDate: new Date(e.target.value) });
+                        }
+                      }}
+                      // Added [color-scheme:dark] right here 👇
+                      className="absolute bottom-0 left-0 w-0 h-0 opacity-0 pointer-events-none [color-scheme:dark]"
+                    />
+
+                    {/* Visible UI */}
+                    <button
+                      onClick={() => {
+                        try {
+                          // This forces the native OS calendar popup to open!
+                          dateInputRef.current?.showPicker();
+                        } catch (err) {
+                          dateInputRef.current?.focus(); // Fallback for very old browsers
+                        }
+                      }}
+                      className={cn(
+                        "w-full flex items-center justify-between p-2.5 rounded-lg transition-colors group border",
+                        isOverdue
+                          ? "bg-rose-500/10 hover:bg-rose-500/20 border-rose-500/20"
+                          : "bg-[#1C1C24] hover:bg-[#22222C] border-white/5",
+                      )}
+                    >
+                      <div
+                        className={cn(
+                          "flex items-center gap-2",
+                          isOverdue
+                            ? "text-rose-500"
+                            : "text-white/70 group-hover:text-white/90",
+                        )}
+                      >
+                        <Clock size={14} />
+                        <span className="text-[13px] font-semibold">
+                          {dueDateObj
+                            ? formatDateShort(dueDateObj.toISOString())
+                            : "Set due date"}
+                        </span>
+                      </div>
+
+                      {/* Dynamic Status Badges */}
+                      {isOverdue && (
+                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/20 text-rose-500">
+                          {Math.abs(diffDays)}d overdue
+                        </span>
+                      )}
+                      {!isOverdue && dueDateObj && diffDays === 0 && (
+                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-500">
+                          Today
+                        </span>
+                      )}
+                    </button>
+                  </div>
                 </div>
 
                 {/* Assignees */}
-                <div className="space-y-3">
+                <div className="space-y-3 relative" ref={assigneeRef}>
                   <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">
                     Assignees
                   </label>
+
                   <div className="space-y-2">
+                    {/* Currently Assigned Members */}
                     {detailedCard?.assignees &&
                       detailedCard.assignees.map((a) => (
                         <div
@@ -713,7 +812,7 @@ export function CardDetailModal({
                           className="flex items-center gap-3 group cursor-pointer"
                         >
                           {a.avatarUrl ? (
-                            <div className="w-8 h-8 rounded-full overflow-hidden shrink-0 border border-[#2a2a2a]">
+                            <div className="w-8 h-8 rounded-full overflow-hidden shrink-0 border border-white/10">
                               <Image
                                 src={a.avatarUrl}
                                 alt={a.firstName}
@@ -726,7 +825,7 @@ export function CardDetailModal({
                             </div>
                           ) : (
                             <div
-                              className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0"
+                              className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0 border border-white/5"
                               style={{
                                 backgroundColor: getConsistentColor(
                                   a.id || a.firstName,
@@ -736,13 +835,21 @@ export function CardDetailModal({
                               {`${a.firstName.charAt(0).toUpperCase()}${a.lastName.charAt(0).toUpperCase()}`}
                             </div>
                           )}
-                          <span className="text-[13px] font-medium text-white/80 group-hover:text-white">
+                          <span className="text-[13px] font-medium text-white/80 group-hover:text-white transition-colors">
                             {`${a.firstName} ${a.lastName}`}
                           </span>
                         </div>
                       ))}
 
-                    <button className="flex items-center gap-3 text-white/30 hover:text-white/70 transition-colors pt-1">
+                    {/* Trigger Button */}
+                    <button
+                      onClick={() => {
+                        setIsAssigneeMenuOpen(!isAssigneeMenuOpen);
+                        setIsStatusMenuOpen(false);
+                        setIsPriorityMenuOpen(false);
+                      }}
+                      className="flex items-center gap-3 text-white/30 hover:text-white/70 transition-colors pt-1"
+                    >
                       <div className="w-6 h-6 border border-dashed border-white/20 rounded-full flex items-center justify-center">
                         <Plus size={12} />
                       </div>
@@ -751,6 +858,94 @@ export function CardDetailModal({
                       </span>
                     </button>
                   </div>
+
+                  {/* Assignees Dropdown Menu */}
+                  {isAssigneeMenuOpen && (
+                    <div className="absolute top-full mt-2 w-[280px] bg-[#18181B] border border-white/8 rounded-xl shadow-2xl z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-100 p-1.5 left-0">
+                      <div className="max-h-[240px] overflow-y-auto custom-scrollbar space-y-0.5 pr-1">
+                        {membersLoading ? (
+                          <div className="flex items-center justify-center py-5">
+                            <div className="w-4 h-4 border-2 border-[#7C6EF5]/30 border-t-[#7C6EF5] rounded-full animate-spin" />
+                          </div>
+                        ) : workspaceMembers && workspaceMembers.length > 0 ? (
+                          workspaceMembers.map((member) => {
+                            // Check if this member is already assigned to the card
+                            const isAssigned = detailedCard?.assignees?.some(
+                              (a) => a.id === member.userId,
+                            );
+
+                            return (
+                              <div
+                                key={member.id}
+                                onClick={() => {
+                                  toggleAssignee({
+                                    member: member,
+                                    isAssigned: isAssigned,
+                                  });
+                                }}
+                                className="flex items-center justify-between p-2 rounded-[10px] hover:bg-white/5 cursor-pointer group transition-colors"
+                              >
+                                <div className="flex items-center gap-2.5 min-w-0">
+                                  {member.avatarUrl ? (
+                                    <Image
+                                      src={member.avatarUrl}
+                                      alt={`${member.firstName} ${member.lastName}`}
+                                      width={28}
+                                      height={28}
+                                      className="w-7 h-7 rounded-full object-cover border border-white/10 shrink-0"
+                                      unoptimized
+                                      referrerPolicy="no-referrer"
+                                    />
+                                  ) : (
+                                    <div
+                                      className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold text-white shrink-0 border border-white/5"
+                                      style={{
+                                        backgroundColor: getConsistentColor(
+                                          member.userId || member.firstName,
+                                        ),
+                                      }}
+                                    >
+                                      {`${member.firstName.charAt(0).toUpperCase()}${member.lastName.charAt(0).toUpperCase()}`}
+                                    </div>
+                                  )}
+                                  <div className="flex flex-col min-w-0">
+                                    <span className="text-[13px] font-medium text-white/90 truncate">
+                                      {member.firstName} {member.lastName}
+                                    </span>
+                                    <span className="text-[11px] text-white/30 truncate">
+                                      {member.email}
+                                    </span>
+                                  </div>
+                                </div>
+
+                                {/* Checkbox indicator */}
+                                <div
+                                  className={cn(
+                                    "w-4 h-4 rounded border transition-all flex items-center justify-center shrink-0 ml-2",
+                                    isAssigned
+                                      ? "bg-[#7C6EF5] border-[#7C6EF5]"
+                                      : "border-white/10 bg-transparent group-hover:border-white/20",
+                                  )}
+                                >
+                                  {isAssigned && (
+                                    <Check
+                                      size={12}
+                                      className="text-white"
+                                      strokeWidth={3}
+                                    />
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })
+                        ) : (
+                          <div className="px-2 py-4 text-center text-[12px] text-white/30">
+                            No workspace members found.
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Labels */}

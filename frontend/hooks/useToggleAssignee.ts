@@ -1,15 +1,11 @@
 import { CardService } from "@/services/card.service";
 import { WorkspaceMembers } from "@/services/workspace.service";
-import { useBoardStore } from "@/store/board.store";
-import { BoardCard } from "@/types/board.types";
+import { BoardAssignee, BoardCard } from "@/types/board.types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-export function useToggleAssignee(card: BoardCard) {
+export function useToggleAssignee(cardId: string) {
   const queryClient = useQueryClient();
-
-  const assignUser = useBoardStore((s) => s.assignUserToCard);
-  const removeUser = useBoardStore((s) => s.removeUserFromCard);
 
   return useMutation({
     mutationFn: async ({
@@ -20,59 +16,57 @@ export function useToggleAssignee(card: BoardCard) {
       isAssigned: boolean;
     }) => {
       if (isAssigned) {
-        return await CardService.removeUser(card.id, member.userId);
+        return await CardService.removeUser(cardId, member.userId);
       } else {
-        return await CardService.assignUser(card.id, member.userId);
+        return await CardService.assignUser(cardId, member.userId);
       }
     },
 
+    // 1. Fire instantly on click
     onMutate: async ({ member, isAssigned }) => {
-      await queryClient.cancelQueries({ queryKey: ["card", card.id] });
+      // Cancel any outgoing refetches so they don't overwrite our optimistic update
+      await queryClient.cancelQueries({ queryKey: ["card", cardId] });
 
-      const previousCard = queryClient.getQueryData<BoardCard>([
-        "card",
-        card.id,
-      ]);
+      // Snapshot the previous value in case we need to roll back
+      const previousCard = queryClient.getQueryData(["card", cardId]);
 
-      if (isAssigned) {
-        removeUser(card.id, member.userId);
-      } else {
-        assignUser(card.id, {
-          id: member.id,
-          userId: member.userId,
-          firstName: member.firstName,
-          lastName: member.lastName,
-          avatarUrl: member.avatarUrl,
-        });
-      }
+      // Optimistically update the cache instantly
+      queryClient.setQueryData(["card", cardId], (old: BoardCard) => {
+        if (!old) return old;
 
+        const newAssignees = isAssigned
+          ? // If they were assigned, optimistically remove them
+            old.assignees.filter((a: BoardAssignee) => a.id !== member.userId)
+          : // If they weren't, optimistically add them (mapping member fields to match your assignee schema)
+            [
+              ...old.assignees,
+              {
+                id: member.userId,
+                firstName: member.firstName,
+                lastName: member.lastName,
+                avatarUrl: member.avatarUrl,
+              },
+            ];
+
+        return { ...old, assignees: newAssignees };
+      });
+
+      // Return context with the snapshotted value
       return { previousCard };
     },
 
-    onError: (err, variables, context) => {
-      if (context?.previousCard) {
-        queryClient.setQueryData(["card", card.id], context.previousCard);
-
-        if (variables.isAssigned) {
-          assignUser(card.id, {
-            id: variables.member.id,
-            userId: variables.member.userId,
-            firstName: variables.member.firstName,
-            lastName: variables.member.lastName,
-            avatarUrl: variables.member.avatarUrl,
-          });
-        } else {
-          removeUser(card.id, variables.member.userId);
-        }
-      }
+    // 2. If the API fails, roll back to the previous snapshot
+    onError: (err, newTodo, context) => {
       toast.error("Failed to update assignee");
-      console.error(err);
+      if (context?.previousCard) {
+        queryClient.setQueryData(["card", cardId], context.previousCard);
+      }
     },
 
+    // 3. Always refetch after error or success to ensure perfect server sync
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["card", card.id] });
-      queryClient.invalidateQueries({ queryKey: ["members", card.id] });
-      queryClient.invalidateQueries({ queryKey: ["activities", card.id] });
+      queryClient.invalidateQueries({ queryKey: ["card", cardId] });
+      queryClient.invalidateQueries({ queryKey: ["board"] });
     },
   });
 }
