@@ -24,13 +24,13 @@ import { NotificationService } from './notification.service';
 export class CardsService {
   static async createCard(
     userId: string,
+    actorName: string,
     workspaceId: string,
     columnId: string,
     boardId: string,
     projectId: string,
     data: CardDataType
   ) {
-    console.log(data);
     const { title, description, status, priority, dueDate, assignees } = data;
 
     const [lastCard] = await db
@@ -43,7 +43,7 @@ export class CardsService {
     const newOrder = lastCard ? lastCard.order + 1.0 : 1.0;
 
     const newCard = await db.transaction(async (tx) => {
-      const [card] = await tx
+      const [newCard] = await tx
         .insert(cardsTable)
         .values({
           columnId,
@@ -58,9 +58,11 @@ export class CardsService {
         })
         .returning();
 
-      if (!card) {
+      if (!newCard) {
         throw new ApiError(500, 'Error creating card. Please try again');
       }
+
+      let assigneesData;
 
       if (assignees && assignees.length > 0) {
         const members = await tx
@@ -80,16 +82,35 @@ export class CardsService {
           );
         }
 
-        const assigneesData = assignees.map((userId: string) => ({
-          cardId: card.id,
+        assigneesData = assignees.map((userId: string) => ({
+          cardId: newCard.id,
           userId,
         }));
 
         await tx.insert(cardAssigneesTable).values(assigneesData).returning();
       }
 
-      return card;
+      return newCard;
     });
+
+    if (assignees && assignees.length > 0) {
+      const usersToNotify = assignees.filter((id: string) => id !== userId);
+
+      await Promise.all(
+        usersToNotify.map((assigneeId: string) =>
+          NotificationService.create({
+            type: 'card_assigned',
+            userId: assigneeId,
+            title: newCard
+              ? `${actorName} assigned you to ${newCard.title}`
+              : `You have been assigned to a new task.`,
+            body: '',
+            entityId: newCard.id,
+            entityType: 'card',
+          })
+        )
+      );
+    }
 
     await ActivityService.log({
       type: 'card_created',
@@ -98,7 +119,14 @@ export class CardsService {
       cardId: newCard.id,
       metadata: { title: newCard.title },
     });
-    emitBoardEvent(boardId, 'card:created', { card: newCard });
+
+    emitBoardEvent(boardId, 'card:created', {
+      card: newCard,
+      columnId,
+      actorId: userId,
+      actorName,
+      cardTitle: newCard.title,
+    });
 
     return {
       id: newCard.id,
@@ -249,7 +277,12 @@ export class CardsService {
     return updatedCard;
   }
 
-  static async deleteCard(userId: string, projectId: string, cardId: string) {
+  static async deleteCard(
+    userId: string,
+    actorName: string,
+    projectId: string,
+    cardId: string
+  ) {
     const [deletedCard] = await db
       .delete(cardsTable)
       .where(eq(cardsTable.id, cardId))
@@ -258,9 +291,19 @@ export class CardsService {
     if (!deletedCard)
       throw new ApiError(500, 'Error deleting card. Please try again.');
 
+    await ActivityService.log({
+      type: 'card_deleted',
+      userId,
+      projectId,
+      metadata: { title: deletedCard.title },
+    });
+
     emitBoardEvent(deletedCard.boardId, 'card:deleted', {
       cardId,
+      actorName,
+      actorId: userId,
       columnId: deletedCard.columnId,
+      cardTitle: deletedCard.title,
     });
 
     return deletedCard;
@@ -268,6 +311,7 @@ export class CardsService {
 
   static async moveCard(
     userId: string,
+    actorName: string,
     projectId: string,
     cardId: string,
     data: MoveCardType
@@ -275,7 +319,7 @@ export class CardsService {
     const { columnId, order, status } = data;
 
     const [oldCol] = await db
-      .select({ name: columnsTable.name })
+      .select({ id: columnsTable.id, name: columnsTable.name })
       .from(cardsTable)
       .innerJoin(columnsTable, eq(cardsTable.columnId, columnsTable.id))
       .where(eq(cardsTable.id, cardId))
@@ -283,13 +327,13 @@ export class CardsService {
 
     if (!oldCol) throw new ApiError(404, 'Failed to determine previous column');
 
-    const [column] = await db
+    const [newCol] = await db
       .select({ name: columnsTable.name })
       .from(columnsTable)
       .where(eq(columnsTable.id, columnId))
       .limit(1);
 
-    if (!column)
+    if (!newCol)
       throw new ApiError(404, 'This column does not exist in this workspace.');
 
     const [updatedCard] = await db
@@ -307,13 +351,18 @@ export class CardsService {
       userId,
       projectId,
       cardId,
-      metadata: { from: oldCol.name, to: column?.name },
+      metadata: { from: oldCol.name, to: newCol?.name },
     });
 
     emitBoardEvent(updatedCard.boardId, 'card:moved', {
       cardId,
-      columnId: updatedCard.columnId,
-      order: updatedCard.order,
+      fromColumnId: oldCol.id,
+      toColumnId: updatedCard.columnId,
+      newIndex: updatedCard.order,
+      actorId: userId,
+      actorName: actorName,
+      fromColumnName: oldCol.name,
+      toColumnName: newCol.name,
     });
 
     return;
@@ -321,6 +370,7 @@ export class CardsService {
 
   static async assignUser(
     userId: string,
+    actorName: string,
     assigneeId: string,
     projectId: string,
     cardId: string
@@ -358,6 +408,12 @@ export class CardsService {
 
     if (!user) throw new ApiError(404, 'Could not find this assignee');
 
+    const [card] = await db
+      .select({ title: cardsTable.title })
+      .from(cardsTable)
+      .where(eq(cardsTable.id, cardId))
+      .limit(1);
+
     const assigneeName = `${user?.firstName} ${user?.lastName}`;
 
     await ActivityService.log({
@@ -371,8 +427,10 @@ export class CardsService {
     await NotificationService.create({
       type: 'card_assigned',
       userId: assigneeId,
-      title: 'You were assigned to a card',
-      body: `You have been assigned to a card.`,
+      title: card
+        ? `${actorName} assigned you to ${card.title}`
+        : `You have been assigned to a new task.`,
+      body: '',
       entityId: cardId,
       entityType: 'card',
     });

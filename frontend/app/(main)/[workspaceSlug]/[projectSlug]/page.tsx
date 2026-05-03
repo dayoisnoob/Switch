@@ -927,7 +927,7 @@ const CardContent = memo(function CardContent({
           )}
         </div>
 
-        {formatAvatarUrls(card.assignees)}
+        {formatAvatarUrls(card?.assignees)}
       </div>
     </div>
   );

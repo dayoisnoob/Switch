@@ -23,6 +23,7 @@ export const authTokens = async (
   const jwtPayload: JwtPayload = {
     id: userData.id,
     firstName: userData.firstName as string,
+    lastName: userData.lastName as string,
     isActive: userData.isActive,
     role: userData.role,
   };

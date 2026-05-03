@@ -88,7 +88,7 @@ export const formatAvatarUrls = (users: BoardAssignee[]) => {
           </div>
         ))}
 
-        {users.length > 3 && (
+        {users?.length > 3 && (
           <div className="w-6 h-6 rounded-full border-2 border-[#131315] bg-[#2a2a2a] flex items-center justify-center text-[9px] font-bold text-white z-10">
             +{users.length - 3}
           </div>

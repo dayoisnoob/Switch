@@ -5,6 +5,8 @@ import { ApiResponse } from '../utils/api-response';
 
 export class CardsController {
   static async createCard(req: AuthenticatedRequest, res: Response) {
+    const actorName = `${req.user?.firstName} ${req.user?.lastName}`.trim();
+
     const userId = req.user.id;
     const boardId = req.resolvedColumn!.boardId;
     const projectId = req.resolvedColumn!.projectId;
@@ -13,6 +15,7 @@ export class CardsController {
 
     const card = await CardsService.createCard(
       userId,
+      actorName,
       workspaceId,
       columnId,
       boardId,
@@ -55,30 +58,42 @@ export class CardsController {
   }
 
   static async deleteCard(req: AuthenticatedRequest, res: Response) {
+    const actorName = `${req.user?.firstName} ${req.user?.lastName}`.trim();
+
     const userId = req.user.id;
     const projectId = req.resolvedCard!.projectId;
     const cardId = req.params.cardId as string;
-    const card = await CardsService.deleteCard(userId, projectId, cardId);
+    const card = await CardsService.deleteCard(
+      userId,
+      actorName,
+      projectId,
+      cardId
+    );
 
     res.json(new ApiResponse(200, 'Card deleted successfully', card));
   }
 
   static async moveCard(req: AuthenticatedRequest, res: Response) {
+    const actorName = `${req.user?.firstName} ${req.user?.lastName}`.trim();
+
     const userId = req.user.id;
     const projectId = req.resolvedCard!.projectId;
     const cardId = req.params.cardId as string;
-    await CardsService.moveCard(userId, projectId, cardId, req.body);
+    await CardsService.moveCard(userId, actorName, projectId, cardId, req.body);
 
     res.json(new ApiResponse(200, 'Card moved successfully'));
   }
 
   static async assignUser(req: AuthenticatedRequest, res: Response) {
+    const actorName = `${req.user?.firstName} ${req.user?.lastName}`.trim();
+
     const userId = req.user.id;
     const cardId = req.params.cardId as string;
     const projectId = req.resolvedCard!.projectId;
 
     const user = await CardsService.assignUser(
       userId,
+      actorName,
       req.body.userId,
       projectId,
       cardId

@@ -404,9 +404,17 @@ export default function MainLayout({ children }: { children: ReactNode }) {
               <button className="p-2 text-white/40 hover:text-white transition-colors rounded-lg hover:bg-white/5">
                 <Search size={16} />
               </button>
-              <button className="p-2 text-white/40 hover:text-white transition-colors rounded-lg hover:bg-white/5">
+
+              {/* UPDATED: Clickable Bell with Premium Glowing Badge */}
+              <Link
+                href="/notifications"
+                className="relative p-2 text-white/40 hover:text-white transition-colors rounded-lg hover:bg-white/5"
+              >
                 <Bell size={16} />
-              </button>
+                {unreadCount > 0 && (
+                  <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-red-500 border border-red-50 shadow-[0_0_8px_rgba(124,110,245,0.8)]" />
+                )}
+              </Link>
             </div>
           </header>
 

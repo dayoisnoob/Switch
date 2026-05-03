@@ -32,18 +32,17 @@ export const useNotificationStore = create<NotificationStore>((set) => ({
   fetch: async () => {
     set({ isLoading: true });
     try {
-      // 1. Get the raw response from Axios
       const notifications = await api.get<Notification[]>("/notifications");
-      console.log("📦 RAW BACKEND notifications:", notifications);
 
       set({
         notifications,
-        unreadCount: notifications.filter((n) => !n.isRead).length,
+        unreadCount: notifications.filter((n: Notification) => !n.isRead)
+          .length,
         isLoading: false,
       });
     } catch (error) {
       console.error("❌ Failed to fetch notifications:", error);
-      set({ isLoading: false }); // Ensure we stop the loading spinner on fail
+      set({ isLoading: false });
     }
   },
 

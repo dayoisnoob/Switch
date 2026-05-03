@@ -11,6 +11,7 @@ export interface JwtPayload {
   id: string;
   email?: string;
   firstName?: string;
+  lastName?: string;
   isActive?: boolean;
   role?: 'user' | 'admin';
   purpose?: string;
@@ -19,6 +20,7 @@ export interface JwtPayload {
 export interface UserType {
   id: string;
   firstName: string | null;
+  lastName?: string;
   isActive: boolean;
   role: 'user' | 'admin';
 }

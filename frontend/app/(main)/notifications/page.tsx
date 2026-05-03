@@ -19,122 +19,37 @@ import {
 import Image from "next/image";
 import { useState } from "react";
 
-// --- MOCK DATA (To match your screenshots) ---
-const MOCK_NOTIFICATIONS = [
-  {
-    id: "1",
-    type: "comment",
-    actor: { name: "Aisha Mensah", initials: "AM", color: "bg-emerald-500" },
-    action: "commented on",
-    target: "Button component — all variants, states",
-    project: "Design System",
-    quote:
-      '"The loading spinner needs to match the button size — it\'s currently 16px fixed. Should scale with sm/md/lg."',
-    createdAt: new Date(Date.now() - 2 * 60 * 1000).toISOString(), // 2 mins ago
-    isRead: false,
-    dateGroup: "TODAY",
-  },
-  {
-    id: "2",
-    type: "assignment",
-    actor: { name: "Sofia Lara", initials: "SL", color: "bg-rose-500" },
-    action: "assigned you to",
-    target: "Token refresh — silent interceptor fix",
-    project: "API Refactor",
-    createdAt: new Date(Date.now() - 34 * 60 * 1000).toISOString(), // 34 mins ago
-    isRead: false,
-    dateGroup: "TODAY",
-  },
-  {
-    id: "3",
-    type: "priority",
-    actor: { name: "James Dalton", initials: "JD", color: "bg-purple-600" },
-    action: "changed priority to",
-    highlight: "Urgent",
-    target: "Button component — all variants, states",
-    project: "Design System",
-    createdAt: new Date(Date.now() - 60 * 60 * 1000).toISOString(), // 1 hr ago
-    isRead: false,
-    dateGroup: "TODAY",
-  },
-  {
-    id: "4",
-    type: "mention",
-    actor: { name: "Marcus Reid", initials: "MR", color: "bg-amber-600" },
-    action: "mentioned you in a comment on",
-    target: "Mobile App v2 — offline mode spec",
-    project: "Mobile App v2",
-    quote:
-      '"@James can you review the sync logic before we move this to review?"',
-    createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hrs ago
-    isRead: false,
-    dateGroup: "TODAY",
-  },
-  {
-    id: "5",
-    type: "invite",
-    actor: { name: "Ryan Koh", initials: "RK", color: "bg-purple-500" },
-    action: "invited you to join",
-    highlight: "Pixel Studio",
-    target: "workspace as Admin",
-    project: "Pixel Studio",
-    hasActions: true,
-    createdAt: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(), // 3 hrs ago
-    isRead: false,
-    dateGroup: "TODAY",
-  },
-  {
-    id: "6",
-    type: "move",
-    actor: { name: "Aisha Mensah", initials: "AM", color: "bg-emerald-500" },
-    action: "moved",
-    target: "Icon set — 24px grid spec",
-    suffix: "from Review to Done",
-    project: "Design System",
-    createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-    isRead: false,
-    dateGroup: "YESTERDAY",
-  },
-];
-
-// --- HELPER: Visual Configuration by Type ---
-// --- HELPER: Visual Configuration by Type ---
 const getTypeConfig = (type: string) => {
   switch (type) {
     case "comment_added":
       return {
         icon: MessageSquare,
-        color: "text-purple-400",
-        bg: "bg-purple-500/10",
-        border: "border-purple-500",
+        color: "text-blue-400",
+        bg: "bg-blue-500/10",
       };
     case "card_assigned":
       return {
         icon: UserPlus,
         color: "text-emerald-400",
         bg: "bg-emerald-500/10",
-        border: "border-emerald-500",
       };
     case "card_due_soon":
       return {
         icon: Clock,
         color: "text-amber-400",
         bg: "bg-amber-500/10",
-        border: "border-amber-500",
       };
     case "mentioned":
       return {
         icon: AtSign,
         color: "text-amber-400",
         bg: "bg-amber-500/10",
-        border: "border-amber-500",
       };
     default:
       return {
         icon: Mail,
         color: "text-white/50",
         bg: "bg-white/5",
-        border: "border-white/10",
       };
   }
 };
@@ -145,8 +60,6 @@ export default function NotificationsPage() {
 
   const { notifications, unreadCount, markRead, markAllRead } =
     useNotificationStore();
-
-  //   console.log(notifications);
 
   // Group notifications by dateGroup
   const groupedNotifications = notifications.reduce(
@@ -220,7 +133,7 @@ export default function NotificationsPage() {
               )}
 
               {activeTab === tab && (
-                <span className="absolute bottom-[-1px] left-0 right-0 h-[2px] bg-[#7C6EF5] rounded-t-full" />
+                <span className="absolute -bottom-px left-0 right-0 h-0.5 bg-[#7C6EF5] rounded-t-full" />
               )}
             </button>
           ))}
@@ -291,7 +204,7 @@ export default function NotificationsPage() {
                         {/* Left Colored Accent Border */}
                         <div
                           className={cn(
-                            "absolute left-0 top-3 bottom-3 w-[3px] rounded-r-full",
+                            "absolute left-0 top-3 bottom-3 w-0.75 rounded-r-full",
                             config.bg.replace("/10", ""),
                           )}
                         />
@@ -310,8 +223,8 @@ export default function NotificationsPage() {
                           {/* Fallback "System" badge since we don't have actor initials from the DB yet */}
                           <div
                             className={cn(
-                              "absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-[2px] border-[#15151A] flex items-center justify-center text-[10px] font-bold text-white",
-                              config.bg.replace("/10", ""), // Uses the solid version of the notification's theme color
+                              "absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-2 border-[#15151A] flex items-center justify-center text-[10px] font-bold text-white",
+                              config.bg.replace("/10", ""),
                             )}
                           >
                             <div className="w-1.5 h-1.5 rounded-full bg-white" />

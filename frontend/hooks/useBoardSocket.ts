@@ -2,8 +2,11 @@ import { useEffect } from "react";
 import { socket } from "@/lib/socket";
 import { useBoardStore } from "@/store/board.store";
 import { BoardCard, BoardColumn } from "@/types/board.types";
+import { useMe } from "./useAuth";
+import { toast } from "sonner";
 
 export function useBoardSocket(boardId: string) {
+  const { data: currentUser } = useMe();
   const {
     addCard,
     updateCard,
@@ -17,14 +20,17 @@ export function useBoardSocket(boardId: string) {
   } = useBoardStore();
 
   useEffect(() => {
-    // join the board room
     socket.emit("join:board", { boardId });
 
-    // card events
     socket.on(
       "card:created",
-      ({ card, columnId }: { card: BoardCard; columnId: string }) => {
+      ({ card, columnId, actorId, actorName, cardTitle }: any) => {
         addCard(columnId, card);
+        if (actorId !== currentUser?.id) {
+          toast.success(
+            `${actorName || "Someone"} created a new card - ${cardTitle}`,
+          );
+        }
       },
     );
 
@@ -39,20 +45,56 @@ export function useBoardSocket(boardId: string) {
         fromColumnId,
         toColumnId,
         newIndex,
+        actorId,
+        actorName,
+        fromColumnName,
+        toColumnName,
       }: {
         cardId: string;
         fromColumnId: string;
         toColumnId: string;
         newIndex: number;
+        actorId: string;
+        actorName: string;
+        fromColumnName: string;
+        toColumnName: string;
       }) => {
         moveCard(cardId, fromColumnId, toColumnId, newIndex);
+        if (actorId !== currentUser?.id) {
+          if (fromColumnId === toColumnId) {
+            toast.info(
+              `${actorName || "Someone"} reordered a card in ${fromColumnName}`,
+            );
+          } else {
+            toast.info(
+              `${actorName || "Someone"} moved a card from ${fromColumnName} to ${toColumnName}`,
+            );
+          }
+        }
       },
     );
 
     socket.on(
       "card:deleted",
-      ({ cardId, columnId }: { cardId: string; columnId: string }) => {
+      ({
+        cardId,
+        actorName,
+        actorId,
+        columnId,
+        cardTitle,
+      }: {
+        cardId: string;
+        actorName: string;
+        actorId: string;
+        columnId: string;
+        cardTitle: string;
+      }) => {
         deleteCard(cardId, columnId);
+        if (actorId !== currentUser?.id) {
+          toast.success(
+            `${actorName || "Someone"} deleted a the ${cardTitle} card`,
+          );
+        }
       },
     );
 
