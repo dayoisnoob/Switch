@@ -36,7 +36,8 @@ export class ActivityService {
       .from(activitiesTable)
       .leftJoin(usersTable, eq(activitiesTable.userId, usersTable.id))
       .where(eq(activitiesTable.cardId, cardId))
-      .orderBy(desc(activitiesTable.createdAt));
+      .orderBy(desc(activitiesTable.createdAt))
+      .limit(30);
 
     return activities;
   }

@@ -390,10 +390,6 @@ export function CardDetailModal({
                       {card.priority}
                     </div>
                   )}
-
-                  <button className="px-2.5 py-1 rounded-md text-[11px] font-semibold text-white/30 border border-white/10 hover:bg-white/5 transition-colors border-dashed flex items-center gap-1">
-                    <Plus size={10} /> Label
-                  </button>
                 </div>
               </div>
 
