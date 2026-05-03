@@ -13,7 +13,7 @@ export const createCardSchema = z.object({
 });
 
 export const updateCardSchema = z.object({
-  title: z.string().max(50).trim().optional(),
+  title: z.string().max(100, 'Title too long').trim().optional(),
   description: z.string().trim().optional(),
   priority: z.enum(['none', 'low', 'medium', 'high', 'urgent']).optional(),
   dueDate: z.coerce.date().optional(),

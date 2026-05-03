@@ -7,6 +7,7 @@ import { useBoard } from "@/hooks/board/index";
 import { useGetCard, useMoveCard } from "@/hooks/useCards";
 import { useDeleteCard } from "@/hooks/useDeleteCard";
 import { useGetProjectBySlug } from "@/hooks/useProjects";
+import { ActivityTab } from "./ActivityTab"; // Adjust path as needed
 import { useUpdateCard } from "@/hooks/useUpdateCard";
 import {
   differenceInCalendarDays,
@@ -23,6 +24,7 @@ import {
 import { CardPriority } from "@/services/card.service";
 import { useBoardStore } from "@/store/board.store";
 import { useWorkspaceStore } from "@/store/workspace.store";
+import { CardComments } from "./CardComments"; // Adjust path as needed
 import { BoardAssignee, BoardCard, BoardColumn } from "@/types/board.types";
 import {
   Activity,
@@ -47,6 +49,8 @@ import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { useGetMembers } from "@/hooks/useWorkspace";
 import { useToggleAssignee } from "@/hooks/useToggleAssignee";
+import { useCreateLabel, useToggleLabel } from "@/hooks/useCreateLabel";
+import { useMe } from "@/hooks/useAuth";
 
 // --- Helpers to match priority styles ---
 const getPriorityStyles = (priority: string) => {
@@ -89,6 +93,8 @@ export function CardDetailModal({
     "activity",
   );
 
+  const { data: currentUser, isLoading } = useMe();
+
   const isEditingDescRef = useRef(false);
   const isEditingTitleRef = useRef(false);
   const [isEditingDesc, setIsEditingDesc] = useState(false);
@@ -111,7 +117,27 @@ export function CardDetailModal({
 
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
-  const { mutate: toggleAssignee } = useToggleAssignee(card);
+  const [isLabelMenuOpen, setIsLabelMenuOpen] = useState(false);
+  const [labelSearch, setLabelSearch] = useState("");
+  const labelRef = useRef<HTMLDivElement>(null);
+
+  // Hook up your new mutations
+  const { mutate: toggleLabel } = useToggleLabel(card.id);
+  const { mutate: createLabel, isPending: isCreatingLabel } =
+    useCreateLabel(workspaceSlug);
+
+  // NOTE: Replace this with your actual role-checking logic!
+  const currentMember = workspaceMembers?.find(
+    (m) => m.userId === currentUser?.id,
+  );
+  const canCreateLabels = ["Owner", "Admin"].includes(
+    currentMember?.role || "Member",
+  );
+
+  // Make sure you fetch workspace labels somewhere!
+  // const { data: workspaceLabels } = useGetWorkspaceLabels(workspaceSlug);
+
+  const { mutate: toggleAssignee } = useToggleAssignee(card.id);
 
   const titleRef = useRef<HTMLTextAreaElement>(null);
   const dateInputRef = useRef<HTMLInputElement>(null);
@@ -151,6 +177,8 @@ export function CardDetailModal({
     setIsEditingTitle(val);
   };
 
+  const workspaceLabels = useBoardStore((s) => s.workspaceLabels);
+
   const { mutate: updateCard } = useUpdateCard(card.id);
   const currentColumn = columns.find((c) =>
     c.cards.some((c2) => c2.id === card.id),
@@ -168,16 +196,39 @@ export function CardDetailModal({
   }, [titleValue]);
 
   // Add this useEffect below your useState hooks
+  // Close menus when clicking outside
   useEffect(() => {
-    if (!detailedCard) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      // 1. Status Menu
+      if (statusRef.current && !statusRef.current.contains(e.target as Node)) {
+        setIsStatusMenuOpen(false);
+      }
 
-    if (!isEditingDescRef.current) {
-      setDescValue(detailedCard.description || "");
-    }
-    if (!isEditingTitleRef.current) {
-      setTitleValue(detailedCard.title || "");
-    }
-  }, [detailedCard?.description, detailedCard?.title]);
+      // 2. Priority Menu
+      if (
+        priorityRef.current &&
+        !priorityRef.current.contains(e.target as Node)
+      ) {
+        setIsPriorityMenuOpen(false);
+      }
+
+      // 3. Assignees Menu
+      if (
+        assigneeRef.current &&
+        !assigneeRef.current.contains(e.target as Node)
+      ) {
+        setIsAssigneeMenuOpen(false);
+      }
+
+      // 4. Labels Menu
+      if (labelRef.current && !labelRef.current.contains(e.target as Node)) {
+        setIsLabelMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -474,7 +525,7 @@ export function CardDetailModal({
                   </div>
                 </section>
 
-                {/* Tabs & Stream */}
+                {/* Comment */}
                 <section className="pt-4 border-t border-white/5">
                   <div className="flex items-center gap-6 border-b border-white/5 mb-6">
                     {(["activity", "comments"] as const).map((tab) => (
@@ -491,7 +542,7 @@ export function CardDetailModal({
                         {tab.charAt(0).toUpperCase() + tab.slice(1)}
                         {tab === "comments" && (
                           <span className="px-1.5 py-0.5 rounded-full bg-white/10 text-[10px] font-bold text-white/70">
-                            4
+                            {card.commentCount || 0} {/* Make this dynamic! */}
                           </span>
                         )}
                         {activeTab === tab && (
@@ -501,88 +552,15 @@ export function CardDetailModal({
                     ))}
                   </div>
 
-                  {/* MOCK: Activity Stream matching screenshot */}
-                  <div className="space-y-6 pb-20">
-                    {/* Comment */}
-                    <div className="flex gap-4">
-                      <div className="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center text-[11px] font-bold text-white shrink-0">
-                        AM
-                      </div>
-                      <div className="flex flex-col flex-1">
-                        <div className="flex items-baseline gap-2 mb-1.5">
-                          <span className="text-[14px] font-bold text-white/90">
-                            Aisha
-                          </span>
-                          <span className="text-[13px] text-white/40">
-                            commented on this card
-                          </span>
-                        </div>
-                        <div className="bg-[#13131A] border border-white/5 rounded-xl rounded-tl-none p-4 text-[13px] text-white/80 leading-relaxed">
-                          The loading spinner needs to match the size of the
-                          button — it&apos;s currently 16px fixed. Should scale
-                          with sm/md/lg. Also worth checking the disabled
-                          opacity on dark backgrounds.
-                        </div>
-                        <span className="text-[11px] font-medium text-white/30 mt-2">
-                          Apr 27 at 1:42 PM
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* System Activity */}
-                    <div className="flex items-center gap-4 py-1">
-                      <div className="w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center text-[11px] font-bold text-white shrink-0">
-                        JD
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="text-[13px] text-white/70">
-                          <span className="font-bold text-white/90">James</span>{" "}
-                          changed priority from{" "}
-                          <span className="text-purple-400">High</span> to{" "}
-                          <span className="text-rose-500">Urgent</span>
-                        </span>
-                        <span className="text-[11px] font-medium text-white/30">
-                          Apr 27 at 9:15 AM
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Comment */}
-                    <div className="flex gap-4">
-                      <div className="w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center text-[11px] font-bold text-white shrink-0">
-                        JD
-                      </div>
-                      <div className="flex flex-col flex-1">
-                        <div className="flex items-baseline gap-2 mb-1.5">
-                          <span className="text-[14px] font-bold text-white/90">
-                            James
-                          </span>
-                          <span className="text-[13px] text-white/40">
-                            commented on this card
-                          </span>
-                        </div>
-                        <div className="bg-[#13131A] border border-white/5 rounded-xl rounded-tl-none p-4 text-[13px] text-white/80 leading-relaxed">
-                          Heads up — the Figma spec was updated last night (v4).
-                          Loading state is now a different spinner. Grab the
-                          updated file from attachments before continuing.
-                        </div>
-                        <span className="text-[11px] font-medium text-white/30 mt-2">
-                          Apr 26 at 11:05 PM
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Add comment box pinned to bottom of list */}
-                    <div className="flex gap-4 mt-6">
-                      <div className="w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center text-[11px] font-bold text-white shrink-0 mt-1">
-                        JD
-                      </div>
-                      <textarea
-                        placeholder="Leave a comment..."
-                        rows={1}
-                        className="flex-1 min-h-[44px] bg-[#13131A] border border-white/10 hover:border-white/20 focus:border-[#7C6EF5]/50 rounded-xl px-4 py-3 text-[13px] text-white placeholder:text-white/30 outline-none resize-none transition-all"
-                      />
-                    </div>
+                  {/* Render the active tab content */}
+                  <div className="pb-10">
+                    {activeTab === "comments" ? (
+                      // BOOM! Your new dynamic comments component goes here
+                      <CardComments cardId={card.id} />
+                    ) : (
+                      // Your Activity Stream component/mock goes here
+                      <ActivityTab cardId={card.id} />
+                    )}
                   </div>
                 </section>
               </div>
@@ -949,24 +927,153 @@ export function CardDetailModal({
                 </div>
 
                 {/* Labels */}
-                <div className="space-y-3">
+                <div className="space-y-3 relative" ref={labelRef}>
                   <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">
                     Labels
                   </label>
                   <div className="flex flex-wrap gap-1.5">
+                    {/* Attached Labels */}
                     {detailedCard?.labels &&
-                      detailedCard?.labels.map((l) => (
+                      detailedCard.labels.map((l) => (
                         <div
                           key={l.id}
-                          className="px-2.5 py-1 rounded-full text-[11px] font-semibold text-cyan-400 bg-cyan-400/10"
+                          className="px-2.5 py-1 rounded-md text-[11px] font-semibold border flex items-center gap-1.5"
+                          style={{
+                            color: l.colour || l.color, // Fallback depending on your DB schema spelling
+                            backgroundColor: `${l.colour || l.color}1A`, // 10% opacity
+                            borderColor: `${l.colour || l.color}33`, // 20% opacity
+                          }}
                         >
+                          <div
+                            className="w-1.5 h-1.5 rounded-full"
+                            style={{ backgroundColor: l.colour || l.color }}
+                          />
                           {l.name}
                         </div>
                       ))}
+
+                    {/* Trigger Button */}
+                    <button
+                      onClick={() => {
+                        setIsLabelMenuOpen(!isLabelMenuOpen);
+                        setIsAssigneeMenuOpen(false);
+                        setIsStatusMenuOpen(false);
+                        setIsPriorityMenuOpen(false);
+                      }}
+                      className="px-2.5 py-1 rounded-md text-[11px] font-semibold text-white/30 border border-white/10 border-dashed hover:bg-white/5 hover:text-white transition-colors flex items-center gap-1"
+                    >
+                      <Plus size={10} /> Label
+                    </button>
                   </div>
-                  <button className="px-2.5 py-1 rounded-full text-[11px] font-semibold text-white/30 border border-white/10 border-dashed hover:bg-white/5 transition-colors">
-                    + Label
-                  </button>
+
+                  {/* Labels Dropdown Menu */}
+                  {isLabelMenuOpen && (
+                    <div className="absolute top-full mt-2 w-[240px] bg-[#18181B] border border-white/8 rounded-xl shadow-2xl z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-100 p-2 left-0 flex flex-col gap-2">
+                      {/* Search Input */}
+                      <input
+                        type="text"
+                        placeholder="Search labels..."
+                        value={labelSearch}
+                        onChange={(e) => setLabelSearch(e.target.value)}
+                        autoFocus
+                        className="w-full bg-[#13131A] border border-white/10 focus:border-[#7C6EF5]/50 rounded-lg px-3 py-2 text-[12px] text-white placeholder:text-white/30 outline-none transition-all"
+                      />
+
+                      <div className="max-h-[200px] overflow-y-auto custom-scrollbar space-y-0.5">
+                        {workspaceLabels &&
+                          workspaceLabels
+                            .filter((l) =>
+                              l.name
+                                .toLowerCase()
+                                .includes(labelSearch.toLowerCase()),
+                            )
+                            .map((label) => {
+                              const isAttached = detailedCard?.labels?.some(
+                                (l) => l.id === label.id,
+                              );
+
+                              return (
+                                <div
+                                  key={label.id}
+                                  onClick={() =>
+                                    toggleLabel({
+                                      label,
+                                      isAttached: !!isAttached,
+                                    })
+                                  }
+                                  className="flex items-center justify-between p-1.5 rounded-lg hover:bg-white/5 cursor-pointer group transition-colors"
+                                >
+                                  <div className="flex items-center gap-2">
+                                    <div
+                                      className="w-2.5 h-2.5 rounded-full shadow-sm"
+                                      style={{
+                                        backgroundColor:
+                                          label.colour || label.color,
+                                      }}
+                                    />
+                                    <span className="text-[13px] font-medium text-white/80 group-hover:text-white transition-colors">
+                                      {label.name}
+                                    </span>
+                                  </div>
+                                  {isAttached && (
+                                    <Check
+                                      size={14}
+                                      className="text-[#7C6EF5]"
+                                    />
+                                  )}
+                                </div>
+                              );
+                            })}
+
+                        {/* Conditional Create Button for Admins/Owners */}
+                        {labelSearch.trim() !== "" &&
+                          canCreateLabels &&
+                          !workspaceLabels?.some(
+                            (l) =>
+                              l.name.toLowerCase() ===
+                              labelSearch.toLowerCase(),
+                          ) && (
+                            <button
+                              onClick={async () => {
+                                // Generate a random vibrant hex color for the new label
+                                const randomColor = `#${Math.floor(
+                                  Math.random() * 16777215,
+                                )
+                                  .toString(16)
+                                  .padStart(6, "0")}`;
+
+                                createLabel(
+                                  {
+                                    name: labelSearch.trim(),
+                                    colour: randomColor,
+                                  },
+                                  {
+                                    onSuccess: (newLabel) => {
+                                      toggleLabel({
+                                        label: newLabel,
+                                        isAttached: false,
+                                      });
+                                      setLabelSearch(""); // Reset search
+                                    },
+                                  },
+                                );
+                              }}
+                              disabled={isCreatingLabel}
+                              className="w-full flex items-center gap-2 p-2 mt-1 text-[12px] font-medium text-white/50 hover:text-white hover:bg-white/5 rounded-lg transition-all text-left"
+                            >
+                              {isCreatingLabel ? (
+                                <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                              ) : (
+                                <Plus size={12} />
+                              )}
+                              <span className="truncate">
+                                Create "{labelSearch}"
+                              </span>
+                            </button>
+                          )}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Metadata Divider */}
