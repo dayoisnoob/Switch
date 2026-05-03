@@ -4,6 +4,15 @@ import { useBoardStore } from "@/store/board.store";
 import { BoardCard, BoardColumn } from "@/types/board.types";
 import { useMe } from "./useAuth";
 import { toast } from "sonner";
+import { CardUpdateType } from "@/services/card.service";
+
+interface CardCreated {
+  card: BoardCard;
+  columnId: string;
+  actorId: string;
+  actorName: string;
+  cardTitle: string;
+}
 
 export function useBoardSocket(boardId: string) {
   const { data: currentUser } = useMe();
@@ -24,7 +33,7 @@ export function useBoardSocket(boardId: string) {
 
     socket.on(
       "card:created",
-      ({ card, columnId, actorId, actorName, cardTitle }: any) => {
+      ({ card, columnId, actorId, actorName, cardTitle }: CardCreated) => {
         addCard(columnId, card);
         if (actorId !== currentUser?.id) {
           toast.success(
@@ -34,9 +43,29 @@ export function useBoardSocket(boardId: string) {
       },
     );
 
-    socket.on("card:updated", ({ card }: { card: BoardCard }) => {
-      updateCard(card);
-    });
+    socket.on(
+      "card:updated",
+      ({
+        cardId,
+        changes,
+        actorId,
+        actorName,
+        cardTitle,
+      }: {
+        cardId: string;
+        changes: Partial<BoardCard>;
+        actorId: string;
+        actorName: string;
+        cardTitle: string;
+      }) => {
+        updateCard(cardId, changes);
+        if (actorId !== currentUser?.id) {
+          toast.success(
+            `${actorName || "Someone"} updated ${cardTitle ? `the card ${cardTitle}` : "a card"}`,
+          );
+        }
+      },
+    );
 
     socket.on(
       "card:moved",
@@ -99,14 +128,45 @@ export function useBoardSocket(boardId: string) {
     );
 
     // column events
-    socket.on("column:created", ({ column }: { column: BoardColumn }) => {
-      addColumn(column);
-    });
+    socket.on(
+      "column:created",
+      ({
+        column,
+        actorName,
+        actorId,
+      }: {
+        column: BoardColumn;
+        actorName: string;
+        actorId: string;
+      }) => {
+        addColumn(column);
+        if (actorId !== currentUser?.id) {
+          toast.success(
+            `${actorName || "Someone"} deleted a new column - ${column.name}`,
+          );
+        }
+      },
+    );
 
     socket.on(
       "column:updated",
-      ({ columnId, name }: { columnId: string; name: string }) => {
-        updateColumn(columnId, name);
+      ({
+        columnId,
+        colName,
+        actorName,
+        actorId,
+      }: {
+        columnId: string;
+        colName: string;
+        actorName: string;
+        actorId: string;
+      }) => {
+        updateColumn(columnId, colName);
+        if (actorId !== currentUser?.id) {
+          toast.success(
+            `${actorName || "Someone"} updated a colun to ${colName}`,
+          );
+        }
       },
     );
 

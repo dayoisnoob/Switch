@@ -63,6 +63,8 @@ import { useBoardStore } from "@/store/board.store";
 import { BoardCard, BoardColumn } from "@/types/board.types";
 import { toast } from "sonner";
 import { useBoardSocket } from "@/hooks/useBoardSocket";
+import { useMe } from "@/hooks/useAuth";
+import { useWorkspaceStore } from "@/store/workspace.store";
 
 function findColumnInSnapshot(
   id: string,
@@ -598,6 +600,12 @@ const SortableColumn = memo(function SortableColumn({
   };
   const dotColor = getColumnColor(column.name);
 
+  const activeWorkspace = useWorkspaceStore((s) => s.activeWorkspace);
+  if (!activeWorkspace) return null;
+
+  const canManageMembers =
+    activeWorkspace.role === "Owner" || activeWorkspace.role === "Admin";
+
   return (
     <div
       ref={setNodeRef}
@@ -640,91 +648,67 @@ const SortableColumn = memo(function SortableColumn({
 
         <div className="flex items-center gap-2">
           {/* UPDATED PREMIUM CONTEXT MENU */}
-          <div className="relative shrink-0" ref={menuRef}>
-            <button
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-              onPointerDown={(e) => e.stopPropagation()}
-              className="text-white/20 hover:text-white/80 p-1 rounded-md hover:bg-white/5 opacity-0 group-hover:opacity-100 transition-all"
-            >
-              <MoreHorizontal size={14} />
-            </button>
-            {isMenuOpen && (
-              <div className="absolute right-0 top-full mt-1 w-56 bg-[#18181B] border border-white/8 rounded-xl shadow-2xl z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-100 py-1.5">
-                <button
-                  onClick={() => {
-                    setIsEditing(true);
-                    setIsMenuOpen(false);
-                  }}
-                  onPointerDown={(e) => e.stopPropagation()}
-                  className="flex items-center justify-between px-3 py-2 text-[13px] font-medium text-white/70 hover:bg-white/5 hover:text-white transition-colors w-full text-left"
-                >
-                  <span className="flex items-center gap-2.5">
-                    <Edit2 size={14} className="text-white/40" /> Rename column
-                  </span>
-                  <kbd className="hidden md:inline-flex bg-white/10 rounded px-1.5 py-0.5 text-[10px] text-white/40 font-sans">
-                    R
-                  </kbd>
-                </button>
-                <button
-                  onClick={() => setIsMenuOpen(false)}
-                  onPointerDown={(e) => e.stopPropagation()}
-                  className="flex items-center justify-between px-3 py-2 text-[13px] font-medium text-white/70 hover:bg-white/5 hover:text-white transition-colors w-full text-left"
-                >
-                  <span className="flex items-center gap-2.5">
-                    <Palette size={14} className="text-white/40" /> Change
-                    colour
-                  </span>
-                  <ArrowRight size={14} className="text-white/30" />
-                </button>
+          {canManageMembers && (
+            <div className="relative shrink-0" ref={menuRef}>
+              <button
+                onClick={() => setIsMenuOpen(!isMenuOpen)}
+                onPointerDown={(e) => e.stopPropagation()}
+                className="text-white/20 hover:text-white/80 p-1 rounded-md hover:bg-white/5 opacity-0 group-hover:opacity-100 transition-all"
+              >
+                <MoreHorizontal size={14} />
+              </button>
+              {isMenuOpen && (
+                <div className="absolute right-0 top-full mt-1 w-56 bg-[#18181B] border border-white/8 rounded-xl shadow-2xl z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-100 py-1.5">
+                  <button
+                    onClick={() => {
+                      setIsEditing(true);
+                      setIsMenuOpen(false);
+                    }}
+                    onPointerDown={(e) => e.stopPropagation()}
+                    className="flex items-center justify-between px-3 py-2 text-[13px] font-medium text-white/70 hover:bg-white/5 hover:text-white transition-colors w-full text-left"
+                  >
+                    <span className="flex items-center gap-2.5">
+                      <Edit2 size={14} className="text-white/40" /> Rename
+                      column
+                    </span>
+                    <kbd className="hidden md:inline-flex bg-white/10 rounded px-1.5 py-0.5 text-[10px] text-white/40 font-sans">
+                      R
+                    </kbd>
+                  </button>
 
-                <div className="h-px bg-white/4 my-1.5 mx-2" />
+                  <div className="h-px bg-white/4 my-1.5 mx-2" />
 
-                <button
-                  onClick={() => setIsMenuOpen(false)}
-                  onPointerDown={(e) => e.stopPropagation()}
-                  className="flex items-center gap-2.5 px-3 py-2 text-[13px] font-medium text-white/70 hover:bg-white/5 hover:text-white transition-colors w-full text-left"
-                >
-                  <ArrowLeft size={14} className="text-white/40" /> Move left
-                </button>
-                <button
-                  onClick={() => setIsMenuOpen(false)}
-                  onPointerDown={(e) => e.stopPropagation()}
-                  className="flex items-center gap-2.5 px-3 py-2 text-[13px] font-medium text-white/70 hover:bg-white/5 hover:text-white transition-colors w-full text-left"
-                >
-                  <ArrowRight size={14} className="text-white/40" /> Move right
-                </button>
-
-                <div className="h-px bg-white/4 my-1.5 mx-2" />
-
-                <button
-                  onClick={() => setIsMenuOpen(false)}
-                  onPointerDown={(e) => e.stopPropagation()}
-                  className="flex items-center gap-2.5 px-3 py-2 text-[13px] font-medium text-white/70 hover:bg-white/5 hover:text-white transition-colors w-full text-left"
-                >
-                  <Eraser size={14} className="text-white/40" /> Clear all cards
-                </button>
-                <button
-                  onClick={handleDeleteColumn}
-                  onPointerDown={(e) => e.stopPropagation()}
-                  className="flex items-center gap-2.5 px-3 py-2 text-[13px] font-medium text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 transition-colors w-full text-left"
-                >
-                  <Trash2 size={14} className="text-rose-400/60" /> Delete
-                  column
-                </button>
-              </div>
-            )}
-          </div>
+                  <button
+                    onClick={() => setIsMenuOpen(false)}
+                    onPointerDown={(e) => e.stopPropagation()}
+                    className="flex items-center gap-2.5 px-3 py-2 text-[13px] font-medium text-white/70 hover:bg-white/5 hover:text-white transition-colors w-full text-left"
+                  >
+                    <Eraser size={14} className="text-white/40" /> Clear all
+                    cards
+                  </button>
+                  <button
+                    onClick={handleDeleteColumn}
+                    onPointerDown={(e) => e.stopPropagation()}
+                    className="flex items-center gap-2.5 px-3 py-2 text-[13px] font-medium text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 transition-colors w-full text-left"
+                  >
+                    <Trash2 size={14} className="text-rose-400/60" /> Delete
+                    column
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
 
           {!isEditing && (
             <div className="flex items-center justify-center min-w-5 h-5 px-1.5 rounded-full bg-white/5 border border-white/10 text-[11px] font-bold text-white/40 select-none shrink-0">
-              {column.cards.length}
+              {column.cards?.length || 0}
             </div>
           )}
         </div>
       </div>
 
       <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar">
-        {column.cards.length === 0 ? (
+        {!column.cards || column.cards?.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-10 px-4 text-center">
             <div className="w-10 h-10 rounded-xl border border-dashed border-white/20 flex items-center justify-center mb-3 bg-white/1">
               <Plus size={16} className="text-white/20" />
@@ -740,7 +724,7 @@ const SortableColumn = memo(function SortableColumn({
             strategy={verticalListSortingStrategy}
           >
             <div className="flex flex-col gap-3 p-3 pb-4">
-              {column.cards.map((card) => (
+              {column.cards?.map((card) => (
                 <SortableCard
                   key={card.id}
                   card={card}
@@ -801,11 +785,11 @@ function ColumnContent({
           <h3 className="text-[14px] font-bold text-white/90">{column.name}</h3>
         </div>
         <div className="flex items-center justify-center min-w-5 h-5 px-1.5 rounded-full bg-white/5 border border-white/10 text-[11px] font-bold text-white/40">
-          {column.cards.length}
+          {column.cards.length || 0}
         </div>
       </div>
       <div className="p-6 text-center text-sm text-white/30 border-2 border-dashed border-white/10 mx-4 my-4 rounded-xl bg-white/1">
-        {column.cards.length} Cards inside
+        {column.cards.length || 0} Cards inside
       </div>
     </div>
   );

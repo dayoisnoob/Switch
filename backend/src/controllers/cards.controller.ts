@@ -43,12 +43,15 @@ export class CardsController {
   }
 
   static async updateCard(req: AuthenticatedRequest, res: Response) {
+    const actorName = `${req.user?.firstName} ${req.user?.lastName}`.trim();
+
     const userId = req.user.id;
     const projectId = req.resolvedCard!.projectId;
     const cardId = req.params.cardId as string;
 
     const card = await CardsService.updateCard(
       userId,
+      actorName,
       projectId,
       cardId,
       req.body

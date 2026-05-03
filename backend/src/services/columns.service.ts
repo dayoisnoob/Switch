@@ -6,7 +6,12 @@ import { emitBoardEvent } from '../socket/emitter';
 import type { CreateColumn } from '../validations/projects.validation';
 
 export class ColumnsService {
-  static async createColumn(boardId: string, data: CreateColumn) {
+  static async createColumn(
+    userId: string,
+    actorName: string,
+    boardId: string,
+    data: CreateColumn
+  ) {
     const { name, mappedStatus } = data;
 
     console.log(name, mappedStatus);
@@ -33,8 +38,9 @@ export class ColumnsService {
       throw new ApiError(500, 'Error creating column. Please try again.');
 
     emitBoardEvent(boardId, 'column:created', {
-      columnId: column.id,
-      name: column.name,
+      column: column,
+      actorName,
+      actorId: userId,
     });
 
     return {
@@ -46,7 +52,12 @@ export class ColumnsService {
     };
   }
 
-  static async updateColumnName(columnId: string, name: string) {
+  static async updateColumnName(
+    userId: string,
+    actorName: string,
+    columnId: string,
+    name: string
+  ) {
     const [updatedColumn] = await db
       .update(columnsTable)
       .set({ name })
@@ -58,7 +69,9 @@ export class ColumnsService {
 
     emitBoardEvent(updatedColumn.boardId, 'column:updated', {
       columnId: updatedColumn.id,
-      name: updatedColumn.name,
+      colName: updatedColumn.name,
+      actorName,
+      actorId: userId,
     });
 
     return updatedColumn;

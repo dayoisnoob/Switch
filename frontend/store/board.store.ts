@@ -30,10 +30,7 @@ interface BoardStore {
 
   // Column operations
   addColumn: (column: BoardColumn) => void;
-  updateColumn: (
-    columnId: string,
-    updates: Partial<Pick<BoardColumn, "name">>,
-  ) => void;
+  updateColumn: (columnId: string, name: string) => void;
   deleteColumn: (columnId: string) => void;
 
   // Label operations
@@ -144,14 +141,14 @@ export const useBoardStore = create<BoardStore>((set) => ({
       };
     }),
 
-  updateColumn: (columnId, updates) =>
+  updateColumn: (columnId, name) =>
     set((state) => {
       if (!state.board) return state;
       return {
         board: {
           ...state.board,
           columns: state.board.columns.map((col) =>
-            col.id === columnId ? { ...col, ...updates } : col,
+            col.id === columnId ? { ...col, name } : col,
           ),
         },
       };

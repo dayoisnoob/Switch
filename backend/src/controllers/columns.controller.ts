@@ -5,19 +5,34 @@ import { ApiResponse } from '../utils/api-response';
 
 export class ColumnsController {
   static async createColumn(req: AuthenticatedRequest, res: Response) {
+    const userId = req.user.id;
+    const actorName = `${req.user?.firstName} ${req.user?.lastName}`.trim();
+
     const boardId = req.params.boardId as string;
 
-    const column = await ColumnsService.createColumn(boardId, req.body);
+    const column = await ColumnsService.createColumn(
+      userId,
+      actorName,
+      boardId,
+      req.body
+    );
     res
       .status(201)
       .json(new ApiResponse(201, 'Column successfully created', column));
   }
 
   static async updateColumnName(req: AuthenticatedRequest, res: Response) {
+    const userId = req.user.id;
+    const actorName = `${req.user?.firstName} ${req.user?.lastName}`.trim();
     const columnId = req.params.columnId as string;
 
     const { name } = req.body;
-    const column = await ColumnsService.updateColumnName(columnId, name);
+    const column = await ColumnsService.updateColumnName(
+      userId,
+      actorName,
+      columnId,
+      name
+    );
 
     res.json(new ApiResponse(200, 'Column updated successfully', column));
   }

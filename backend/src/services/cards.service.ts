@@ -11,6 +11,7 @@ import {
   usersTable,
   workspaceMembershipsTable,
 } from '../db';
+import { emitBoardEvent } from '../socket/emitter';
 import { ApiError } from '../utils/api-response';
 import type {
   CardDataType,
@@ -18,7 +19,6 @@ import type {
   UpdateCardType,
 } from '../validations/cards.validation';
 import { ActivityService } from './activity.service';
-import { emitBoardEvent } from '../socket/emitter';
 import { NotificationService } from './notification.service';
 
 export class CardsService {
@@ -231,11 +231,19 @@ export class CardsService {
 
   static async updateCard(
     userId: string,
+    actorName: string,
     projectId: string,
     cardId: string,
     data: UpdateCardType
   ) {
     const { title, description, priority, dueDate } = data;
+
+    const [card] = await db
+      .select({ title: cardsTable.title })
+      .from(cardsTable)
+      .where(eq(cardsTable.id, cardId))
+      .limit(1);
+
     const [updatedCard] = await db
       .update(cardsTable)
       .set({
@@ -272,6 +280,9 @@ export class CardsService {
     emitBoardEvent(updatedCard.boardId, 'card:updated', {
       cardId,
       changes: data,
+      actorId: userId,
+      actorName,
+      cardTitle: card?.title,
     });
 
     return updatedCard;
