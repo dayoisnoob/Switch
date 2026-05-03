@@ -11,6 +11,7 @@ import {
 interface BoardStore {
   board: BoardState | null;
   workspaceLabels: BoardLabel[];
+  presenceUsers: PresenceUser[];
 
   // Hydration
   setBoard: (board: BoardState) => void;
@@ -43,11 +44,14 @@ interface BoardStore {
   // Assignee Operations
   assignUserToCard: (cardId: string, assignee: BoardAssignee) => void;
   removeUserFromCard: (cardId: string, userId: string) => void;
+
+  setPresence: (users: PresenceUser[]) => void;
 }
 
 export const useBoardStore = create<BoardStore>((set) => ({
   board: null,
   workspaceLabels: [],
+  presenceUsers: [],
 
   setBoard: (board) =>
     set({
@@ -250,4 +254,12 @@ export const useBoardStore = create<BoardStore>((set) => ({
         },
       };
     }),
+
+  setPresence: (users) => set({ presenceUsers: users }),
 }));
+
+type PresenceUser = {
+  userId: string;
+  firstName: string;
+  avatarUrl: string | null;
+};

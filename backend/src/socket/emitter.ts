@@ -26,7 +26,6 @@ export const emitBoardEvent = (
   }
 };
 
-// socket/emitter.ts
 export const emitToUser = (
   userId: string,
   event: string,

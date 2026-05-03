@@ -62,6 +62,7 @@ import { WorkspaceMembers } from "@/services/workspace.service";
 import { useBoardStore } from "@/store/board.store";
 import { BoardCard, BoardColumn } from "@/types/board.types";
 import { toast } from "sonner";
+import { useBoardSocket } from "@/hooks/useBoardSocket";
 
 function findColumnInSnapshot(
   id: string,
@@ -124,6 +125,8 @@ export default function KanbanBoardPage() {
     useGetMembers(workspaceSlug);
 
   const board = useBoardStore((s) => s.board);
+
+  useBoardSocket(board?.id ?? "");
 
   const { mutate: moveCard } = useMoveCard();
   const { mutate: moveColumn } = useMoveColumn();

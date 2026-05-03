@@ -3,7 +3,7 @@ import { ApiError } from '../utils/api-response';
 import { logger } from '../config/logger';
 
 export const notFoundError = (req: Request, res: Response) => {
-  throw new ApiError(404, 'The requested resorce was not found');
+  throw new ApiError(404, 'The requested resource was not found');
 };
 
 export const globalErrorHandler = (

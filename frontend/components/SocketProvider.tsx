@@ -1,28 +1,24 @@
-// "use client";
+"use client";
+import { useEffect } from "react";
+import { socket } from "@/lib/socket";
+import { useNotificationStore } from "@/store/notification.store";
 
-// import { useEffect } from "react";
-// import { socket } from "@/lib/socket";
+export function SocketProvider({ children }: { children: React.ReactNode }) {
+  const { fetch, initSocket } = useNotificationStore();
 
-// export function SocketProvider({ children }: { children: React.ReactNode }) {
-//   useEffect(() => {
-//     socket.on("connect", () => {
-//       console.log("✅ Socket connected:", socket.id);
-//     });
+  useEffect(() => {
+    socket.connect();
 
-//     socket.on("connect_error", (err) => {
-//       console.error("❌ Socket connection error:", err.message);
-//     });
+    socket.on("connect", () => {
+      fetch();
+      initSocket();
+    });
 
-//     socket.on("disconnect", (reason) => {
-//       console.log("🔌 Socket disconnected:", reason);
-//     });
+    return () => {
+      socket.off("notification:new");
+      socket.disconnect();
+    };
+  }, []);
 
-//     socket.connect();
-
-//     return () => {
-//       socket.disconnect();
-//     };
-//   }, []);
-
-//   return <>{children}</>;
-// }
+  return <>{children}</>;
+}
