@@ -77,7 +77,12 @@ export class ColumnsService {
     return updatedColumn;
   }
 
-  static async updateColumnOrder(columnId: string, order: number) {
+  static async updateColumnOrder(
+    userId: string,
+    actorName: string,
+    columnId: string,
+    order: number
+  ) {
     const [updatedColumn] = await db
       .update(columnsTable)
       .set({ order })
@@ -88,8 +93,11 @@ export class ColumnsService {
       throw new ApiError(500, 'Error updating column, Please try again');
 
     emitBoardEvent(updatedColumn.boardId, 'column:reordered', {
-      columnId: updatedColumn.id,
-      order: updatedColumn.order,
+      colId: updatedColumn.id,
+      newOrder: order,
+      actorId: userId,
+      actorName,
+      colName: updatedColumn.name,
     });
 
     return {

@@ -43,7 +43,12 @@ export class ColumnsController {
     const columnId = req.params.columnId as string;
 
     const { order } = req.body;
-    const column = await ColumnsService.updateColumnOrder(columnId, order);
+    const column = await ColumnsService.updateColumnOrder(
+      userId,
+      actorName,
+      columnId,
+      order
+    );
 
     res.json(new ApiResponse(200, 'Column updated successfully', column));
   }

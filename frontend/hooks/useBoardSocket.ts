@@ -23,8 +23,8 @@ export function useBoardSocket(boardId: string) {
     deleteCard,
     addColumn,
     updateColumn,
+    moveColumn,
     deleteColumn,
-    reorderColumns,
     setPresence,
   } = useBoardStore();
 
@@ -192,9 +192,29 @@ export function useBoardSocket(boardId: string) {
       },
     );
 
-    socket.on("column:reordered", ({ columns }: { columns: BoardColumn[] }) => {
-      reorderColumns(columns);
-    });
+    socket.on(
+      "column:reordered",
+      ({
+        colId,
+        newOrder,
+        actorId,
+        actorName,
+        colName,
+      }: {
+        actorId: string;
+        actorName: string;
+        colName: string;
+        colId: string;
+        newOrder: number;
+      }) => {
+        moveColumn(colId, newOrder);
+        if (actorId !== currentUser?.id) {
+          toast.success(
+            `${actorName || "Someone"} moved the column ${colName}`,
+          );
+        }
+      },
+    );
 
     // presence
     socket.on("board:presence", ({ users }) => {
@@ -220,7 +240,6 @@ export function useBoardSocket(boardId: string) {
     deleteCard,
     deleteColumn,
     moveCard,
-    reorderColumns,
     setPresence,
     updateCard,
     updateColumn,

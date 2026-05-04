@@ -32,6 +32,7 @@ interface BoardStore {
   addColumn: (column: BoardColumn) => void;
   updateColumn: (columnId: string, name: string) => void;
   deleteColumn: (columnId: string) => void;
+  moveColumn: (columnId: string, newOrder: number) => void;
 
   // Label operations
   addLabelToCard: (cardId: string, label: BoardLabel) => void;
@@ -152,6 +153,19 @@ export const useBoardStore = create<BoardStore>((set) => ({
           ),
         },
       };
+    }),
+
+  moveColumn: (columnId, newOrder) =>
+    set((state) => {
+      if (!state.board) return state;
+
+      const updatedColumns = state.board.columns.map((col) =>
+        col.id === columnId ? { ...col, order: newOrder } : col,
+      );
+
+      updatedColumns.sort((a, b) => a.order - b.order);
+
+      return { board: { ...state.board, columns: updatedColumns } };
     }),
 
   deleteColumn: (columnId) =>
