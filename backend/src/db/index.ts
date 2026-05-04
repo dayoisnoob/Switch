@@ -43,6 +43,10 @@ export const cardRelations = relations(cardsTable, ({ one, many }) => ({
   }),
   assignees: many(cardAssigneesTable),
   labels: many(cardLabelsTable),
+  creator: one(usersTable, {
+    fields: [cardsTable.createdBy],
+    references: [usersTable.id],
+  }),
 }));
 
 export const cardAssigneeRelations = relations(

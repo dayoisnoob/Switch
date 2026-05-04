@@ -32,8 +32,17 @@ export const BoardService = {
                 priority: true,
                 dueDate: true,
                 order: true,
+                createdAt: true,
+                updatedAt: true,
               },
               with: {
+                creator: {
+                  columns: {
+                    id: true,
+                    firstName: true,
+                    lastName: true,
+                  },
+                },
                 assignees: {
                   columns: {},
                   with: {
@@ -122,6 +131,7 @@ export const BoardService = {
 
           return {
             ...card,
+            creator: card.creator,
             assignees: card.assignees.map((a) => a.user),
             labels: card.labels.map((l) => l.label),
             commentCount,

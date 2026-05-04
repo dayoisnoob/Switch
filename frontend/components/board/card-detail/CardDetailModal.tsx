@@ -100,7 +100,7 @@ export function CardDetailModalInner({
   const { data: detailedCard, isLoading: isCardLoading } = useGetCard(card.id);
 
   const [activeTab, setActiveTab] = useState<"activity" | "comments">(
-    "activity",
+    "comments",
   );
 
   const { data: currentUser, isLoading } = useMe();
@@ -140,9 +140,11 @@ export function CardDetailModalInner({
   const currentMember = workspaceMembers?.find(
     (m) => m.userId === currentUser?.id,
   );
-  const canCreateLabels = ["Owner", "Admin"].includes(
+  const canManageCard = ["Owner", "Admin"].includes(
     currentMember?.role || "Member",
   );
+
+  const canDeleteCard = currentUser?.id === card.creator.id || canManageCard;
 
   // Make sure you fetch workspace labels somewhere!
   // const { data: workspaceLabels } = useGetWorkspaceLabels(workspaceSlug);
@@ -304,8 +306,6 @@ export function CardDetailModalInner({
     if (titleValue !== card.title) updateCard({ title: titleValue });
   };
 
-  console.log(detailedCard);
-
   const handleDescSave = () => {
     setIsEditingDesc(false);
     if (descValue !== (card.description || ""))
@@ -344,12 +344,15 @@ export function CardDetailModalInner({
             </div>
 
             <div className="flex items-center gap-1">
-              <button
-                onClick={() => setIsDeleteModalOpen(true)}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-medium text-white/50 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors"
-              >
-                <Trash2 size={13} /> Delete
-              </button>
+              {canDeleteCard && (
+                <button
+                  onClick={() => setIsDeleteModalOpen(true)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-medium text-white/50 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors"
+                >
+                  <Trash2 size={13} /> Delete
+                </button>
+              )}
+
               <div className="w-px h-4 bg-white/10 mx-1" />
               <button
                 onClick={onClose}
@@ -535,7 +538,7 @@ export function CardDetailModalInner({
                 {/* Comment */}
                 <section className="pt-4 border-t border-white/5">
                   <div className="flex items-center gap-6 border-b border-white/5 mb-6">
-                    {(["activity", "comments"] as const).map((tab) => (
+                    {(["comments", "activity"] as const).map((tab) => (
                       <button
                         key={tab}
                         onClick={() => setActiveTab(tab)}
@@ -855,7 +858,7 @@ export function CardDetailModalInner({
                         ) : workspaceMembers && workspaceMembers.length > 0 ? (
                           workspaceMembers.map((member) => {
                             // Check if this member is already assigned to the card
-                            const isAssigned = detailedCard?.assignees?.some(
+                            const isAssigned = card?.assignees?.some(
                               (a) => a.id === member.userId,
                             );
 
@@ -1034,7 +1037,7 @@ export function CardDetailModalInner({
 
                         {/* Conditional Create Button for Admins/Owners */}
                         {labelSearch.trim() !== "" &&
-                          canCreateLabels &&
+                          canManageCard &&
                           !workspaceLabels?.some(
                             (l) =>
                               l.name.toLowerCase() ===
@@ -1095,17 +1098,14 @@ export function CardDetailModalInner({
                     </label>
                     <div className="text-[12px] text-white/40 font-medium">
                       {/* Fallback to localCard if detailedCard is still fetching */}
-                      {detailedCard?.createdAt
-                        ? formatDate(detailedCard.createdAt)
-                        : ""}
+                      {card?.createdAt ? formatDate(card.createdAt) : ""}
                       <span className="opacity-50">by</span>{" "}
                       {/* Show a mini skeleton or fallback while fetching the name */}
                       {isCardLoading ? (
                         <span className="inline-block w-16 h-3 bg-white/10 rounded animate-pulse align-middle" />
                       ) : (
                         <span className="text-white/70">
-                          {detailedCard?.createdBy?.firstName}{" "}
-                          {detailedCard?.createdBy?.lastName}
+                          {card?.creator.firstName} {card?.creator?.lastName}
                         </span>
                       )}
                     </div>
@@ -1116,9 +1116,7 @@ export function CardDetailModalInner({
                       Last Updated
                     </label>
                     <div className="text-[12px] text-white/40 font-medium">
-                      {detailedCard?.updatedAt
-                        ? formatDate(detailedCard.updatedAt)
-                        : ""}
+                      {card?.updatedAt ? formatDate(card.updatedAt) : ""}
                     </div>
                   </div>
 
@@ -1128,7 +1126,7 @@ export function CardDetailModalInner({
                     </label>
                     <div className="text-[12px] text-white/30 font-mono mt-2">
                       {/* We can use localCard for this since we already have the ID! */}
-                      {detailedCard?.id.slice(0, 6).toUpperCase() ?? "-"}
+                      {card?.id.slice(0, 6).toUpperCase() ?? "-"}
                     </div>
                   </div>
                 </div>

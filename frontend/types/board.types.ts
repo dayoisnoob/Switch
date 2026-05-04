@@ -21,10 +21,19 @@ export interface BoardCard {
   priority: "none" | "low" | "medium" | "high" | "urgent";
   dueDate: string | null;
   order: number;
+  createdAt: string;
+  updatedAt: string;
+  creator: CardCreator;
   assignees: BoardAssignee[];
   labels: BoardLabel[];
   commentCount: number;
   activityCount: number;
+}
+
+export interface CardCreator {
+  id: string;
+  firstName: string;
+  lastName: string;
 }
 
 export interface BoardColumn {
