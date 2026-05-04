@@ -129,15 +129,20 @@ export class CardsController {
   }
 
   static async attachLabel(req: AuthenticatedRequest, res: Response) {
+    const actorName = `${req.user?.firstName} ${req.user?.lastName}`.trim();
+
     const userId = req.user.id;
+    const boardId = req.resolvedCard?.boardId as string;
     const cardId = req.params.cardId as string;
     const projectId = req.resolvedCard!.projectId;
 
     const label = await CardsService.attachLabel(
       userId,
+      actorName,
       projectId,
       cardId,
-      req.body.labelId
+      req.body.labelId,
+      boardId
     );
 
     res.json(new ApiResponse(200, 'Label attached successfully', label));

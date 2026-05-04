@@ -371,7 +371,7 @@ export class CardsService {
       toColumnId: updatedCard.columnId,
       newIndex: updatedCard.order,
       actorId: userId,
-      actorName: actorName,
+      actorName,
       fromColumnName: oldCol.name,
       toColumnName: newCol.name,
     });
@@ -453,7 +453,7 @@ export class CardsService {
       cardId,
       assignee: user,
       actorId: userId,
-      actorName: actorName,
+      actorName,
       cardTitle: card?.title,
     });
 
@@ -523,7 +523,7 @@ export class CardsService {
       assigneeId: assignee.userId,
       assigneeName,
       actorId: userId,
-      actorName: actorName,
+      actorName,
       cardTitle: card?.title,
     });
 
@@ -532,9 +532,11 @@ export class CardsService {
 
   static async attachLabel(
     userId: string,
+    actorName: string,
     projectId: string,
     cardId: string,
-    labelId: string
+    labelId: string,
+    boardId: string
   ) {
     const [existing] = await db
       .select({ id: cardLabelsTable.id })
@@ -550,23 +552,33 @@ export class CardsService {
     if (existing)
       throw new ApiError(409, 'Label is already attached to this card.');
 
-    const [label] = await db
+    const [newCardLabel] = await db
       .insert(cardLabelsTable)
       .values({ cardId, labelId })
       .returning();
 
-    if (!label)
+    if (!newCardLabel)
       throw new ApiError(500, 'Error attaching label. Please try again.');
 
-    const [labelData] = await db
-      .select({
-        name: labelsTable.name,
-      })
-      .from(labelsTable)
-      .where(eq(labelsTable.id, label.labelId))
-      .limit(1);
+    const [[labelData], [cardData]] = await Promise.all([
+      db
+        .select({
+          id: labelsTable.id,
+          name: labelsTable.name,
+          colour: labelsTable.colour,
+        })
+        .from(labelsTable)
+        .where(eq(labelsTable.id, labelId))
+        .limit(1),
+      db
+        .select({ title: cardsTable.title })
+        .from(cardsTable)
+        .where(eq(cardsTable.id, cardId))
+        .limit(1),
+    ]);
 
     if (!labelData) throw new ApiError(404, 'Could not find this label');
+    if (!cardData) throw new ApiError(404, 'Could not find this card');
 
     await ActivityService.log({
       type: 'label_added',
@@ -576,7 +588,15 @@ export class CardsService {
       metadata: { labelName: labelData.name },
     });
 
-    return label;
+    emitBoardEvent(boardId, 'label:attached', {
+      cardId,
+      label: labelData,
+      actorId: userId,
+      actorName,
+      cardTitle: cardData?.title,
+    });
+
+    return labelData;
   }
 
   static async detatchLabel(

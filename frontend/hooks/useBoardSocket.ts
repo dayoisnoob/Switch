@@ -1,6 +1,11 @@
 import { socket } from "@/lib/socket";
 import { useBoardStore } from "@/store/board.store";
-import { BoardAssignee, BoardCard, BoardColumn } from "@/types/board.types";
+import {
+  BoardAssignee,
+  BoardCard,
+  BoardColumn,
+  BoardLabel,
+} from "@/types/board.types";
 import { useEffect } from "react";
 import { toast } from "sonner";
 import { useMe } from "./useAuth";
@@ -26,6 +31,9 @@ export function useBoardSocket(boardId: string) {
     deleteColumn,
     assignUserToCard,
     removeUserFromCard,
+    addLabelToCard,
+    removeLabelFromCard,
+    addWorkspaceLabel,
     setPresence,
   } = useBoardStore();
 
@@ -271,6 +279,32 @@ export function useBoardSocket(boardId: string) {
       },
     );
 
+    // label events
+
+    socket.on(
+      "label:attached",
+      ({
+        cardId,
+        label,
+        actorId,
+        actorName,
+        cardTitle,
+      }: {
+        cardId: string;
+        label: BoardLabel;
+        actorId: string;
+        actorName: string;
+        cardTitle: string;
+      }) => {
+        addLabelToCard(cardId, label);
+        if (actorId !== currentUser?.id) {
+          toast.success(
+            `${actorName || "Someone"} added label:${label.name} to card ${cardTitle}`,
+          );
+        }
+      },
+    );
+
     socket.on("board:presence", ({ users }) => {
       setPresence(users);
     });
@@ -287,11 +321,14 @@ export function useBoardSocket(boardId: string) {
       socket.off("column:reordered");
       socket.off("assignee:added");
       socket.off("assignee:removed");
+      socket.off("label:attached");
+      socket.off("label:removed");
       socket.off("board:presence");
     };
   }, [
     addCard,
     addColumn,
+    addLabelToCard,
     assignUserToCard,
     boardId,
     currentUser?.id,
