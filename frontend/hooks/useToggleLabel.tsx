@@ -4,11 +4,8 @@ import { BoardCard } from "@/types/board.types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-const useToggleLabel = (card: BoardCard) => {
+export const useToggleLabel = (card: BoardCard) => {
   const queryClient = useQueryClient();
-  const workspaceLabels = useBoardStore((s) => s.workspaceLabels);
-  const removeLabelFromCard = useBoardStore((s) => s.removeLabelFromCard);
-  const addLabelToCard = useBoardStore((s) => s.addLabelToCard);
 
   return useMutation({
     mutationFn: async ({
@@ -28,23 +25,29 @@ const useToggleLabel = (card: BoardCard) => {
     onMutate: async ({ labelId, isAttached }) => {
       await queryClient.cancelQueries({ queryKey: ["card", card.id] });
 
+      const store = useBoardStore.getState();
+
       if (isAttached) {
-        removeLabelFromCard(card.id, labelId);
+        store.removeLabelFromCard(card.id, labelId);
       } else {
-        const label = workspaceLabels.find((l) => l.id === labelId);
-        if (label) addLabelToCard(card.id, label);
+        const label = store.workspaceLabels.find((l) => l.id === labelId);
+        if (label) store.addLabelToCard(card.id, label);
       }
 
       return { previousIsAttached: isAttached, labelId };
     },
 
     onError: (error, variables, context) => {
+      const store = useBoardStore.getState();
+
       if (context) {
         if (context.previousIsAttached) {
-          const label = workspaceLabels.find((l) => l.id === context.labelId);
-          if (label) addLabelToCard(card.id, label);
+          const label = store.workspaceLabels.find(
+            (l) => l.id === context.labelId,
+          );
+          if (label) store.addLabelToCard(card.id, label);
         } else {
-          removeLabelFromCard(card.id, context.labelId);
+          store.removeLabelFromCard(card.id, context.labelId);
         }
       }
 
@@ -58,5 +61,3 @@ const useToggleLabel = (card: BoardCard) => {
     },
   });
 };
-
-export default useToggleLabel;

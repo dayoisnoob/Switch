@@ -49,8 +49,9 @@ import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { useGetMembers } from "@/hooks/useWorkspace";
 import { useToggleAssignee } from "@/hooks/useToggleAssignee";
-import { useCreateLabel, useToggleLabel } from "@/hooks/useCreateLabel";
+import { useCreateLabel } from "@/hooks/useCreateLabel";
 import { useMe } from "@/hooks/useAuth";
+import { useToggleLabel } from "@/hooks/useToggleLabel";
 
 // --- Helpers to match priority styles ---
 const getPriorityStyles = (priority: string) => {
@@ -86,7 +87,6 @@ export function CardDetailModal({
   projectSlug,
   workspaceSlug,
 }: CardDetailModalProps) {
-  useBoard(projectSlug, workspaceSlug);
   const { data: detailedCard, isLoading: isCardLoading } = useGetCard(card.id);
 
   const [activeTab, setActiveTab] = useState<"activity" | "comments">(
@@ -122,7 +122,7 @@ export function CardDetailModal({
   const labelRef = useRef<HTMLDivElement>(null);
 
   // Hook up your new mutations
-  const { mutate: toggleLabel } = useToggleLabel(card.id);
+  const { mutate: toggleLabel } = useToggleLabel(card);
   const { mutate: createLabel, isPending: isCreatingLabel } =
     useCreateLabel(workspaceSlug);
 
@@ -178,6 +178,7 @@ export function CardDetailModal({
   };
 
   const workspaceLabels = useBoardStore((s) => s.workspaceLabels);
+  const boardId = useBoardStore.getState().board?.id;
 
   const { mutate: updateCard } = useUpdateCard(card.id);
   const currentColumn = columns.find((c) =>
@@ -935,14 +936,14 @@ export function CardDetailModal({
                           key={l.id}
                           className="px-2.5 py-1 rounded-md text-[11px] font-semibold border flex items-center gap-1.5"
                           style={{
-                            color: l.colour || l.color, // Fallback depending on your DB schema spelling
-                            backgroundColor: `${l.colour || l.color}1A`, // 10% opacity
-                            borderColor: `${l.colour || l.color}33`, // 20% opacity
+                            color: l.colour || l.colour, // Fallback depending on your DB schema spelling
+                            backgroundColor: `${l.colour || l.colour}1A`, // 10% opacity
+                            borderColor: `${l.colour || l.colour}33`, // 20% opacity
                           }}
                         >
                           <div
                             className="w-1.5 h-1.5 rounded-full"
-                            style={{ backgroundColor: l.colour || l.color }}
+                            style={{ backgroundColor: l.colour || l.colour }}
                           />
                           {l.name}
                         </div>
@@ -993,7 +994,7 @@ export function CardDetailModal({
                                   key={label.id}
                                   onClick={() =>
                                     toggleLabel({
-                                      label,
+                                      labelId: label.id,
                                       isAttached: !!isAttached,
                                     })
                                   }
@@ -1004,7 +1005,7 @@ export function CardDetailModal({
                                       className="w-2.5 h-2.5 rounded-full shadow-sm"
                                       style={{
                                         backgroundColor:
-                                          label.colour || label.color,
+                                          label.colour || label.colour,
                                       }}
                                     />
                                     <span className="text-[13px] font-medium text-white/80 group-hover:text-white transition-colors">
@@ -1042,11 +1043,12 @@ export function CardDetailModal({
                                   {
                                     name: labelSearch.trim(),
                                     colour: randomColor,
+                                    boardId: boardId || "",
                                   },
                                   {
                                     onSuccess: (newLabel) => {
                                       toggleLabel({
-                                        label: newLabel,
+                                        labelId: newLabel.id,
                                         isAttached: false,
                                       });
                                       setLabelSearch(""); // Reset search

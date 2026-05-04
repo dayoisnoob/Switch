@@ -14,6 +14,7 @@ type BoardEvent =
   | 'assignee:removed'
   | 'label:attached'
   | 'label:removed'
+  | 'label:created'
   | 'comment:created'
   | 'comment:updated'
   | 'comment:deleted';

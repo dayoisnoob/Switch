@@ -3,6 +3,7 @@ import { z } from 'zod';
 export const createLabelSchema = z.object({
   name: z.string().min(1, 'label needs to have a title').max(50).trim(),
   colour: z.string().trim(),
+  boardId: z.string().uuid().optional(),
 });
 
 export const updateLabelSchema = z.object({

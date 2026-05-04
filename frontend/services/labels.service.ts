@@ -25,4 +25,5 @@ export const LabelService = {
 export interface CreateLabelType {
   name: string;
   colour: string;
+  boardId: string;
 }

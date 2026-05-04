@@ -5,8 +5,15 @@ import { ApiResponse } from '../utils/api-response';
 
 export class LabelController {
   static async createLabel(req: AuthenticatedRequest, res: Response) {
+    const userId = req.user.id;
+    const actorName = `${req.user?.firstName} ${req.user?.lastName}`.trim();
     const workspaceId = req.workspace?.workspaceId!;
-    const label = await LabelService.createLabel(workspaceId, req.body);
+    const label = await LabelService.createLabel(
+      userId,
+      actorName,
+      workspaceId,
+      req.body
+    );
 
     res
       .status(201)

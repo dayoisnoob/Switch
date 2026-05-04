@@ -1,15 +1,21 @@
 import { and, eq, ne } from 'drizzle-orm';
 import { db } from '../config/db';
-import { labelsTable } from '../db';
+import { cardLabelsTable, cardsTable, labelsTable } from '../db';
 import { ApiError } from '../utils/api-response';
 import type {
   CreateLabelType,
   UpdateLabelType,
 } from '../validations/labels.validation';
+import { emitBoardEvent } from '../socket/emitter';
 
 export class LabelService {
-  static async createLabel(workspaceId: string, data: CreateLabelType) {
-    const { name, colour } = data;
+  static async createLabel(
+    userId: string,
+    actorName: string,
+    workspaceId: string,
+    data: CreateLabelType
+  ) {
+    const { name, colour, boardId } = data;
 
     const [existing] = await db
       .select({ id: labelsTable.id })
@@ -39,6 +45,14 @@ export class LabelService {
 
     if (!label)
       throw new ApiError(500, 'Error creating label. Please try again.');
+
+    if (boardId) {
+      emitBoardEvent(boardId, 'label:created', {
+        label,
+        actorId: userId,
+        actorName,
+      });
+    }
 
     return {
       id: label.id,
