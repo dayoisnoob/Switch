@@ -339,21 +339,10 @@ export function useBoardSocket(boardId: string) {
     socket.on(
       "comment:created",
       ({ cardId, comment, actorId, actorName, cardTitle }) => {
-        // 1. Instantly bump the counter on the board UI
         useBoardStore.getState().updateCommentCount(cardId, 1);
 
-        // 2. Instantly inject the comment into the React Query cache!
-        // (If the user has the modal open, the chat instantly updates)
-        queryClient.setQueryData(["comments", cardId], (oldComments: any) => {
-          if (!oldComments) return [comment];
+        queryClient.invalidateQueries({ queryKey: ["comments", cardId] });
 
-          // Idempotency check: don't add if we already have it
-          const exists = oldComments.some((c: any) => c.id === comment.id);
-          return exists ? oldComments : [...oldComments, comment];
-        });
-
-        // 3. Fire the toast (Optional, some teams find comment toasts too noisy,
-        // so you might only want to toast if they are explicitly tagged/mentioned!)
         if (actorId !== currentUser?.id) {
           toast.info(`${actorName || "Someone"} commented on "${cardTitle}"`);
         }
@@ -379,7 +368,8 @@ export function useBoardSocket(boardId: string) {
       socket.off("label:attached");
       socket.off("label:removed");
       socket.off("label:created");
+      socket.off("comment:created");
       socket.off("board:presence");
     };
-  }, [boardId, currentUser?.id]);
+  }, [boardId, currentUser?.id, queryClient]);
 }

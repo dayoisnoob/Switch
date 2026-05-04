@@ -123,7 +123,6 @@ export default function KanbanBoardPage() {
     useGetMembers(workspaceSlug);
 
   const board = useBoardStore((s) => s.board);
-
   useBoardSocket(board?.id ?? "");
 
   const { mutate: moveCard } = useMoveCard();

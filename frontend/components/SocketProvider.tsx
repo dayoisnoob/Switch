@@ -9,13 +9,17 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     socket.connect();
 
-    socket.on("connect", () => {
-      fetch();
-      initSocket();
-    });
+    const handleConnect = () => {
+      const store = useNotificationStore.getState();
+      store.fetch();
+      store.initSocket();
+    };
+
+    // 3. Attach the listener
+    socket.on("connect", handleConnect);
 
     return () => {
-      socket.off("notification:new");
+      socket.off("connect", handleConnect);
       socket.disconnect();
     };
   }, []);
