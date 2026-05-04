@@ -23,14 +23,14 @@ export function useBoardSocket(boardId: string) {
 
     socket.emit("join:board", { boardId });
 
+    // --- CARDS ---
     socket.on(
       "card:created",
       ({ card, columnId, actorId, actorName, cardTitle }: CardCreated) => {
         useBoardStore.getState().addCard(columnId, card);
         if (actorId !== currentUser?.id) {
-          toast.success(
-            `${actorName || "Someone"} created a new card - ${cardTitle}`,
-          );
+          const actor = actorName || "A teammate";
+          toast.success(`${actor} added a new card: "${cardTitle}"`);
         }
       },
     );
@@ -40,9 +40,8 @@ export function useBoardSocket(boardId: string) {
       ({ cardId, changes, actorId, actorName, cardTitle }) => {
         useBoardStore.getState().updateCard(cardId, changes);
         if (actorId !== currentUser?.id) {
-          toast.success(
-            `${actorName || "Someone"} updated ${cardTitle ? `the card ${cardTitle}` : "a card"}`,
-          );
+          const actor = actorName || "A teammate";
+          toast.info(`${actor} updated the card "${cardTitle || "Untitled"}"`);
         }
       },
     );
@@ -62,15 +61,13 @@ export function useBoardSocket(boardId: string) {
         useBoardStore
           .getState()
           .moveCard(cardId, fromColumnId, toColumnId, newIndex);
+
         if (actorId !== currentUser?.id) {
+          const actor = actorName || "A teammate";
           if (fromColumnId === toColumnId) {
-            toast.info(
-              `${actorName || "Someone"} reordered a card in ${fromColumnName}`,
-            );
+            toast.info(`${actor} reordered cards in "${fromColumnName}"`);
           } else {
-            toast.info(
-              `${actorName || "Someone"} moved a card from ${fromColumnName} to ${toColumnName}`,
-            );
+            toast.info(`${actor} moved a card to "${toColumnName}"`);
           }
         }
       },
@@ -81,38 +78,34 @@ export function useBoardSocket(boardId: string) {
       ({ cardId, actorName, actorId, columnId, cardTitle }) => {
         useBoardStore.getState().deleteCard(cardId, columnId);
         if (actorId !== currentUser?.id) {
-          toast.success(
-            `${actorName || "Someone"} deleted the ${cardTitle} card`,
-          );
+          const actor = actorName || "A teammate";
+          toast.info(`${actor} deleted the card "${cardTitle}"`);
         }
       },
     );
 
-    // column events
+    // --- COLUMNS ---
     socket.on("column:created", ({ column, actorName, actorId }) => {
       useBoardStore.getState().addColumn(column);
       if (actorId !== currentUser?.id) {
-        toast.success(
-          `${actorName || "Someone"} created a new column - ${column.name}`,
-        );
+        const actor = actorName || "A teammate";
+        toast.success(`${actor} created a new column: "${column.name}"`);
       }
     });
 
     socket.on("column:updated", ({ columnId, colName, actorName, actorId }) => {
       useBoardStore.getState().updateColumn(columnId, colName);
       if (actorId !== currentUser?.id) {
-        toast.success(
-          `${actorName || "Someone"} updated a column to ${colName}`,
-        );
+        const actor = actorName || "A teammate";
+        toast.info(`${actor} renamed a column to "${colName}"`);
       }
     });
 
     socket.on("column:deleted", ({ columnId, actorName, actorId, colName }) => {
       useBoardStore.getState().deleteColumn(columnId);
       if (actorId !== currentUser?.id) {
-        toast.success(
-          `${actorName || "Someone"} deleted the column ${colName}`,
-        );
+        const actor = actorName || "A teammate";
+        toast.info(`${actor} deleted the column "${colName}"`);
       }
     });
 
@@ -121,23 +114,21 @@ export function useBoardSocket(boardId: string) {
       ({ colId, newOrder, actorId, actorName, colName }) => {
         useBoardStore.getState().moveColumn(colId, newOrder);
         if (actorId !== currentUser?.id) {
-          toast.success(
-            `${actorName || "Someone"} moved the column ${colName}`,
-          );
+          const actor = actorName || "A teammate";
+          toast.info(`${actor} reordered the column "${colName}"`);
         }
       },
     );
 
-    // assignee events
+    // --- ASSIGNEES ---
     socket.on(
       "assignee:added",
       ({ cardId, assignee, actorId, actorName, cardTitle }) => {
         if (actorId !== currentUser?.id) {
           useBoardStore.getState().assignUserToCard(cardId, assignee);
+          const actor = actorName || "A teammate";
           const assigneeName = `${assignee.firstName} ${assignee.lastName}`;
-          toast.success(
-            `${actorName || "Someone"} assigned ${assigneeName} to card ${cardTitle}`,
-          );
+          toast.success(`${actor} assigned ${assigneeName} to "${cardTitle}"`);
         }
       },
     );
@@ -147,21 +138,21 @@ export function useBoardSocket(boardId: string) {
       ({ cardId, assigneeId, assigneeName, actorId, actorName, cardTitle }) => {
         if (actorId !== currentUser?.id) {
           useBoardStore.getState().removeUserFromCard(cardId, assigneeId);
-          toast.success(
-            `${actorName || "Someone"} removed ${assigneeName} from card ${cardTitle}`,
-          );
+          const actor = actorName || "A teammate";
+          toast.info(`${actor} removed ${assigneeName} from "${cardTitle}"`);
         }
       },
     );
 
-    // label events
+    // --- LABELS ---
     socket.on(
       "label:attached",
       ({ cardId, label, actorId, actorName, cardTitle }) => {
         if (actorId !== currentUser?.id) {
           useBoardStore.getState().addLabelToCard(cardId, label);
-          toast.success(
-            `${actorName || "Someone"} added label:${label.name} to card ${cardTitle}`,
+          const actor = actorName || "A teammate";
+          toast.info(
+            `${actor} added the "${label.name}" label to "${cardTitle}"`,
           );
         }
       },
@@ -172,32 +163,51 @@ export function useBoardSocket(boardId: string) {
       ({ cardId, label, actorId, actorName, cardTitle }) => {
         if (actorId !== currentUser?.id) {
           useBoardStore.getState().removeLabelFromCard(cardId, label.id);
-          toast.success(
-            `${actorName || "Someone"} removed label:${label.name} from card ${cardTitle}`,
+          const actor = actorName || "A teammate";
+          toast.info(
+            `${actor} removed the "${label.name}" label from "${cardTitle}"`,
           );
         }
       },
     );
 
-    socket.on("label:created", ({ label, actorId, actorName }) => {
-      useBoardStore.getState().addWorkspaceLabel(label);
-      if (actorId !== currentUser?.id) {
+    socket.on("label:created", (payload) => {
+      useBoardStore.getState().addWorkspaceLabel(payload.label);
+      if (payload.actorId !== currentUser?.id) {
+        const actor = payload.actorName || "A teammate";
         toast.success(
-          `${actorName || "Someone"} added label:${label.name} to workspace`,
+          `${actor} created a new workspace label: "${payload.label.name}"`,
         );
       }
     });
 
-    // Comment events
+    socket.on("label:deleted", (payload) => {
+      if (payload.labelId) {
+        useBoardStore.getState().deleteWorkspaceLabel(payload.labelId);
+      }
+
+      queryClient.invalidateQueries({ queryKey: ["labels"] });
+      queryClient.invalidateQueries({ queryKey: ["cards"] });
+      queryClient.invalidateQueries({ queryKey: ["board"] });
+
+      if (payload.actorId !== currentUser?.id) {
+        const actor = payload.actorName || "A teammate";
+        toast.info(
+          `${actor} deleted the workspace label "${payload.labelName}"`,
+        );
+      }
+    });
+
+    // --- COMMENTS ---
     socket.on(
       "comment:created",
       ({ cardId, actorId, actorName, cardTitle }) => {
         useBoardStore.getState().updateCommentCount(cardId, 1);
-
         queryClient.invalidateQueries({ queryKey: ["comments", cardId] });
 
         if (actorId !== currentUser?.id) {
-          toast.info(`${actorName || "Someone"} commented on "${cardTitle}"`);
+          const actor = actorName || "A teammate";
+          toast.info(`${actor} left a comment on "${cardTitle}"`);
         }
       },
     );
@@ -206,21 +216,20 @@ export function useBoardSocket(boardId: string) {
       queryClient.invalidateQueries({ queryKey: ["comments", payload.cardId] });
 
       if (payload.actorId !== currentUser?.id) {
-        toast.info(
-          `${payload.actorName || "Someone"} edited their comment on "${payload.cardTitle}"`,
-        );
+        const actor = payload.actorName || "A teammate";
+        toast.info(`${actor} edited a comment on "${payload.cardTitle}"`);
       }
     });
 
     socket.on("comment:deleted", (payload) => {
+      useBoardStore.getState().updateCommentCount(payload.cardId, -1);
       queryClient.invalidateQueries({
         queryKey: ["comments", payload.cardId],
       });
 
       if (payload.actorId !== currentUser?.id) {
-        toast.info(
-          `${payload.actorName || "Someone"} deleted their comment on the card "${payload.cardTitle}"`,
-        );
+        const actor = payload.actorName || "A teammate";
+        toast.info(`${actor} deleted a comment on "${payload.cardTitle}"`);
       }
     });
 
@@ -243,6 +252,7 @@ export function useBoardSocket(boardId: string) {
       socket.off("label:attached");
       socket.off("label:removed");
       socket.off("label:created");
+      socket.off("label:deleted");
       socket.off("comment:created");
       socket.off("comment:updated");
       socket.off("comment:deleted");

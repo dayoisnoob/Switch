@@ -43,9 +43,20 @@ export class LabelController {
   }
 
   static async deleteLabel(req: AuthenticatedRequest, res: Response) {
-    const labelId = req.resolvedLabel?.id!;
+    const userId = req.user.id;
+    const actorName = `${req.user?.firstName} ${req.user?.lastName}`.trim();
 
-    const label = await LabelService.deleteLabel(labelId);
+    const labelId = req.params.labelId as string;
+    const boardId = req.query.boardId as string;
+    const workspaceId = req.workspace!.workspaceId;
+
+    const label = await LabelService.deleteLabel(
+      userId,
+      actorName,
+      labelId,
+      boardId,
+      workspaceId
+    );
 
     res
       .status(201)

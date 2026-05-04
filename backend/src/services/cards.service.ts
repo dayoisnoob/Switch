@@ -179,7 +179,7 @@ export class CardsService {
               columns: {
                 id: true,
                 name: true,
-                color: true,
+                colour: true,
               },
             },
           },

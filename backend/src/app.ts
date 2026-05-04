@@ -82,7 +82,6 @@ app.use(
 app.use('/api/v1/workspaces/:workspaceSlug/projects', projectsRouter);
 
 app.use('/api/v1/workspaces/:workspaceSlug/labels', labelsRouter);
-app.use('/api/v1/labels', labelsRouter);
 
 app.use('/api/v1/cards/:cardId/comments', commentsRouter);
 app.use('/api/v1/comments', commentsRouter);

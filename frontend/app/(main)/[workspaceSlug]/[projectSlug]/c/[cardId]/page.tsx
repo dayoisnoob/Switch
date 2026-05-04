@@ -3,7 +3,7 @@
 import { useParams, useRouter } from "next/navigation";
 import { useBoard } from "@/hooks/board";
 import { BoardCard, BoardColumn } from "@/types/board.types";
-import { CardDetailModal } from "@/components/board/card-detail/CardDetailModal";
+import { CardDetailModal } from "@/components/card-details/CardDetailModal";
 import { useBoardSocket } from "@/hooks/useBoardSocket";
 
 export default function FullPageCard() {

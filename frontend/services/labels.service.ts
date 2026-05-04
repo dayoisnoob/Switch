@@ -20,10 +20,25 @@ export const LabelService = {
   removeFromCard: async (cardId: string, labelId: string) => {
     return api.delete(`/cards/${cardId}/labels/${labelId}`);
   },
+
+  deleteLabel: async (
+    workspaceSlug: string,
+    labelId: string,
+    boardId: string,
+  ) => {
+    return api.delete(
+      `/workspaces/${workspaceSlug}/labels/${labelId}?boardId=${boardId}`,
+    );
+  },
 };
 
 export interface CreateLabelType {
   name: string;
   colour: string;
+  boardId: string;
+}
+export interface DeleteLabel {
+  workspaceSlug: string;
+  labelId: string;
   boardId: string;
 }

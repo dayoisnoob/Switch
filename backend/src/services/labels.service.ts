@@ -66,7 +66,7 @@ export class LabelService {
       .select({
         id: labelsTable.id,
         name: labelsTable.name,
-        color: labelsTable.colour,
+        colour: labelsTable.colour,
       })
       .from(labelsTable)
       .where(eq(labelsTable.workspaceId, workspaceId));
@@ -116,14 +116,32 @@ export class LabelService {
     return updatedLabel;
   }
 
-  static async deleteLabel(labelId: string) {
+  static async deleteLabel(
+    userId: string,
+    actorName: string,
+    labelId: string,
+    boardId: string,
+    workspaceId: string
+  ) {
     const [deletedlabel] = await db
       .delete(labelsTable)
-      .where(eq(labelsTable.id, labelId))
+      .where(
+        and(
+          eq(labelsTable.id, labelId),
+          eq(labelsTable.workspaceId, workspaceId)
+        )
+      )
       .returning();
 
     if (!deletedlabel)
       throw new ApiError(500, 'Error deleting label. Please try again.');
+
+    emitBoardEvent(boardId, 'label:deleted', {
+      labelId: deletedlabel.id,
+      labelName: deletedlabel.name,
+      actorId: userId,
+      actorName,
+    });
 
     return deletedlabel;
   }

@@ -15,6 +15,7 @@ type BoardEvent =
   | 'label:attached'
   | 'label:removed'
   | 'label:created'
+  | 'label:deleted'
   | 'comment:created'
   | 'comment:updated'
   | 'comment:deleted';

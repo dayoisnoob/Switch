@@ -11,7 +11,6 @@ export class UserService {
         firstName: usersTable.firstName,
         lastName: usersTable.lastName,
         email: usersTable.email,
-        avatarUrl: usersTable.avatarUrl,
       })
       .from(usersTable)
       .where(eq(usersTable.id, userId))

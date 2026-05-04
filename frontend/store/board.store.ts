@@ -37,6 +37,7 @@ interface BoardStore {
   addLabelToCard: (cardId: string, label: BoardLabel) => void;
   removeLabelFromCard: (cardId: string, labelId: string) => void;
   addWorkspaceLabel: (label: BoardLabel) => void;
+  deleteWorkspaceLabel: (labelId: string) => void;
 
   // Assignee Operations
   assignUserToCard: (cardId: string, assignee: Partial<BoardAssignee>) => void;
@@ -224,6 +225,26 @@ export const useBoardStore = create<BoardStore>((set) => ({
 
   addWorkspaceLabel: (label) =>
     set((state) => ({ workspaceLabels: [...state.workspaceLabels, label] })),
+
+  deleteWorkspaceLabel: (labelId: string) =>
+    set((state) => {
+      if (!state.board) return state;
+
+      return {
+        workspaceLabels: state.workspaceLabels.filter((l) => l.id !== labelId),
+
+        board: {
+          ...state.board,
+          columns: state.board.columns.map((col) => ({
+            ...col,
+            cards: col.cards.map((card) => ({
+              ...card,
+              labels: card.labels?.filter((l) => l.id !== labelId) || [],
+            })),
+          })),
+        },
+      };
+    }),
 
   // ------ Assignees ------------------------------------------
 

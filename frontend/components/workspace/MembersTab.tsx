@@ -5,15 +5,14 @@ import Image from "next/image";
 import { useState } from "react";
 import InviteMemberModal from "../modals/InviteMemberModal";
 import RemoveMemberModal from "../modals/RemoveMemberModal";
+import { useWorkspaceRole } from "@/hooks/useWorkspaceRole";
 
 export const MembersTab = ({
   members,
   activeWorkspace,
-  canManageMembers,
 }: {
   members: WorkspaceMembers[];
   activeWorkspace: Workspace;
-  canManageMembers: boolean;
 }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState("All");
@@ -21,6 +20,8 @@ export const MembersTab = ({
   const [memberToRemove, setMemberToRemove] = useState<WorkspaceMembers | null>(
     null,
   );
+
+  const { canManageWorkspace } = useWorkspaceRole(activeWorkspace.slug);
 
   const filteredMembers = members?.filter((member) => {
     const searchLower = searchQuery.toLowerCase();
@@ -71,7 +72,7 @@ export const MembersTab = ({
           </div>
         </div>
 
-        {canManageMembers && (
+        {canManageWorkspace && (
           <button
             onClick={() => setInviteModal(true)}
             className="h-9 px-4 bg-[#7C6EF5] hover:bg-[#6b5ee6] text-white flex items-center gap-2 rounded-md font-semibold transition-all shadow-[0_0_15px_rgba(124,110,245,0.2)]"
@@ -152,7 +153,7 @@ export const MembersTab = ({
                         <span className="inline-flex items-center px-2.5 py-1 rounded bg-[#7C6EF5]/10 text-[#7C6EF5] text-xs font-semibold">
                           Owner
                         </span>
-                      ) : canManageMembers ? (
+                      ) : canManageWorkspace ? (
                         <div className="relative inline-block w-27.5">
                           <select
                             value={role}
@@ -187,7 +188,7 @@ export const MembersTab = ({
                     </div>
 
                     <div className="w-8 flex justify-end">
-                      {role !== "Owner" && canManageMembers && (
+                      {role !== "Owner" && canManageWorkspace && (
                         <button
                           onClick={() => setMemberToRemove(member)}
                           className="text-[#a1a1a1] hover:text-red-400 p-1.5 rounded-md hover:bg-red-400/10 transition-colors"

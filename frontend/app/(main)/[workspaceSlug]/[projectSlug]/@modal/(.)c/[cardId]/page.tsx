@@ -1,6 +1,6 @@
 "use client";
 
-import { CardDetailModal } from "@/components/board/card-detail/CardDetailModal";
+import { CardDetailModal } from "@/components/card-details/CardDetailModal";
 import { useBoardStore } from "@/store/board.store";
 import { useParams, useRouter } from "next/navigation";
 

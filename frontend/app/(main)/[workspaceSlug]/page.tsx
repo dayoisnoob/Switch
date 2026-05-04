@@ -43,9 +43,6 @@ export default function WorkspacePage() {
 
   if (!activeWorkspace) return null;
 
-  const canManageMembers =
-    activeWorkspace.role === "Owner" || activeWorkspace.role === "Admin";
-
   const tabs = [{ id: "Projects" }, { id: "Members" }, { id: "Settings" }];
 
   if (projectsLoading || membersloading) return <div>Loading...</div>;
@@ -135,11 +132,7 @@ export default function WorkspacePage() {
 
       {/* ── TAB CONTENT: MEMBERS ── */}
       {activeTab === "Members" && (
-        <MembersTab
-          members={members}
-          activeWorkspace={activeWorkspace}
-          canManageMembers={canManageMembers}
-        />
+        <MembersTab members={members} activeWorkspace={activeWorkspace} />
       )}
 
       {/* ── TAB CONTENT: SETTINGS ── */}

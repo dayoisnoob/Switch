@@ -61,6 +61,7 @@ import { useBoardStore } from "@/store/board.store";
 import { useWorkspaceStore } from "@/store/workspace.store";
 import { BoardCard, BoardColumn } from "@/types/board.types";
 import { toast } from "sonner";
+import { useWorkspaceRole } from "@/hooks/useWorkspaceRole";
 
 function findColumnInSnapshot(
   id: string,
@@ -124,6 +125,7 @@ export default function KanbanBoardPage() {
 
   const board = useBoardStore((s) => s.board);
   useBoardSocket(board?.id ?? "");
+  const { canManageWorkspace } = useWorkspaceRole(workspaceSlug);
 
   const { mutate: moveCard } = useMoveCard();
   const { mutate: moveColumn } = useMoveColumn();
@@ -441,16 +443,18 @@ export default function KanbanBoardPage() {
                   />
                 ))}
 
-                <button
-                  onClick={() => setIsColumnModalOpen(true)}
-                  className="self-start flex items-center justify-center gap-2 w-85 shrink-0 h-15 rounded-2xl border border-dashed border-white/10 bg-white/1 text-white/40 font-medium hover:text-white/80 hover:bg-white/3 hover:border-white/20 transition-all group"
-                >
-                  <Plus
-                    size={16}
-                    className="group-hover:scale-110 transition-transform"
-                  />
-                  Add Column
-                </button>
+                {canManageWorkspace && (
+                  <button
+                    onClick={() => setIsColumnModalOpen(true)}
+                    className="self-start flex items-center justify-center gap-2 w-85 shrink-0 h-15 rounded-2xl border border-dashed border-white/10 bg-white/1 text-white/40 font-medium hover:text-white/80 hover:bg-white/3 hover:border-white/20 transition-all group"
+                  >
+                    <Plus
+                      size={16}
+                      className="group-hover:scale-110 transition-transform"
+                    />
+                    Add Column
+                  </button>
+                )}
               </div>
             </SortableContext>
 
@@ -508,6 +512,7 @@ const SortableColumn = memo(function SortableColumn({
   const [editTitle, setEditTitle] = useState(column.name);
 
   const menuRef = useRef<HTMLDivElement>(null);
+  const { canManageWorkspace } = useWorkspaceRole(workspaceSlug);
 
   const {
     setNodeRef,
@@ -598,9 +603,6 @@ const SortableColumn = memo(function SortableColumn({
   const activeWorkspace = useWorkspaceStore((s) => s.activeWorkspace);
   if (!activeWorkspace) return null;
 
-  const canManageMembers =
-    activeWorkspace.role === "Owner" || activeWorkspace.role === "Admin";
-
   return (
     <div
       ref={setNodeRef}
@@ -643,7 +645,7 @@ const SortableColumn = memo(function SortableColumn({
 
         <div className="flex items-center gap-2">
           {/* UPDATED PREMIUM CONTEXT MENU */}
-          {canManageMembers && (
+          {canManageWorkspace && (
             <div className="relative shrink-0" ref={menuRef}>
               <button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
