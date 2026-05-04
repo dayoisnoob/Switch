@@ -239,7 +239,6 @@ export function CardDetailModalInner({
                     ))}
                   </div>
 
-                  {/* Render the active tab content */}
                   <div className="pb-10">
                     {activeTab === "comments" ? (
                       <CardComments cardId={card.id} />

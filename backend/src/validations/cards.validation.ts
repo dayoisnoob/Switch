@@ -5,7 +5,7 @@ export const createCardSchema = z.object({
   title: z
     .string()
     .min(2, 'card needs to have a title')
-    .max(50)
+    .max(200)
     .trim()
     .transform(capitalize),
   status: z.enum(['BACKLOG', 'TODO', 'IN_PROGRESS', 'DONE', 'CANCELED']),
@@ -19,7 +19,7 @@ export const createCardSchema = z.object({
 });
 
 export const updateCardSchema = z.object({
-  title: z.string().max(100, 'Title too long').trim().optional(),
+  title: z.string().max(200, 'Title too long').trim().optional(),
   description: z.string().trim().optional(),
   priority: z.enum(['none', 'low', 'medium', 'high', 'urgent']).optional(),
   dueDate: z.coerce.date().optional(),

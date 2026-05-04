@@ -127,16 +127,6 @@ export function CardSidebar({
       className="w-[320px] shrink-0 border-l border-white/5 overflow-y-auto custom-scrollbar p-6 bg-[#16161D]"
       onClick={handleContainerClick}
     >
-      {/* Stats */}
-      <div className="flex items-center gap-2 mb-8">
-        <button className="flex-1 flex items-center justify-center gap-2 py-2 bg-white/5 hover:bg-white/10 border border-white/5 rounded-lg text-[12px] font-medium text-white/70 transition-colors">
-          <MessageSquare size={13} /> {card.commentCount}
-        </button>
-        <button className="flex-1 flex items-center justify-center gap-2 py-2 bg-white/5 hover:bg-white/10 border border-white/5 rounded-lg text-[12px] font-medium text-white/70 transition-colors">
-          <Activity size={13} /> {card.activityCount}
-        </button>
-      </div>
-
       <div className="space-y-6">
         {/* Status */}
         <div className="space-y-2 relative">

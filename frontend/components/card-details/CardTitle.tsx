@@ -19,15 +19,18 @@ interface CardTitleProps {
 
 export function CardTitle({ title, priority, onSave }: CardTitleProps) {
   const [value, setValue] = useState(title);
+
+  const [prevTitle, setPrevTitle] = useState(title);
+  if (title !== prevTitle) {
+    setPrevTitle(title);
+    setValue(title);
+  }
+
   const ref = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
-    setValue(title);
-  }, [title]);
-
-  useEffect(() => {
     if (ref.current) {
-      ref.current.style.height = "0px";
+      ref.current.style.height = "auto";
       ref.current.style.height = `${ref.current.scrollHeight}px`;
     }
   }, [value]);
@@ -60,7 +63,7 @@ export function CardTitle({ title, priority, onSave }: CardTitleProps) {
             e.currentTarget.blur();
           }
         }}
-        className="w-full bg-transparent text-[24px] font-bold text-white border border-transparent hover:border-white/5 focus:border-[#7C6EF5]/50 focus:bg-white/2 rounded-lg px-3 py-1.5 -ml-3 outline-none transition-all resize-none overflow-hidden leading-tight mb-3"
+        className="w-full bg-transparent text-[24px] font-bold text-white border border-transparent hover:border-white/5 focus:border-[#7C6EF5]/50 focus:bg-white/2 rounded-lg px-3 py-1.5 -ml-3 outline-none transition-colors resize-none overflow-hidden leading-tight mb-3"
         rows={1}
       />
       {priority && priority !== "none" && (

@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { CardService, CardUpdateType } from "@/services/card.service";
 import { toast } from "sonner";
 import { BoardCard } from "@/types/board.types"; // Adjust this import to match your types
+import { getErrorMessage } from "@/lib/utils";
 
 export function useUpdateCard(cardId: string) {
   const queryClient = useQueryClient();
@@ -16,7 +17,7 @@ export function useUpdateCard(cardId: string) {
     },
 
     onError: (err) => {
-      toast.error("Failed to update card details");
+      toast.error(getErrorMessage(err));
       console.error(err);
     },
   });
