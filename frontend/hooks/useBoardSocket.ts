@@ -164,7 +164,7 @@ export function useBoardSocket(boardId: string) {
         updateColumn(columnId, colName);
         if (actorId !== currentUser?.id) {
           toast.success(
-            `${actorName || "Someone"} updated a colun to ${colName}`,
+            `${actorName || "Someone"} updated a column to ${colName}`,
           );
         }
       },

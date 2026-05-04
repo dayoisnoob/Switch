@@ -14,6 +14,7 @@ import { asyncHandler } from '../utils/async-handler';
 import {
   columnOrderSchema,
   createColumnSchema,
+  updateColumnSchema,
 } from '../validations/projects.validation';
 import { paramsSchema } from '../validations/urlParams.validation';
 
@@ -33,7 +34,7 @@ router.patch(
   '/:columnId/',
   authenticate,
   validateUrlParams(paramsSchema),
-  validateInput(createColumnSchema),
+  validateInput(updateColumnSchema),
   requireWorkspaceMember,
   requireWorkspaceRole(['Owner', 'Admin']),
   asyncHandler(ColumnsController.updateColumnName)

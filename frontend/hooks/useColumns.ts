@@ -1,5 +1,9 @@
 import { getErrorMessage } from "@/lib/utils";
-import { ColumnService, CreateCol } from "@/services/columns.service";
+import {
+  ColumnService,
+  ColUpdate,
+  CreateCol,
+} from "@/services/columns.service";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
@@ -21,10 +25,10 @@ export function useCreateColumn(boardId: string) {
   });
 }
 
-export function useRenameColumn() {
+export function useUpdateColumn() {
   return useMutation({
-    mutationFn: ({ columnId, name }: { columnId: string; name: string }) =>
-      ColumnService.rename(columnId, name),
+    mutationFn: ({ columnId, data }: { columnId: string; data: ColUpdate }) =>
+      ColumnService.update(columnId, data),
   });
 }
 

@@ -9,8 +9,8 @@ export const ColumnService = {
     return api.patch(`/columns/${columnId}/order`, { order });
   },
 
-  rename: async (columnId: string, name: string) => {
-    return api.patch(`/columns/${columnId}`, { name });
+  update: async (columnId: string, data: ColUpdate) => {
+    return api.patch(`/columns/${columnId}`, data);
   },
 
   delete: async (columnId: string) => {
@@ -29,4 +29,8 @@ export interface ColumnType {
 export interface CreateCol {
   name: string;
   mappedStatus: string;
+}
+export interface ColUpdate {
+  name?: string;
+  mappedStatus?: string;
 }

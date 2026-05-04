@@ -23,6 +23,19 @@ export const createColumnSchema = z.object({
   mappedStatus: z.enum(['BACKLOG', 'TODO', 'IN_PROGRESS', 'DONE', 'CANCELED']),
 });
 
+export const updateColumnSchema = z.object({
+  name: z
+    .string()
+    .min(1, 'Column needs to have a name')
+    .max(100)
+    .trim()
+    .transform(capitalize)
+    .optional(),
+  mappedStatus: z
+    .enum(['BACKLOG', 'TODO', 'IN_PROGRESS', 'DONE', 'CANCELED'])
+    .optional(),
+});
+
 export const columnOrderSchema = z.object({
   order: z.number(),
 });

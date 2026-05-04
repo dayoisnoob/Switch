@@ -3,14 +3,11 @@
 import { cn, formatDateShort, getErrorMessage } from "@/lib/utils";
 import {
   Activity,
-  ArrowLeft,
-  ArrowRight,
   Clock,
   Edit2,
   Eraser,
   MessageSquare,
   MoreHorizontal,
-  Palette,
   Plus,
   Trash2,
 } from "lucide-react";
@@ -50,21 +47,20 @@ import AddCardModal, {
 } from "@/components/modals/AddCardModal"; // Make sure this path is correct
 import CreateColumnModal from "@/components/modals/CreateColumnModal";
 import { formatAvatarUrls } from "@/components/workspace/WorkspaceCard";
+import { useBoardSocket } from "@/hooks/useBoardSocket";
 import { useCreateCard, useMoveCard } from "@/hooks/useCards";
 import {
   useDeleteColumn,
   useMoveColumn,
-  useRenameColumn,
+  useUpdateColumn,
 } from "@/hooks/useColumns";
 import { useGetProjectBySlug } from "@/hooks/useProjects";
 import { useGetMembers } from "@/hooks/useWorkspace";
 import { WorkspaceMembers } from "@/services/workspace.service";
 import { useBoardStore } from "@/store/board.store";
+import { useWorkspaceStore } from "@/store/workspace.store";
 import { BoardCard, BoardColumn } from "@/types/board.types";
 import { toast } from "sonner";
-import { useBoardSocket } from "@/hooks/useBoardSocket";
-import { useMe } from "@/hooks/useAuth";
-import { useWorkspaceStore } from "@/store/workspace.store";
 
 function findColumnInSnapshot(
   id: string,
@@ -524,7 +520,7 @@ const SortableColumn = memo(function SortableColumn({
   } = useSortable({ id: column.id, data: { type: "Column", column } });
 
   const { mutateAsync: createCard } = useCreateCard(column.id);
-  const { mutateAsync: renameCol } = useRenameColumn();
+  const { mutateAsync: updateCol } = useUpdateColumn();
   const { mutateAsync: deleteCol } = useDeleteColumn();
 
   const style = {
@@ -555,7 +551,7 @@ const SortableColumn = memo(function SortableColumn({
       return;
     }
     try {
-      renameCol({ columnId: column.id, name: newTitle });
+      updateCol({ columnId: column.id, data: { name: newTitle } });
       setColumns((prev) =>
         prev.map((col) =>
           col.id === column.id ? { ...col, name: newTitle } : col,
