@@ -38,6 +38,8 @@ export class ColumnsController {
   }
 
   static async updateColumnOrder(req: AuthenticatedRequest, res: Response) {
+    const userId = req.user.id;
+    const actorName = `${req.user?.firstName} ${req.user?.lastName}`.trim();
     const columnId = req.params.columnId as string;
 
     const { order } = req.body;
@@ -47,9 +49,15 @@ export class ColumnsController {
   }
 
   static async deleteColumn(req: AuthenticatedRequest, res: Response) {
+    const userId = req.user.id;
+    const actorName = `${req.user?.firstName} ${req.user?.lastName}`.trim();
     const columnId = req.params.columnId as string;
 
-    const column = await ColumnsService.deleteColumn(columnId);
+    const column = await ColumnsService.deleteColumn(
+      userId,
+      actorName,
+      columnId
+    );
 
     res.json(new ApiResponse(200, 'Column deleted successfully', column));
   }

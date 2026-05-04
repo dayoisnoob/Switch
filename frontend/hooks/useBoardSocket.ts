@@ -170,9 +170,27 @@ export function useBoardSocket(boardId: string) {
       },
     );
 
-    socket.on("column:deleted", ({ columnId }: { columnId: string }) => {
-      deleteColumn(columnId);
-    });
+    socket.on(
+      "column:deleted",
+      ({
+        columnId,
+        actorName,
+        actorId,
+        colName,
+      }: {
+        columnId: string;
+        actorName: string;
+        actorId: string;
+        colName: string;
+      }) => {
+        deleteColumn(columnId);
+        if (actorId !== currentUser?.id) {
+          toast.success(
+            `${actorName || "Someone"} deleted the column ${colName}`,
+          );
+        }
+      },
+    );
 
     socket.on("column:reordered", ({ columns }: { columns: BoardColumn[] }) => {
       reorderColumns(columns);

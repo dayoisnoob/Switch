@@ -100,7 +100,11 @@ export class ColumnsService {
     };
   }
 
-  static async deleteColumn(columnId: string) {
+  static async deleteColumn(
+    userId: string,
+    actorName: string,
+    columnId: string
+  ) {
     const [cardExists] = await db
       .select({ id: cardsTable.id })
       .from(cardsTable)
@@ -124,7 +128,9 @@ export class ColumnsService {
 
     emitBoardEvent(deletedColumn.boardId, 'column:deleted', {
       columnId: deletedColumn.id,
-      name: deletedColumn.name,
+      actorName,
+      actorId: userId,
+      colName: deletedColumn.name,
     });
 
     return deletedColumn;
