@@ -1,15 +1,10 @@
 import { socket } from "@/lib/socket";
 import { useBoardStore } from "@/store/board.store";
-import {
-  BoardAssignee,
-  BoardCard,
-  BoardColumn,
-  BoardLabel,
-} from "@/types/board.types";
+import { BoardCard } from "@/types/board.types";
+import { useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { toast } from "sonner";
 import { useMe } from "./useAuth";
-import { useQueryClient } from "@tanstack/react-query";
 
 interface CardCreated {
   card: BoardCard;
@@ -42,19 +37,7 @@ export function useBoardSocket(boardId: string) {
 
     socket.on(
       "card:updated",
-      ({
-        cardId,
-        changes,
-        actorId,
-        actorName,
-        cardTitle,
-      }: {
-        cardId: string;
-        changes: Partial<BoardCard>;
-        actorId: string;
-        actorName: string;
-        cardTitle: string;
-      }) => {
+      ({ cardId, changes, actorId, actorName, cardTitle }) => {
         useBoardStore.getState().updateCard(cardId, changes);
         if (actorId !== currentUser?.id) {
           toast.success(
@@ -75,15 +58,6 @@ export function useBoardSocket(boardId: string) {
         actorName,
         fromColumnName,
         toColumnName,
-      }: {
-        cardId: string;
-        fromColumnId: string;
-        toColumnId: string;
-        newIndex: number;
-        actorId: string;
-        actorName: string;
-        fromColumnName: string;
-        toColumnName: string;
       }) => {
         useBoardStore
           .getState()
@@ -104,19 +78,7 @@ export function useBoardSocket(boardId: string) {
 
     socket.on(
       "card:deleted",
-      ({
-        cardId,
-        actorName,
-        actorId,
-        columnId,
-        cardTitle,
-      }: {
-        cardId: string;
-        actorName: string;
-        actorId: string;
-        columnId: string;
-        cardTitle: string;
-      }) => {
+      ({ cardId, actorName, actorId, columnId, cardTitle }) => {
         useBoardStore.getState().deleteCard(cardId, columnId);
         if (actorId !== currentUser?.id) {
           toast.success(
@@ -127,85 +89,36 @@ export function useBoardSocket(boardId: string) {
     );
 
     // column events
-    socket.on(
-      "column:created",
-      ({
-        column,
-        actorName,
-        actorId,
-      }: {
-        column: BoardColumn;
-        actorName: string;
-        actorId: string;
-      }) => {
-        useBoardStore.getState().addColumn(column);
-        if (actorId !== currentUser?.id) {
-          toast.success(
-            `${actorName || "Someone"} created a new column - ${column.name}`,
-          );
-        }
-      },
-    );
+    socket.on("column:created", ({ column, actorName, actorId }) => {
+      useBoardStore.getState().addColumn(column);
+      if (actorId !== currentUser?.id) {
+        toast.success(
+          `${actorName || "Someone"} created a new column - ${column.name}`,
+        );
+      }
+    });
 
-    socket.on(
-      "column:updated",
-      ({
-        columnId,
-        colName,
-        actorName,
-        actorId,
-      }: {
-        columnId: string;
-        colName: string;
-        actorName: string;
-        actorId: string;
-      }) => {
-        useBoardStore.getState().updateColumn(columnId, colName);
-        if (actorId !== currentUser?.id) {
-          toast.success(
-            `${actorName || "Someone"} updated a column to ${colName}`,
-          );
-        }
-      },
-    );
+    socket.on("column:updated", ({ columnId, colName, actorName, actorId }) => {
+      useBoardStore.getState().updateColumn(columnId, colName);
+      if (actorId !== currentUser?.id) {
+        toast.success(
+          `${actorName || "Someone"} updated a column to ${colName}`,
+        );
+      }
+    });
 
-    socket.on(
-      "column:deleted",
-      ({
-        columnId,
-        actorName,
-        actorId,
-        colName,
-      }: {
-        columnId: string;
-        actorName: string;
-        actorId: string;
-        colName: string;
-      }) => {
-        useBoardStore.getState().deleteColumn(columnId);
-        if (actorId !== currentUser?.id) {
-          toast.success(
-            `${actorName || "Someone"} deleted the column ${colName}`,
-          );
-        }
-      },
-    );
+    socket.on("column:deleted", ({ columnId, actorName, actorId, colName }) => {
+      useBoardStore.getState().deleteColumn(columnId);
+      if (actorId !== currentUser?.id) {
+        toast.success(
+          `${actorName || "Someone"} deleted the column ${colName}`,
+        );
+      }
+    });
 
     socket.on(
       "column:reordered",
-      ({
-        colId,
-        newOrder,
-        actorId,
-        actorName,
-        colName,
-      }: {
-        actorId: string;
-        actorName: string;
-        colName: string;
-        colId: string;
-        newOrder: number;
-      }) => {
+      ({ colId, newOrder, actorId, actorName, colName }) => {
         useBoardStore.getState().moveColumn(colId, newOrder);
         if (actorId !== currentUser?.id) {
           toast.success(
@@ -218,19 +131,7 @@ export function useBoardSocket(boardId: string) {
     // assignee events
     socket.on(
       "assignee:added",
-      ({
-        cardId,
-        assignee,
-        actorId,
-        actorName,
-        cardTitle,
-      }: {
-        cardId: string;
-        assignee: Partial<BoardAssignee>;
-        actorId: string;
-        actorName: string;
-        cardTitle: string;
-      }) => {
+      ({ cardId, assignee, actorId, actorName, cardTitle }) => {
         useBoardStore.getState().assignUserToCard(cardId, assignee);
         if (actorId !== currentUser?.id) {
           const assigneeName = `${assignee.firstName} ${assignee.lastName}`;
@@ -243,21 +144,7 @@ export function useBoardSocket(boardId: string) {
 
     socket.on(
       "assignee:removed",
-      ({
-        cardId,
-        assigneeId,
-        assigneeName,
-        actorId,
-        actorName,
-        cardTitle,
-      }: {
-        cardId: string;
-        assigneeId: string;
-        assigneeName: string;
-        actorId: string;
-        actorName: string;
-        cardTitle: string;
-      }) => {
+      ({ cardId, assigneeId, assigneeName, actorId, actorName, cardTitle }) => {
         useBoardStore.getState().removeUserFromCard(cardId, assigneeId);
         if (actorId !== currentUser?.id) {
           toast.success(
@@ -270,19 +157,7 @@ export function useBoardSocket(boardId: string) {
     // label events
     socket.on(
       "label:attached",
-      ({
-        cardId,
-        label,
-        actorId,
-        actorName,
-        cardTitle,
-      }: {
-        cardId: string;
-        label: BoardLabel;
-        actorId: string;
-        actorName: string;
-        cardTitle: string;
-      }) => {
+      ({ cardId, label, actorId, actorName, cardTitle }) => {
         useBoardStore.getState().addLabelToCard(cardId, label);
         if (actorId !== currentUser?.id) {
           toast.success(
@@ -294,19 +169,7 @@ export function useBoardSocket(boardId: string) {
 
     socket.on(
       "label:removed",
-      ({
-        cardId,
-        label,
-        actorId,
-        actorName,
-        cardTitle,
-      }: {
-        cardId: string;
-        label: BoardLabel;
-        actorId: string;
-        actorName: string;
-        cardTitle: string;
-      }) => {
+      ({ cardId, label, actorId, actorName, cardTitle }) => {
         useBoardStore.getState().removeLabelFromCard(cardId, label.id);
         if (actorId !== currentUser?.id) {
           toast.success(
@@ -316,29 +179,19 @@ export function useBoardSocket(boardId: string) {
       },
     );
 
-    socket.on(
-      "label:created",
-      ({
-        label,
-        actorId,
-        actorName,
-      }: {
-        label: BoardLabel;
-        actorId: string;
-        actorName: string;
-      }) => {
-        useBoardStore.getState().addWorkspaceLabel(label);
-        if (actorId !== currentUser?.id) {
-          toast.success(
-            `${actorName || "Someone"} added label:${label.name} to workspace`,
-          );
-        }
-      },
-    );
+    socket.on("label:created", ({ label, actorId, actorName }) => {
+      useBoardStore.getState().addWorkspaceLabel(label);
+      if (actorId !== currentUser?.id) {
+        toast.success(
+          `${actorName || "Someone"} added label:${label.name} to workspace`,
+        );
+      }
+    });
 
+    // Comment events
     socket.on(
       "comment:created",
-      ({ cardId, comment, actorId, actorName, cardTitle }) => {
+      ({ cardId, actorId, actorName, cardTitle }) => {
         useBoardStore.getState().updateCommentCount(cardId, 1);
 
         queryClient.invalidateQueries({ queryKey: ["comments", cardId] });
@@ -348,6 +201,30 @@ export function useBoardSocket(boardId: string) {
         }
       },
     );
+
+    socket.on("comment:updated", (payload) => {
+      console.log("comment:updated payload:", payload);
+      queryClient.invalidateQueries({ queryKey: ["comments", payload.cardId] });
+
+      if (payload.actorId !== currentUser?.id) {
+        toast.info(
+          `${payload.actorName || "Someone"} edited their comment on "${payload.cardTitle}"`,
+        );
+      }
+    });
+
+    socket.on("comment:deleted", (payload) => {
+      console.log("comment:updated payload:", payload);
+      queryClient.invalidateQueries({
+        queryKey: ["comments", payload.cardId],
+      });
+
+      if (payload.actorId !== currentUser?.id) {
+        toast.info(
+          `${payload.actorName || "Someone"} edited their comment on "${payload.cardTitle}"`,
+        );
+      }
+    });
 
     socket.on("board:presence", ({ users }) => {
       useBoardStore.getState().setPresence(users);
@@ -369,6 +246,7 @@ export function useBoardSocket(boardId: string) {
       socket.off("label:removed");
       socket.off("label:created");
       socket.off("comment:created");
+      socket.off("comment:updated");
       socket.off("board:presence");
     };
   }, [boardId, currentUser?.id, queryClient]);

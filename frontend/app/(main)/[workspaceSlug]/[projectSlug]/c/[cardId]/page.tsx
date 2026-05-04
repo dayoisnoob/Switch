@@ -4,6 +4,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useBoard } from "@/hooks/board";
 import { BoardCard, BoardColumn } from "@/types/board.types";
 import { CardDetailModal } from "@/components/board/card-detail/CardDetailModal";
+import { useBoardSocket } from "@/hooks/useBoardSocket";
 
 export default function FullPageCard() {
   const router = useRouter();
@@ -13,6 +14,8 @@ export default function FullPageCard() {
     cardId: string;
   };
   const { data: board, isLoading } = useBoard(projectSlug, workspaceSlug);
+  const boardId = board?.id;
+  useBoardSocket(boardId ?? "");
 
   if (isLoading || !board) return <div className="min-h-screen bg-[#0b0e14]" />;
 

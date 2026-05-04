@@ -97,7 +97,6 @@ export class CommentService {
 
     emitBoardEvent(boardId, 'comment:created', {
       cardId,
-      comment: formattedComment,
       actorId: userId,
       actorName,
       cardTitle: commentCard?.title,
@@ -180,7 +179,6 @@ export class CommentService {
 
     emitBoardEvent(boardId, 'comment:updated', {
       cardId,
-      comment: editedComment,
       actorId: userId,
       actorName,
       cardTitle: editedCommentCard?.title,
@@ -221,6 +219,8 @@ export class CommentService {
       cardId,
       metadata: { id: deletedComment.id },
     });
+
+    console.log('about to emit comment:updated');
 
     emitBoardEvent(boardId, 'comment:deleted', {
       commentId,
