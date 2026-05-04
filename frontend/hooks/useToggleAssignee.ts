@@ -1,6 +1,6 @@
 import { CardService } from "@/services/card.service";
 import { WorkspaceMembers } from "@/services/workspace.service";
-import { BoardAssignee, BoardCard } from "@/types/board.types";
+import { useBoardStore } from "@/store/board.store";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
@@ -24,43 +24,30 @@ export function useToggleAssignee(cardId: string) {
 
     // 1. Fire instantly on click
     onMutate: async ({ member, isAssigned }) => {
-      // Cancel any outgoing refetches so they don't overwrite our optimistic update
       await queryClient.cancelQueries({ queryKey: ["card", cardId] });
 
-      // Snapshot the previous value in case we need to roll back
-      const previousCard = queryClient.getQueryData(["card", cardId]);
+      const store = useBoardStore.getState();
 
-      // Optimistically update the cache instantly
-      queryClient.setQueryData(["card", cardId], (old: BoardCard) => {
-        if (!old) return old;
+      if (isAssigned) {
+        store.removeUserFromCard(cardId, member.userId);
+      } else {
+        if (member) store.assignUserToCard(cardId, member);
+      }
 
-        const newAssignees = isAssigned
-          ? // If they were assigned, optimistically remove them
-            old.assignees.filter((a: BoardAssignee) => a.id !== member.userId)
-          : // If they weren't, optimistically add them (mapping member fields to match your assignee schema)
-            [
-              ...old.assignees,
-              {
-                id: member.userId,
-                firstName: member.firstName,
-                lastName: member.lastName,
-                avatarUrl: member.avatarUrl,
-              },
-            ];
-
-        return { ...old, assignees: newAssignees };
-      });
-
-      // Return context with the snapshotted value
-      return { previousCard };
+      return { previousIsAttached: isAssigned, member };
     },
 
     // 2. If the API fails, roll back to the previous snapshot
-    onError: (err, newTodo, context) => {
-      toast.error("Failed to update assignee");
-      if (context?.previousCard) {
-        queryClient.setQueryData(["card", cardId], context.previousCard);
+    onError: (err, variables, context) => {
+      const store = useBoardStore.getState();
+      if (context) {
+        if (context.previousIsAttached) {
+          store.assignUserToCard(cardId, context.member);
+        } else {
+          store.removeUserFromCard(cardId, context.member.userId);
+        }
       }
+      toast.error("Failed to update assignee");
     },
 
     // 3. Always refetch after error or success to ensure perfect server sync

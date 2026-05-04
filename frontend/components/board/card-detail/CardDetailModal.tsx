@@ -73,20 +73,30 @@ const getPriorityStyles = (priority: string) => {
 interface CardDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
-  card: BoardCard;
+  cardId: string;
   columns: BoardColumn[];
   projectSlug: string;
   workspaceSlug: string;
 }
 
-export function CardDetailModal({
+export function CardDetailModal(props: CardDetailModalProps) {
+  const card = useBoardStore((s) =>
+    s.board?.columns.flatMap((c) => c.cards).find((c) => c.id === props.cardId),
+  );
+
+  if (!card) return null;
+
+  return <CardDetailModalInner {...props} card={card} />;
+}
+
+export function CardDetailModalInner({
   isOpen,
   onClose,
   card,
   columns,
   projectSlug,
   workspaceSlug,
-}: CardDetailModalProps) {
+}: CardDetailModalProps & { card: BoardCard }) {
   const { data: detailedCard, isLoading: isCardLoading } = useGetCard(card.id);
 
   const [activeTab, setActiveTab] = useState<"activity" | "comments">(
@@ -146,7 +156,7 @@ export function CardDetailModal({
 
   const { mutate: moveCard } = useMoveCard();
 
-  const currentDueDate = detailedCard?.dueDate || card.dueDate;
+  const currentDueDate = card?.dueDate || card.dueDate;
   const dueDateObj = currentDueDate ? new Date(currentDueDate) : null;
   const today = new Date();
 
@@ -780,8 +790,8 @@ export function CardDetailModal({
 
                   <div className="space-y-2">
                     {/* Currently Assigned Members */}
-                    {detailedCard?.assignees &&
-                      detailedCard.assignees.map((a) => (
+                    {card?.assignees &&
+                      card.assignees.map((a) => (
                         <div
                           key={a.id}
                           className="flex items-center gap-3 group cursor-pointer"
@@ -930,8 +940,8 @@ export function CardDetailModal({
                   </label>
                   <div className="flex flex-wrap gap-1.5">
                     {/* Attached Labels */}
-                    {detailedCard?.labels &&
-                      detailedCard.labels.map((l) => (
+                    {card?.labels &&
+                      card.labels.map((l) => (
                         <div
                           key={l.id}
                           className="px-2.5 py-1 rounded-md text-[11px] font-semibold border flex items-center gap-1.5"
@@ -985,7 +995,7 @@ export function CardDetailModal({
                                 .includes(labelSearch.toLowerCase()),
                             )
                             .map((label) => {
-                              const isAttached = detailedCard?.labels?.some(
+                              const isAttached = card?.labels?.some(
                                 (l) => l.id === label.id,
                               );
 

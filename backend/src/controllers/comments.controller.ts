@@ -56,6 +56,8 @@ export class CommentController {
   }
 
   static async deleteComment(req: AuthenticatedRequest, res: Response) {
+    const actorName = `${req.user?.firstName} ${req.user?.lastName}`.trim();
+
     const userId = req.user.id;
     const commentId = req.resolvedComment?.id!;
     const cardId = req.resolvedComment?.cardId!;
@@ -65,6 +67,7 @@ export class CommentController {
 
     const comment = await CommentService.deleteComment(
       userId,
+      actorName,
       projectId,
       commentId,
       cardId,

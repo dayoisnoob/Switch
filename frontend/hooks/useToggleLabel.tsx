@@ -52,7 +52,6 @@ export const useToggleLabel = (card: BoardCard) => {
       }
 
       toast.error("Failed to update label. Reverting...");
-      console.error(error);
     },
 
     onSettled: () => {

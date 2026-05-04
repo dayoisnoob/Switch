@@ -189,6 +189,7 @@ export class CommentService {
 
   static async deleteComment(
     userId: string,
+    actorName: string,
     projectId: string,
     commentId: string,
     cardId: string,
@@ -212,6 +213,14 @@ export class CommentService {
     if (!deletedComment)
       throw new ApiError(500, 'Error deleting comment. Please try again.');
 
+    const [deletedCommentCard] = await db
+      .select({
+        title: cardsTable.title,
+      })
+      .from(cardsTable)
+      .where(eq(cardsTable.id, cardId))
+      .limit(1);
+
     await ActivityService.log({
       type: 'comment_deleted',
       userId,
@@ -223,8 +232,10 @@ export class CommentService {
     console.log('about to emit comment:updated');
 
     emitBoardEvent(boardId, 'comment:deleted', {
-      commentId,
       cardId,
+      actorId: userId,
+      actorName,
+      cardTitle: deletedCommentCard?.title,
     });
 
     return deletedComment;

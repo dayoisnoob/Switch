@@ -36,7 +36,7 @@ export default function FullPageCard() {
       <CardDetailModal
         isOpen={true}
         onClose={() => router.push(`/${workspaceSlug}/${projectSlug}`)}
-        card={card}
+        cardId={cardId}
         columns={columns}
         projectSlug={projectSlug}
         workspaceSlug={workspaceSlug}

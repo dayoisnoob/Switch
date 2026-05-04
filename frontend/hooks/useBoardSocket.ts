@@ -132,8 +132,8 @@ export function useBoardSocket(boardId: string) {
     socket.on(
       "assignee:added",
       ({ cardId, assignee, actorId, actorName, cardTitle }) => {
-        useBoardStore.getState().assignUserToCard(cardId, assignee);
         if (actorId !== currentUser?.id) {
+          useBoardStore.getState().assignUserToCard(cardId, assignee);
           const assigneeName = `${assignee.firstName} ${assignee.lastName}`;
           toast.success(
             `${actorName || "Someone"} assigned ${assigneeName} to card ${cardTitle}`,
@@ -145,8 +145,8 @@ export function useBoardSocket(boardId: string) {
     socket.on(
       "assignee:removed",
       ({ cardId, assigneeId, assigneeName, actorId, actorName, cardTitle }) => {
-        useBoardStore.getState().removeUserFromCard(cardId, assigneeId);
         if (actorId !== currentUser?.id) {
+          useBoardStore.getState().removeUserFromCard(cardId, assigneeId);
           toast.success(
             `${actorName || "Someone"} removed ${assigneeName} from card ${cardTitle}`,
           );
@@ -158,8 +158,8 @@ export function useBoardSocket(boardId: string) {
     socket.on(
       "label:attached",
       ({ cardId, label, actorId, actorName, cardTitle }) => {
-        useBoardStore.getState().addLabelToCard(cardId, label);
         if (actorId !== currentUser?.id) {
+          useBoardStore.getState().addLabelToCard(cardId, label);
           toast.success(
             `${actorName || "Someone"} added label:${label.name} to card ${cardTitle}`,
           );
@@ -170,8 +170,8 @@ export function useBoardSocket(boardId: string) {
     socket.on(
       "label:removed",
       ({ cardId, label, actorId, actorName, cardTitle }) => {
-        useBoardStore.getState().removeLabelFromCard(cardId, label.id);
         if (actorId !== currentUser?.id) {
+          useBoardStore.getState().removeLabelFromCard(cardId, label.id);
           toast.success(
             `${actorName || "Someone"} removed label:${label.name} from card ${cardTitle}`,
           );
@@ -203,7 +203,6 @@ export function useBoardSocket(boardId: string) {
     );
 
     socket.on("comment:updated", (payload) => {
-      console.log("comment:updated payload:", payload);
       queryClient.invalidateQueries({ queryKey: ["comments", payload.cardId] });
 
       if (payload.actorId !== currentUser?.id) {
@@ -214,14 +213,13 @@ export function useBoardSocket(boardId: string) {
     });
 
     socket.on("comment:deleted", (payload) => {
-      console.log("comment:updated payload:", payload);
       queryClient.invalidateQueries({
         queryKey: ["comments", payload.cardId],
       });
 
       if (payload.actorId !== currentUser?.id) {
         toast.info(
-          `${payload.actorName || "Someone"} edited their comment on "${payload.cardTitle}"`,
+          `${payload.actorName || "Someone"} deleted their comment on the card "${payload.cardTitle}"`,
         );
       }
     });
@@ -247,6 +245,7 @@ export function useBoardSocket(boardId: string) {
       socket.off("label:created");
       socket.off("comment:created");
       socket.off("comment:updated");
+      socket.off("comment:deleted");
       socket.off("board:presence");
     };
   }, [boardId, currentUser?.id, queryClient]);

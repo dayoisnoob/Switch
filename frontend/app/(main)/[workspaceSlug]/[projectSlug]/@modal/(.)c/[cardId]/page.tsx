@@ -22,7 +22,7 @@ export default function InterceptedCardModal() {
     <CardDetailModal
       isOpen={true}
       onClose={() => router.back()}
-      card={card}
+      cardId={cardId}
       columns={columns}
       projectSlug={projectSlug}
       workspaceSlug={workspaceSlug}
