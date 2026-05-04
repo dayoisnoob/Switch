@@ -91,6 +91,7 @@ export class CardsController {
     const actorName = `${req.user?.firstName} ${req.user?.lastName}`.trim();
 
     const userId = req.user.id;
+    const boardId = req.resolvedCard?.boardId as string;
     const cardId = req.params.cardId as string;
     const projectId = req.resolvedCard!.projectId;
 
@@ -99,23 +100,29 @@ export class CardsController {
       actorName,
       req.body.userId,
       projectId,
-      cardId
+      cardId,
+      boardId
     );
 
     res.json(new ApiResponse(200, 'User assigned successfully', user));
   }
 
   static async unassignUser(req: AuthenticatedRequest, res: Response) {
+    const actorName = `${req.user?.firstName} ${req.user?.lastName}`.trim();
+
     const userId = req.user.id;
+    const boardId = req.resolvedCard?.boardId as string;
     const cardId = req.params.cardId as string;
     const assigneeId = req.params.userId as string;
     const projectId = req.resolvedCard!.projectId;
 
     const user = await CardsService.unassignUser(
       userId,
+      actorName,
       assigneeId,
       projectId,
-      cardId
+      cardId,
+      boardId
     );
 
     res.json(new ApiResponse(200, 'User removed successfully', user));

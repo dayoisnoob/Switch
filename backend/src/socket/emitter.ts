@@ -10,6 +10,8 @@ type BoardEvent =
   | 'column:updated'
   | 'column:reordered'
   | 'column:deleted'
+  | 'assignee:added'
+  | 'assignee:removed'
   | 'comment:created'
   | 'comment:updated'
   | 'comment:deleted';

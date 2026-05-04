@@ -40,7 +40,7 @@ interface BoardStore {
   addWorkspaceLabel: (label: BoardLabel) => void;
 
   // Assignee Operations
-  assignUserToCard: (cardId: string, assignee: BoardAssignee) => void;
+  assignUserToCard: (cardId: string, assignee: Partial<BoardAssignee>) => void;
   removeUserFromCard: (cardId: string, userId: string) => void;
 
   setPresence: (users: PresenceUser[]) => void;
@@ -233,11 +233,20 @@ export const useBoardStore = create<BoardStore>((set) => ({
           ...state.board,
           columns: state.board.columns.map((col) => ({
             ...col,
-            cards: col.cards.map((card) =>
-              card.id === cardId
-                ? { ...card, assignees: [...card.assignees, assignee] }
-                : card,
-            ),
+            cards: col.cards.map((card) => {
+              if (card.id !== cardId) return card;
+
+              const alreadyAssigned = card.assignees.some(
+                (a) => a.userId === assignee.userId,
+              );
+
+              if (alreadyAssigned) return card;
+
+              return {
+                ...card,
+                assignees: [...card.assignees, assignee as BoardAssignee],
+              };
+            }),
           })),
         },
       };

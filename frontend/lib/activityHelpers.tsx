@@ -122,8 +122,6 @@ export const getActivityConfig = (type: string) => {
 export const renderActivityText = (activity: CardActivity) => {
   const meta = activity.metadata || {};
 
-  console.log(meta.priority);
-
   switch (activity.type) {
     case "card_created":
       return "created this card";

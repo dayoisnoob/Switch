@@ -12,6 +12,7 @@ import { usersTable } from './users.schema';
 
 export const notificationTypeEnum = pgEnum('notification_type', [
   'card_assigned',
+  'card_unassigned',
   'card_due_soon',
   'comment_added',
   'mentioned',

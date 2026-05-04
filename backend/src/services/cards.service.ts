@@ -384,7 +384,8 @@ export class CardsService {
     actorName: string,
     assigneeId: string,
     projectId: string,
-    cardId: string
+    cardId: string,
+    boardId: string
   ) {
     const [existing] = await db
       .select({ id: cardAssigneesTable.id })
@@ -410,8 +411,10 @@ export class CardsService {
 
     const [user] = await db
       .select({
+        userId: usersTable.id,
         firstName: usersTable.firstName,
         lastName: usersTable.lastName,
+        avatarUrl: usersTable.avatarUrl,
       })
       .from(usersTable)
       .where(eq(usersTable.id, assignee.userId))
@@ -446,14 +449,24 @@ export class CardsService {
       entityType: 'card',
     });
 
+    emitBoardEvent(boardId, 'assignee:added', {
+      cardId,
+      assignee: user,
+      actorId: userId,
+      actorName: actorName,
+      cardTitle: card?.title,
+    });
+
     return assignee;
   }
 
   static async unassignUser(
     userId: string,
+    actorName: string,
     assigneeId: string,
     projectId: string,
-    cardId: string
+    cardId: string,
+    boardId: string
   ) {
     const [assignee] = await db
       .delete(cardAssigneesTable)
@@ -478,6 +491,12 @@ export class CardsService {
 
     if (!user) throw new ApiError(404, 'Could not find this assignee');
 
+    const [card] = await db
+      .select({ title: cardsTable.title })
+      .from(cardsTable)
+      .where(eq(cardsTable.id, cardId))
+      .limit(1);
+
     const assigneeName = `${user?.firstName} ${user?.lastName}`;
 
     await ActivityService.log({
@@ -486,6 +505,26 @@ export class CardsService {
       projectId,
       cardId,
       metadata: { assigneeName },
+    });
+
+    await NotificationService.create({
+      type: 'card_unassigned',
+      userId: assigneeId,
+      title: card
+        ? `${actorName} removed you from ${card.title}`
+        : `You have been assigned to a new task.`,
+      body: '',
+      entityId: cardId,
+      entityType: 'card',
+    });
+
+    emitBoardEvent(boardId, 'assignee:removed', {
+      cardId,
+      assigneeId: assignee.userId,
+      assigneeName,
+      actorId: userId,
+      actorName: actorName,
+      cardTitle: card?.title,
     });
 
     return assignee;

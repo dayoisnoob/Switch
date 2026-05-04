@@ -1,10 +1,9 @@
-import { useEffect } from "react";
 import { socket } from "@/lib/socket";
 import { useBoardStore } from "@/store/board.store";
-import { BoardCard, BoardColumn } from "@/types/board.types";
-import { useMe } from "./useAuth";
+import { BoardAssignee, BoardCard, BoardColumn } from "@/types/board.types";
+import { useEffect } from "react";
 import { toast } from "sonner";
-import { CardUpdateType } from "@/services/card.service";
+import { useMe } from "./useAuth";
 
 interface CardCreated {
   card: BoardCard;
@@ -25,6 +24,8 @@ export function useBoardSocket(boardId: string) {
     updateColumn,
     moveColumn,
     deleteColumn,
+    assignUserToCard,
+    removeUserFromCard,
     setPresence,
   } = useBoardStore();
 
@@ -121,7 +122,7 @@ export function useBoardSocket(boardId: string) {
         deleteCard(cardId, columnId);
         if (actorId !== currentUser?.id) {
           toast.success(
-            `${actorName || "Someone"} deleted a the ${cardTitle} card`,
+            `${actorName || "Someone"} deleted the ${cardTitle} card`,
           );
         }
       },
@@ -142,7 +143,7 @@ export function useBoardSocket(boardId: string) {
         addColumn(column);
         if (actorId !== currentUser?.id) {
           toast.success(
-            `${actorName || "Someone"} deleted a new column - ${column.name}`,
+            `${actorName || "Someone"} created a new column - ${column.name}`,
           );
         }
       },
@@ -216,7 +217,60 @@ export function useBoardSocket(boardId: string) {
       },
     );
 
-    // presence
+    //assignee events
+    socket.on(
+      "assignee:added",
+      ({
+        cardId,
+        assignee,
+        actorId,
+        actorName,
+        cardTitle,
+      }: {
+        cardId: string;
+        assignee: Partial<BoardAssignee>;
+        actorId: string;
+        actorName: string;
+        cardTitle: string;
+      }) => {
+        assignUserToCard(cardId, assignee);
+        if (actorId !== currentUser?.id) {
+          const assigneeName = `${assignee.firstName} ${assignee.lastName}`;
+          console.log("Assigned:", assigneeName);
+          toast.success(
+            `${actorName || "Someone"} assigned ${assigneeName} to card ${cardTitle}`,
+          );
+        }
+      },
+    );
+
+    socket.on(
+      "assignee:removed",
+      ({
+        cardId,
+        assigneeId,
+        assigneeName,
+        actorId,
+        actorName,
+        cardTitle,
+      }: {
+        cardId: string;
+        assigneeId: string;
+        assigneeName: string;
+        actorId: string;
+        actorName: string;
+        cardTitle: string;
+      }) => {
+        removeUserFromCard(cardId, assigneeId);
+        if (actorId !== currentUser?.id) {
+          console.log("Assigned:", assigneeName);
+          toast.success(
+            `${actorName || "Someone"} removed ${assigneeName} from card ${cardTitle}`,
+          );
+        }
+      },
+    );
+
     socket.on("board:presence", ({ users }) => {
       setPresence(users);
     });
@@ -231,15 +285,21 @@ export function useBoardSocket(boardId: string) {
       socket.off("column:updated");
       socket.off("column:deleted");
       socket.off("column:reordered");
+      socket.off("assignee:added");
+      socket.off("assignee:removed");
       socket.off("board:presence");
     };
   }, [
     addCard,
     addColumn,
+    assignUserToCard,
     boardId,
+    currentUser?.id,
     deleteCard,
     deleteColumn,
     moveCard,
+    moveColumn,
+    removeUserFromCard,
     setPresence,
     updateCard,
     updateColumn,

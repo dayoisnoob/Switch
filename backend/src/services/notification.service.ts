@@ -7,7 +7,12 @@ import { emitToUser } from '../socket/emitter';
 
 export class NotificationService {
   static async create(data: {
-    type: 'card_assigned' | 'comment_added' | 'card_due_soon' | 'mentioned';
+    type:
+      | 'card_assigned'
+      | 'comment_added'
+      | 'card_due_soon'
+      | 'mentioned'
+      | 'card_unassigned';
     userId: string;
     title: string;
     body: string;
