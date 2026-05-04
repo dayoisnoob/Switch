@@ -1,6 +1,11 @@
 import { and, desc, eq } from 'drizzle-orm';
 import { db } from '../config/db';
-import { cardAssigneesTable, commentsTable, usersTable } from '../db';
+import {
+  cardAssigneesTable,
+  cardsTable,
+  commentsTable,
+  usersTable,
+} from '../db';
 import { ApiError } from '../utils/api-response';
 import type { CreateCommentType } from '../validations/comments.validation';
 import { ActivityService } from './activity.service';
@@ -10,6 +15,7 @@ import { NotificationService } from './notification.service';
 export class CommentService {
   static async createComment(
     userId: string,
+    actorName: string,
     projectId: string,
     cardId: string,
     boardId: string,
@@ -27,15 +33,30 @@ export class CommentService {
     if (!comment)
       throw new ApiError(500, 'Error creating comment. Please try again.');
 
-    const [user] = await db
-      .select({
-        id: usersTable.id,
-        firstName: usersTable.firstName,
-        lastName: usersTable.lastName,
-        avatarUrl: usersTable.avatarUrl,
-      })
-      .from(usersTable)
-      .where(eq(usersTable.id, userId));
+    const [[commentAuthor], assignees, [commentCard]] = await Promise.all([
+      db
+        .select({
+          id: usersTable.id,
+          firstName: usersTable.firstName,
+          lastName: usersTable.lastName,
+          avatarUrl: usersTable.avatarUrl,
+        })
+        .from(usersTable)
+        .where(eq(usersTable.id, userId)),
+
+      db
+        .select({ userId: cardAssigneesTable.userId })
+        .from(cardAssigneesTable)
+        .where(eq(cardAssigneesTable.cardId, cardId)),
+
+      db
+        .select({
+          title: cardsTable.title,
+        })
+        .from(cardsTable)
+        .where(eq(cardsTable.id, cardId))
+        .limit(1),
+    ]);
 
     await ActivityService.log({
       type: 'comment_added',
@@ -45,42 +66,44 @@ export class CommentService {
       metadata: { content: comment.content },
     });
 
-    emitBoardEvent(boardId, 'comment:created', {
-      commentId: comment.id,
-      cardId,
-      content: comment.content,
-    });
-
-    const assignees = await db
-      .select({ userId: cardAssigneesTable.userId })
-      .from(cardAssigneesTable)
-      .where(eq(cardAssigneesTable.cardId, cardId));
-
-    for (const assignee of assignees) {
-      if (assignee.userId === userId) continue;
-
-      await NotificationService.create({
-        type: 'comment_added',
-        userId: assignee.userId,
-        title: 'New comment on your card',
-        body: `Someone commented on a card you're assigned to.`,
-        entityId: cardId,
-        entityType: 'card',
-      });
+    const usersToNotify = assignees.filter((a) => a.userId !== userId);
+    if (usersToNotify.length > 0) {
+      await Promise.all(
+        usersToNotify.map((assignee) =>
+          NotificationService.create({
+            type: 'comment_added',
+            userId: assignee.userId,
+            title: 'New comment on your task',
+            body: `${actorName} commented on "${commentCard?.title || 'a card'}" you're assigned to.`,
+            entityId: cardId,
+            entityType: 'card',
+          })
+        )
+      );
     }
 
-    return {
+    const formattedComment = {
       id: comment.id,
       content: comment.content,
       isEdited: comment.isEdited,
       createdAt: comment.createdAt,
       author: {
-        id: user?.id,
-        firstName: user?.firstName,
-        lastName: user?.lastName,
-        avatarUrl: user?.avatarUrl,
+        id: commentAuthor?.id,
+        firstName: commentAuthor?.firstName,
+        lastName: commentAuthor?.lastName,
+        avatarUrl: commentAuthor?.avatarUrl,
       },
     };
+
+    emitBoardEvent(boardId, 'comment:created', {
+      cardId,
+      comment: formattedComment,
+      actorId: userId,
+      actorName,
+      cardTitle: commentCard?.title,
+    });
+
+    return formattedComment;
   }
 
   static async fetchComments(cardId: string) {
@@ -116,6 +139,7 @@ export class CommentService {
 
   static async editComment(
     userId: string,
+    actorName: string,
     projectId: string,
     commentId: string,
     cardId: string,
@@ -138,6 +162,14 @@ export class CommentService {
     if (!editedComment)
       throw new ApiError(500, 'Error updating comment. Please try again.');
 
+    const [editedCommentCard] = await db
+      .select({
+        title: cardsTable.title,
+      })
+      .from(cardsTable)
+      .where(eq(cardsTable.id, cardId))
+      .limit(1);
+
     await ActivityService.log({
       type: 'comment_edited',
       userId,
@@ -147,9 +179,11 @@ export class CommentService {
     });
 
     emitBoardEvent(boardId, 'comment:updated', {
-      commentId,
       cardId,
-      content: editedComment.content,
+      comment: editedComment,
+      actorId: userId,
+      actorName,
+      cardTitle: editedCommentCard?.title,
     });
 
     return editedComment;

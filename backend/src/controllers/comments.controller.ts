@@ -5,6 +5,8 @@ import { ApiResponse } from '../utils/api-response';
 
 export class CommentController {
   static async createComment(req: AuthenticatedRequest, res: Response) {
+    const actorName = `${req.user?.firstName} ${req.user?.lastName}`.trim();
+
     const userId = req.user.id!;
     const cardId = req.resolvedCard?.id!;
     const projectId = req.resolvedCard?.projectId!;
@@ -12,6 +14,7 @@ export class CommentController {
 
     const comment = await CommentService.createComment(
       userId,
+      actorName,
       projectId,
       cardId,
       boardId,
@@ -31,6 +34,7 @@ export class CommentController {
   }
 
   static async editComment(req: AuthenticatedRequest, res: Response) {
+    const actorName = `${req.user?.firstName} ${req.user?.lastName}`.trim();
     const userId = req.user.id;
 
     const commentId = req.resolvedComment?.id!;
@@ -40,6 +44,7 @@ export class CommentController {
 
     const comment = await CommentService.editComment(
       userId,
+      actorName,
       projectId,
       commentId,
       cardId,

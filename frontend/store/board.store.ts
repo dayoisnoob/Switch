@@ -1,4 +1,3 @@
-// stores/board.store.ts
 import { create } from "zustand";
 import {
   BoardState,
@@ -43,6 +42,9 @@ interface BoardStore {
   assignUserToCard: (cardId: string, assignee: Partial<BoardAssignee>) => void;
   removeUserFromCard: (cardId: string, userId: string) => void;
 
+  //comment operations
+  updateCommentCount: (cardId: string, delta: number) => void;
+
   setPresence: (users: PresenceUser[]) => void;
 }
 
@@ -61,7 +63,7 @@ export const useBoardStore = create<BoardStore>((set) => ({
 
   setWorkspaceLabels: (labels) => set({ workspaceLabels: labels }),
 
-  // ─── Cards ───────────────────────────────────────────────
+  // ------ Cards ------------------------------------------
 
   addCard: (columnId, card) =>
     set((state) => {
@@ -129,7 +131,7 @@ export const useBoardStore = create<BoardStore>((set) => ({
       return { board: { ...state.board, columns } };
     }),
 
-  // ─── Columns ─────────────────────────────────────────────
+  // ------ Columns ------------------------------------------
 
   addColumn: (column) =>
     set((state) => {
@@ -179,7 +181,7 @@ export const useBoardStore = create<BoardStore>((set) => ({
       };
     }),
 
-  // ─── Labels ──────────────────────────────────────────────
+  // ------ Labels ------------------------------------------
 
   addLabelToCard: (cardId, label) =>
     set((state) => {
@@ -268,6 +270,26 @@ export const useBoardStore = create<BoardStore>((set) => ({
                       (a) => a.userId !== userId,
                     ),
                   }
+                : card,
+            ),
+          })),
+        },
+      };
+    }),
+
+  // ------ Comments ------------------------------------------
+
+  updateCommentCount: (cardId, delta) =>
+    set((state) => {
+      if (!state.board) return state;
+      return {
+        board: {
+          ...state.board,
+          columns: state.board.columns.map((col) => ({
+            ...col,
+            cards: col.cards.map((card) =>
+              card.id === cardId
+                ? { ...card, commentCount: (card.commentCount || 0) + delta }
                 : card,
             ),
           })),
