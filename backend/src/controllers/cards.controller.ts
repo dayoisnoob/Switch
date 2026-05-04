@@ -149,7 +149,11 @@ export class CardsController {
   }
 
   static async detatchLabel(req: AuthenticatedRequest, res: Response) {
+    const actorName = `${req.user?.firstName} ${req.user?.lastName}`.trim();
+
     const cardId = req.params.cardId as string;
+    const boardId = req.resolvedCard?.boardId as string;
+
     const labelId = req.params.labelId as string;
 
     const userId = req.user.id;
@@ -157,9 +161,11 @@ export class CardsController {
 
     const label = await CardsService.detatchLabel(
       userId,
+      actorName,
       projectId,
       cardId,
-      labelId
+      labelId,
+      boardId
     );
 
     res.json(new ApiResponse(200, 'Label removed successfully', label));

@@ -601,19 +601,31 @@ export class CardsService {
 
   static async detatchLabel(
     userId: string,
+    actorName: string,
     projectId: string,
     cardId: string,
-    labelId: string
+    labelId: string,
+    boardId: string
   ) {
-    const [labelData] = await db
-      .select({
-        name: labelsTable.name,
-      })
-      .from(labelsTable)
-      .where(eq(labelsTable.id, labelId))
-      .limit(1);
+    const [[labelData], [cardData]] = await Promise.all([
+      db
+        .select({
+          id: labelsTable.id,
+          name: labelsTable.name,
+          colour: labelsTable.colour,
+        })
+        .from(labelsTable)
+        .where(eq(labelsTable.id, labelId))
+        .limit(1),
+      db
+        .select({ title: cardsTable.title })
+        .from(cardsTable)
+        .where(eq(cardsTable.id, cardId))
+        .limit(1),
+    ]);
 
     if (!labelData) throw new ApiError(404, 'Could not find this label');
+    if (!cardData) throw new ApiError(404, 'Could not find this card');
 
     const [label] = await db
       .delete(cardLabelsTable)
@@ -634,6 +646,14 @@ export class CardsService {
       projectId,
       cardId,
       metadata: { labelName: labelData.name },
+    });
+
+    emitBoardEvent(boardId, 'label:removed', {
+      cardId,
+      label: labelData,
+      actorId: userId,
+      actorName,
+      cardTitle: cardData?.title,
     });
 
     return { message: 'Label removed successfully', label };

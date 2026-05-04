@@ -305,6 +305,30 @@ export function useBoardSocket(boardId: string) {
       },
     );
 
+    socket.on(
+      "label:removed",
+      ({
+        cardId,
+        label,
+        actorId,
+        actorName,
+        cardTitle,
+      }: {
+        cardId: string;
+        label: BoardLabel;
+        actorId: string;
+        actorName: string;
+        cardTitle: string;
+      }) => {
+        removeLabelFromCard(cardId, label.id);
+        if (actorId !== currentUser?.id) {
+          toast.success(
+            `${actorName || "Someone"} removed label:${label.name} from card ${cardTitle}`,
+          );
+        }
+      },
+    );
+
     socket.on("board:presence", ({ users }) => {
       setPresence(users);
     });
@@ -336,6 +360,7 @@ export function useBoardSocket(boardId: string) {
     deleteColumn,
     moveCard,
     moveColumn,
+    removeLabelFromCard,
     removeUserFromCard,
     setPresence,
     updateCard,
