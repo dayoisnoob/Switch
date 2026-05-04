@@ -7,11 +7,9 @@ export function useUploadAttachment(cardId: string) {
 
   return useMutation({
     mutationFn: async (file: File) => {
-      // 1. Pack the file into FormData
       const formData = new FormData();
       formData.append("file", file);
 
-      // 2. Send to your express endpoint
       const { data } = await api.post(
         `/cards/${cardId}/attachments`,
         formData,

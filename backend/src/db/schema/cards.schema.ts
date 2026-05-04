@@ -12,21 +12,7 @@ import {
 import { boardsTable } from './boards.schema';
 import { columnsTable } from './columns.schema';
 import { usersTable } from './users.schema';
-
-export const statusEnum = pgEnum('status', [
-  'BACKLOG',
-  'TODO',
-  'IN_PROGRESS',
-  'DONE',
-  'CANCELED',
-]);
-export const priorityEnum = pgEnum('priority', [
-  'none',
-  'low',
-  'medium',
-  'high',
-  'urgent',
-]);
+import { priorityEnum, statusEnum } from './enums.schema';
 
 export const cardsTable = pgTable(
   'cards',

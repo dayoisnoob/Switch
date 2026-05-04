@@ -10,8 +10,7 @@ import {
   uuid,
   varchar,
 } from 'drizzle-orm/pg-core';
-
-const userRoleEnum = pgEnum('user_role', ['user', 'admin']);
+import { userRoleEnum } from './enums.schema';
 
 export const usersTable = pgTable(
   'users',

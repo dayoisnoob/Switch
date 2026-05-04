@@ -10,13 +10,9 @@ import {
 } from 'drizzle-orm/pg-core';
 import { usersTable } from './users.schema';
 import { workspacesTable } from './workspaces.schema';
+import { projectStatusEnum } from './enums.schema';
 
-export const projectStatusEnum = pgEnum('project_status', [
-  'Active',
-  'Paused',
-  'Planning',
-  'Completed',
-]);
+
 
 export const projectsTable = pgTable(
   'projects',

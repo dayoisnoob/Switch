@@ -51,7 +51,6 @@ export function CardAttachments({ card }: { card: BoardCard }) {
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) upload(file);
-    // Reset input so you can upload the same file again if needed
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
@@ -114,6 +113,11 @@ export function CardAttachments({ card }: { card: BoardCard }) {
                   >
                     {file.fileName}
                   </a>
+                  <span className="text-[11px] text-white/40 flex items-center gap-1.5">
+                    {formatBytes(file.fileSize)}
+                    <span>·</span>
+                    Uploaded by {file.user?.firstName}
+                  </span>
                   <span className="text-[11px] text-white/40">
                     {formatBytes(file.fileSize)}
                   </span>

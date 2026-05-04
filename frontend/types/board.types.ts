@@ -28,12 +28,26 @@ export interface BoardCard {
   labels: BoardLabel[];
   commentCount: number;
   activityCount: number;
+  attachments: CardAttachments;
 }
 
 export interface CardCreator {
   id: string;
   firstName: string;
   lastName: string;
+}
+
+export interface CardAttachments {
+  id: string;
+  fileName: string;
+  fileUrl: string;
+  fileSize: string;
+  mimeType: string;
+  userId: string;
+  createdAt: string;
+  user: {
+    firstName: string;
+  };
 }
 
 export interface BoardColumn {

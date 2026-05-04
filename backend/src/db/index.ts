@@ -1,24 +1,26 @@
+import { cardAssigneesTable, cardsTable } from './schema/cards.schema';
 import { relations } from 'drizzle-orm';
+import { attachmentsTable } from './schema/attachments.schema';
 import { boardsTable } from './schema/boards.schema';
 import { columnsTable } from './schema/columns.schema';
-import { cardAssigneesTable, cardsTable } from './schema/cards.schema';
-import { projectsTable } from './schema/projects.schema';
 import { cardLabelsTable, labelsTable } from './schema/labels.schema';
+import { projectsTable } from './schema/projects.schema';
 import { usersTable } from './schema/users.schema';
 
-export * from './schema/users.schema';
-export * from './schema/otp.schema';
-export * from './schema/auth.schema';
-export * from './schema/workspaces.schema';
-export * from './schema/projects.schema';
-export * from './schema/boards.schema';
-export * from './schema/columns.schema';
-export * from './schema/cards.schema';
-export * from './schema/labels.schema';
-export * from './schema/comments.schema';
-export * from './schema/attachments.schema';
+export * from './schema/enums.schema';
 export * from './schema/activities.schema';
+export * from './schema/attachments.schema';
+export * from './schema/auth.schema';
+export * from './schema/boards.schema';
+export * from './schema/cards.schema';
+export * from './schema/columns.schema';
+export * from './schema/comments.schema';
+export * from './schema/labels.schema';
 export * from './schema/notifications.schema';
+export * from './schema/otp.schema';
+export * from './schema/projects.schema';
+export * from './schema/users.schema';
+export * from './schema/workspaces.schema';
 
 export const boardRelations = relations(boardsTable, ({ one, many }) => ({
   project: one(projectsTable, {
@@ -47,6 +49,7 @@ export const cardRelations = relations(cardsTable, ({ one, many }) => ({
     fields: [cardsTable.createdBy],
     references: [usersTable.id],
   }),
+  attachments: many(attachmentsTable),
 }));
 
 export const cardAssigneeRelations = relations(
@@ -71,5 +74,16 @@ export const cardLabelRelations = relations(cardLabelsTable, ({ one }) => ({
   label: one(labelsTable, {
     fields: [cardLabelsTable.labelId],
     references: [labelsTable.id],
+  }),
+}));
+
+export const attachmentsRelations = relations(attachmentsTable, ({ one }) => ({
+  card: one(cardsTable, {
+    fields: [attachmentsTable.cardId],
+    references: [cardsTable.id],
+  }),
+  user: one(usersTable, {
+    fields: [attachmentsTable.userId],
+    references: [usersTable.id],
   }),
 }));

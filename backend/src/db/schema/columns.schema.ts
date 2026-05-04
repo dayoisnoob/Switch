@@ -7,7 +7,7 @@ import {
   varchar,
 } from 'drizzle-orm/pg-core';
 import { boardsTable } from './boards.schema';
-import { statusEnum } from './cards.schema';
+import { statusEnum } from './enums.schema';
 
 export const columnsTable = pgTable(
   'columns',

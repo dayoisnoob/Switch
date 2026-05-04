@@ -9,14 +9,7 @@ import {
   index,
 } from 'drizzle-orm/pg-core';
 import { usersTable } from './users.schema';
-
-export const notificationTypeEnum = pgEnum('notification_type', [
-  'card_assigned',
-  'card_unassigned',
-  'card_due_soon',
-  'comment_added',
-  'mentioned',
-]);
+import { notificationTypeEnum } from './enums.schema';
 
 export const notificationsTable = pgTable(
   'notifications',

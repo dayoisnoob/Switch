@@ -1,12 +1,16 @@
-import { eq, inArray, sql } from 'drizzle-orm';
+import { desc, eq, inArray, sql } from 'drizzle-orm';
 import { db } from '../config/db';
-import { activitiesTable, boardsTable, cardsTable, commentsTable } from '../db';
+import {
+  activitiesTable,
+  attachmentsTable,
+  boardsTable,
+  cardsTable,
+  commentsTable,
+} from '../db';
 import { ApiError } from '../utils/api-response';
 
 export const BoardService = {
   getBoardState: async (projectId: string) => {
-    // 1. Fetch core board state normally (board -> columns -> cards with nested user/labels)
-    // This is essentially your original query.
     const boardState = await db.query.boardsTable.findFirst({
       where: eq(boardsTable.projectId, projectId),
       columns: {
@@ -65,6 +69,25 @@ export const BoardService = {
                         id: true,
                         name: true,
                         colour: true,
+                      },
+                    },
+                  },
+                },
+                attachments: {
+                  orderBy: [desc(attachmentsTable.createdAt)],
+                  columns: {
+                    id: true,
+                    fileName: true,
+                    fileUrl: true,
+                    fileSize: true,
+                    mimeType: true,
+                    userId: true,
+                    createdAt: true,
+                  },
+                  with: {
+                    user: {
+                      columns: {
+                        firstName: true,
                       },
                     },
                   },

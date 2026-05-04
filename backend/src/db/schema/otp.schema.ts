@@ -8,11 +8,7 @@ import {
   varchar,
 } from 'drizzle-orm/pg-core';
 import { usersTable } from './users.schema';
-
-export const otpPurposeEnum = pgEnum('otp_purpose', [
-  'email_verification',
-  'password_reset',
-]);
+import { otpPurposeEnum } from './enums.schema';
 
 export const otpTable = pgTable('otps', {
   id: uuid('id').primaryKey().defaultRandom(),
