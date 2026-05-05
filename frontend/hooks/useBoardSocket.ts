@@ -233,6 +233,25 @@ export function useBoardSocket(boardId: string) {
       }
     });
 
+    // --- COMMENTS ---
+    socket.on("attachment:uploaded", (p) => {
+      if (p.actorId !== currentUser?.id) {
+        useBoardStore.getState().addAttachmentToCard(p.cardId, p.attachment);
+        const actor = p.actorName || "A teammate";
+        toast.info(`${actor} uploaded a file to "${p.cardTitle}"`);
+      }
+    });
+
+    socket.on("attachment:deleted", (p) => {
+      if (p.actorId !== currentUser?.id) {
+        useBoardStore
+          .getState()
+          .removeAttachmentFromCard(p.cardId, p.attachmentId);
+        const actor = p.actorName || "A teammate";
+        toast.info(`${actor} deleted a file from "${p.cardTitle}"`);
+      }
+    });
+
     socket.on("board:presence", ({ users }) => {
       useBoardStore.getState().setPresence(users);
     });
@@ -256,6 +275,8 @@ export function useBoardSocket(boardId: string) {
       socket.off("comment:created");
       socket.off("comment:updated");
       socket.off("comment:deleted");
+      socket.off("attachment:uploaded");
+      socket.off("attachment:deleted");
       socket.off("board:presence");
     };
   }, [boardId, currentUser?.id, queryClient]);

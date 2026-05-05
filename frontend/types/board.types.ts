@@ -28,7 +28,7 @@ export interface BoardCard {
   labels: BoardLabel[];
   commentCount: number;
   activityCount: number;
-  attachments: CardAttachments;
+  attachments: CardAttachment[];
 }
 
 export interface CardCreator {
@@ -37,11 +37,11 @@ export interface CardCreator {
   lastName: string;
 }
 
-export interface CardAttachments {
+export interface CardAttachment {
   id: string;
   fileName: string;
   fileUrl: string;
-  fileSize: string;
+  fileSize: number;
   mimeType: string;
   userId: string;
   createdAt: string;

@@ -1,4 +1,6 @@
 import { api } from "@/lib/api";
+import { useBoardStore } from "@/store/board.store";
+import { CardAttachment } from "@/types/board.types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
@@ -6,20 +8,16 @@ export function useUploadAttachment(cardId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (file: File) => {
+    mutationFn: async (file: File): Promise<CardAttachment> => {
       const formData = new FormData();
       formData.append("file", file);
 
-      const { data } = await api.post(
-        `/cards/${cardId}/attachments`,
-        formData,
-        {
-          headers: { "Content-Type": "multipart/form-data" },
-        },
-      );
-      return data;
+      return api.post(`/cards/${cardId}/attachments`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
     },
-    onSuccess: () => {
+    onSuccess: (newAttachment) => {
+      useBoardStore.getState().addAttachmentToCard(cardId, newAttachment);
       queryClient.invalidateQueries({ queryKey: ["cards"] });
       toast.success("Attachment uploaded successfully");
     },
@@ -34,11 +32,16 @@ export function useDeleteAttachment(cardId: string) {
 
   return useMutation({
     mutationFn: async (attachmentId: string) => {
-      await api.delete(`/cards/${cardId}/attachments/${attachmentId}`);
+      await api.delete(`/attachments/${attachmentId}`);
     },
-    onSuccess: () => {
+    onSuccess: (_, attachmentId) => {
+      useBoardStore.getState().removeAttachmentFromCard(cardId, attachmentId);
       queryClient.invalidateQueries({ queryKey: ["cards"] });
       toast.success("Attachment deleted");
+    },
+    onError: () => {
+      queryClient.invalidateQueries({ queryKey: ["cards"] });
+      toast.error("Failed to delete attachment");
     },
   });
 }

@@ -5,6 +5,7 @@ import {
   BoardCard,
   BoardLabel,
   BoardAssignee,
+  CardAttachment,
 } from "@/types/board.types";
 
 interface BoardStore {
@@ -45,6 +46,10 @@ interface BoardStore {
 
   //comment operations
   updateCommentCount: (cardId: string, delta: number) => void;
+
+  // Attachment Operations
+  addAttachmentToCard: (cardId: string, attachment: CardAttachment) => void;
+  removeAttachmentFromCard: (cardId: string, attachmentId: string) => void;
 
   setPresence: (users: PresenceUser[]) => void;
 }
@@ -313,6 +318,53 @@ export const useBoardStore = create<BoardStore>((set) => ({
                 ? { ...card, commentCount: (card.commentCount || 0) + delta }
                 : card,
             ),
+          })),
+        },
+      };
+    }),
+
+  // ------ Attachments ------------------------------------------
+  addAttachmentToCard: (cardId, attachment) =>
+    set((state) => {
+      if (!state.board) return state;
+      return {
+        board: {
+          ...state.board,
+          columns: state.board.columns.map((col) => ({
+            ...col,
+            cards: col.cards.map((card) => {
+              if (card.id === cardId) {
+                return {
+                  ...card,
+                  attachments: [attachment, ...(card.attachments || [])],
+                };
+              }
+              return card;
+            }),
+          })),
+        },
+      };
+    }),
+
+  removeAttachmentFromCard: (cardId, attachmentId) =>
+    set((state) => {
+      if (!state.board) return state;
+      return {
+        board: {
+          ...state.board,
+          columns: state.board.columns.map((col) => ({
+            ...col,
+            cards: col.cards.map((card) => {
+              if (card.id === cardId) {
+                return {
+                  ...card,
+                  attachments:
+                    card.attachments?.filter((a) => a.id !== attachmentId) ||
+                    [],
+                };
+              }
+              return card;
+            }),
           })),
         },
       };

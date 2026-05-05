@@ -5,13 +5,18 @@ import { ApiError, ApiResponse } from '../utils/api-response';
 
 export class AttachmentsController {
   static async uploadAttachment(req: AuthenticatedRequest, res: Response) {
+    const actorName = `${req.user?.firstName} ${req.user?.lastName}`.trim();
+
     const userId = req.user.id;
     const cardId = req.resolvedCard!.id;
     const projectId = req.resolvedCard!.projectId;
+    const boardId = req.resolvedCard!.boardId;
 
     if (!req.file) throw new ApiError(400, 'No file provided.');
 
     const attachment = await AttachmentsService.uploadAttachment(
+      actorName,
+      boardId,
       projectId,
       cardId,
       userId,
@@ -24,6 +29,8 @@ export class AttachmentsController {
   }
 
   static async deleteAttachment(req: AuthenticatedRequest, res: Response) {
+    const actorName = `${req.user?.firstName} ${req.user?.lastName}`.trim();
+
     const userId = req.user.id;
     const role = req.workspace?.role!;
 
@@ -32,6 +39,7 @@ export class AttachmentsController {
     const cardId = req.resolvedAttachment?.cardId!;
 
     const result = await AttachmentsService.deleteAttachment(
+      actorName,
       projectId,
       cardId,
       attachmentId,

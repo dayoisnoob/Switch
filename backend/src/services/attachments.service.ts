@@ -1,13 +1,16 @@
 import { eq } from 'drizzle-orm';
 import { cloudinary } from '../config/cloudinary';
 import { db } from '../config/db';
-import { attachmentsTable } from '../db';
+import { attachmentsTable, boardsTable, cardsTable } from '../db';
 import { ApiError } from '../utils/api-response';
 import { ActivityService } from './activity.service';
 import { getResourceType } from '../utils/helpers';
+import { emitBoardEvent } from '../socket/emitter';
 
 export class AttachmentsService {
   static async uploadAttachment(
+    actorName: string,
+    boardId: string,
     projectId: string,
     cardId: string,
     userId: string,
@@ -62,10 +65,29 @@ export class AttachmentsService {
       metadata: { name: attachment.fileName },
     });
 
-    return attachment;
+    const { title } = await AttachmentsService.getCardAndBoardDetails(cardId);
+
+    emitBoardEvent(boardId, 'attachment:uploaded', {
+      cardId,
+      attachment,
+      actorId: userId,
+      actorName,
+      cardTitle: title,
+    });
+
+    return {
+      id: attachment.id,
+      fileName: attachment.fileName,
+      fileUrl: attachment.fileUrl,
+      fileSize: attachment.fileSize,
+      mimeType: attachment.mimeType,
+      userId: attachment.userId,
+      createdAt: attachment.createdAt,
+    };
   }
 
   static async deleteAttachment(
+    actorName: string,
     projectId: string,
     cardId: string,
     attachmentId: string,
@@ -102,6 +124,33 @@ export class AttachmentsService {
       metadata: { name: attachment.fileName },
     });
 
+    const { boardId, title } =
+      await AttachmentsService.getCardAndBoardDetails(cardId);
+
+    emitBoardEvent(boardId, 'attachment:deleted', {
+      cardId,
+      attachmentId,
+      actorId: userId,
+      actorName,
+      cardTitle: title,
+    });
+
     return { message: 'Attachment deleted successfully.' };
+  }
+
+  private static async getCardAndBoardDetails(cardId: string) {
+    const [result] = await db
+      .select({
+        boardId: cardsTable.boardId,
+        title: cardsTable.title,
+      })
+      .from(cardsTable)
+      .innerJoin(boardsTable, eq(cardsTable.boardId, boardsTable.id))
+      .where(eq(cardsTable.id, cardId))
+      .limit(1);
+
+    if (!result) throw new ApiError(500, 'Error fatching Card or Board Detail');
+
+    return result;
   }
 }

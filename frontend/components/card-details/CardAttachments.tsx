@@ -12,11 +12,13 @@ import {
 import { useRef, useState } from "react";
 
 import { useMe } from "@/hooks/useAuth";
-import { BoardCard } from "@/types/board.types";
+import { BoardCard, CardAttachment } from "@/types/board.types";
 import {
   useDeleteAttachment,
   useUploadAttachment,
 } from "@/hooks/useAttacments";
+import { useWorkspaceRole } from "@/hooks/useWorkspaceRole";
+import { useParams } from "next/navigation";
 
 // Format bytes to KB/MB nicely
 function formatBytes(bytes: number) {
@@ -37,6 +39,9 @@ function getFileIcon(mimeType: string) {
 }
 
 export function CardAttachments({ card }: { card: BoardCard }) {
+  const { workspaceSlug } = useParams() as {
+    workspaceSlug: string;
+  };
   const { data: currentUser } = useMe();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -60,6 +65,8 @@ export function CardAttachments({ card }: { card: BoardCard }) {
     const file = e.dataTransfer.files?.[0];
     if (file) upload(file);
   };
+
+  const { canManageWorkspace } = useWorkspaceRole(workspaceSlug);
 
   return (
     <section>
@@ -92,8 +99,10 @@ export function CardAttachments({ card }: { card: BoardCard }) {
 
       {/* Actual File List */}
       <div className="space-y-2">
-        {card.attachments?.map((file: any) => {
-          const canDelete = file.userId === currentUser?.id; // Or add workspace admin check
+        {card.attachments?.map((file: CardAttachment) => {
+          if (!file) return null;
+          const canDelete =
+            file.userId === currentUser?.id || canManageWorkspace;
 
           return (
             <div
@@ -139,7 +148,11 @@ export function CardAttachments({ card }: { card: BoardCard }) {
                     disabled={isDeleting}
                     className="p-1.5 text-white/40 hover:text-rose-400 hover:bg-rose-500/10 rounded-md transition-colors"
                   >
-                    <Trash2 size={14} />
+                    {isDeleting ? (
+                      <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    ) : (
+                      <Trash2 size={14} />
+                    )}
                   </button>
                 )}
               </div>

@@ -18,7 +18,9 @@ type BoardEvent =
   | 'label:deleted'
   | 'comment:created'
   | 'comment:updated'
-  | 'comment:deleted';
+  | 'comment:deleted'
+  | 'attachment:uploaded'
+  | 'attachment:deleted';
 
 export const emitBoardEvent = (
   boardId: string,
