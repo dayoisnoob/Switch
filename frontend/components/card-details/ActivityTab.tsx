@@ -74,7 +74,7 @@ export function ActivityTab({ cardId }: { cardId: string }) {
           )}
         </>
       ) : (
-        <div className="py-10 text-center border-2 border-white/5 border-dashed rounded-xl bg-white/[0.01]">
+        <div className="py-10 text-center border-2 border-white/5 border-dashed rounded-xl bg-white/1">
           <p className="text-[13px] text-white/40 font-medium">
             No activity logged yet.
           </p>

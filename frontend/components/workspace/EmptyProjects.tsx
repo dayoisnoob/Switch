@@ -30,12 +30,12 @@ export default function EmptyProjectState({
       {/* ── ILLUSTRATION (Animated & Premium True Black) ── */}
       <div className="relative w-32 h-32 flex items-center justify-center mb-6">
         {/* Top-Left Floating Box (Delayed Float) */}
-        <div className="absolute top-2 left-4 w-10 h-10 bg-white/[0.02] border border-white/[0.05] rounded-xl flex items-center justify-center z-10 shadow-sm animate-float-2">
+        <div className="absolute top-2 left-4 w-10 h-10 bg-white/2 border border-white/5 rounded-xl flex items-center justify-center z-10 shadow-sm animate-float-2">
           <ListTodo size={18} className="text-[#7C6EF5] opacity-50" />
         </div>
 
         {/* Center Main Box (Primary Float) */}
-        <div className="relative w-16 h-16 bg-white/[0.04] border border-white/[0.08] rounded-2xl flex items-center justify-center z-20 shadow-md animate-float-1 backdrop-blur-sm">
+        <div className="relative w-16 h-16 bg-white/4 border border-white/8 rounded-2xl flex items-center justify-center z-20 shadow-md animate-float-1 backdrop-blur-sm">
           <Package size={24} className="text-[#7C6EF5]" />
           {/* Tiny plus badge */}
           <div className="absolute -bottom-1.5 -right-1.5 w-6 h-6 bg-[#7C6EF5] border-[3px] border-[#0A0A0A] rounded-full flex items-center justify-center shadow-sm">
@@ -44,7 +44,7 @@ export default function EmptyProjectState({
         </div>
 
         {/* Bottom-Right Floating Box (Slow Float) */}
-        <div className="absolute bottom-4 right-2 w-8 h-8 bg-white/[0.02] border border-white/[0.05] rounded-lg flex items-center justify-center z-30 shadow-sm animate-float-3">
+        <div className="absolute bottom-4 right-2 w-8 h-8 bg-white/2 border border-white/5 rounded-lg flex items-center justify-center z-30 shadow-sm animate-float-3">
           <Users size={14} className="text-white/40" />
         </div>
       </div>
@@ -70,7 +70,7 @@ export default function EmptyProjectState({
       {/* ── FEATURE CARDS ── */}
       <div className="w-full max-w-[460px] space-y-3">
         {/* Card 1 */}
-        <div className="bg-white/[0.02] border border-white/[0.05] rounded-xl p-4 flex items-start gap-4 hover:bg-white/[0.03] transition-colors">
+        <div className="bg-white/2 border border-white/5 rounded-xl p-4 flex items-start gap-4 hover:bg-white/3 transition-colors">
           <div className="w-8 h-8 shrink-0 rounded-lg bg-[#7C6EF5]/10 flex items-center justify-center mt-0.5">
             <Package size={16} className="text-[#7C6EF5]" />
           </div>
@@ -86,7 +86,7 @@ export default function EmptyProjectState({
         </div>
 
         {/* Card 2 */}
-        <div className="bg-white/[0.02] border border-white/[0.05] rounded-xl p-4 flex items-start gap-4 hover:bg-white/[0.03] transition-colors">
+        <div className="bg-white/2 border border-white/5 rounded-xl p-4 flex items-start gap-4 hover:bg-white/3 transition-colors">
           <div className="w-8 h-8 shrink-0 rounded-lg bg-emerald-500/10 flex items-center justify-center mt-0.5">
             <Users size={16} className="text-emerald-400" />
           </div>

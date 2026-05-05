@@ -40,7 +40,7 @@ export default function DeleteProjectModal({
       >
         <div
           onClick={(e) => e.stopPropagation()}
-          className="w-full max-w-[440px] bg-[#0A0A0A] border border-white/[0.08] rounded-2xl shadow-2xl relative flex flex-col overflow-hidden animate-in zoom-in-95 duration-200"
+          className="w-full max-w-[440px] bg-[#0A0A0A] border border-white/8 rounded-2xl shadow-2xl relative flex flex-col overflow-hidden animate-in zoom-in-95 duration-200"
         >
           {/* Close Button */}
           <button
@@ -66,7 +66,7 @@ export default function DeleteProjectModal({
             </div>
 
             {/* Project Preview Card */}
-            <div className="bg-white/[0.03] border border-white/[0.05] rounded-xl p-4 flex items-center gap-4 mb-4">
+            <div className="bg-white/3 border border-white/5 rounded-xl p-4 flex items-center gap-4 mb-4">
               <div className="w-10 h-10 rounded-lg bg-[#111115] flex items-center justify-center text-xl">
                 <Icon size={20} className="text-white/70" />
               </div>
@@ -113,13 +113,13 @@ export default function DeleteProjectModal({
                 onChange={(e) => setConfirmText(e.target.value)}
                 placeholder={project.name}
                 autoFocus
-                className="w-full bg-white/[0.02] border border-white/[0.08] focus:border-rose-500/50 rounded-xl px-4 py-3 text-sm text-white placeholder-white/10 outline-none transition-all"
+                className="w-full bg-white/2 border border-white/8 focus:border-rose-500/50 rounded-xl px-4 py-3 text-sm text-white placeholder-white/10 outline-none transition-all"
               />
             </div>
           </div>
 
           {/* Footer Actions */}
-          <div className="px-6 py-4 bg-[#050505] border-t border-white/[0.05] flex justify-end gap-3">
+          <div className="px-6 py-4 bg-[#050505] border-t border-white/5 flex justify-end gap-3">
             <button
               onClick={onClose}
               className="px-4 py-2 text-[13px] font-semibold text-white/40 hover:text-white transition-colors"

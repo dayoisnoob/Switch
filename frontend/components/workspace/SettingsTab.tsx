@@ -97,8 +97,8 @@ export const SettingsTab = ({
               </div>
             </div>
             <p className="text-[12px] text-white/30">
-              This is your workspace's unique identifier. Changing this will
-              break existing links.
+              This is your workspace&apos;s unique identifier. Changing this
+              will break existing links.
             </p>
           </div>
 

@@ -66,7 +66,7 @@ export default function AddCardModal({
       >
         <div
           onClick={(e) => e.stopPropagation()}
-          className="w-full max-w-[500px] bg-[#13131C] border border-white/[0.08] rounded-[20px] shadow-2xl relative flex flex-col overflow-hidden animate-in zoom-in-95 duration-200"
+          className="w-full max-w-[500px] bg-[#13131C] border border-white/8 rounded-[20px] shadow-2xl relative flex flex-col overflow-hidden animate-in zoom-in-95 duration-200"
         >
           {/* Header - Tighter Padding */}
           <div className="p-5 pb-0 flex items-start justify-between">
@@ -106,7 +106,7 @@ export default function AddCardModal({
                 onChange={(e) =>
                   setFormData({ ...formData, title: e.target.value })
                 }
-                className="w-full bg-white/[0.03] border border-white/[0.08] focus:border-[#7C6EF5]/50 rounded-[10px] px-3.5 py-2.5 text-[13px] text-white placeholder-white/10 outline-none transition-all"
+                className="w-full bg-white/3 border border-white/8 focus:border-[#7C6EF5]/50 rounded-[10px] px-3.5 py-2.5 text-[13px] text-white placeholder-white/10 outline-none transition-all"
               />
             </div>
 
@@ -122,7 +122,7 @@ export default function AddCardModal({
                 onChange={(e) =>
                   setFormData({ ...formData, description: e.target.value })
                 }
-                className="w-full bg-white/[0.03] border border-white/[0.08] focus:border-[#7C6EF5]/50 rounded-[10px] px-3.5 py-2.5 text-[13px] text-white placeholder-white/10 outline-none transition-all resize-none"
+                className="w-full bg-white/3 border border-white/8 focus:border-[#7C6EF5]/50 rounded-[10px] px-3.5 py-2.5 text-[13px] text-white placeholder-white/10 outline-none transition-all resize-none"
               />
             </div>
 
@@ -142,7 +142,7 @@ export default function AddCardModal({
                         priority: e.target.value as AddCardFormData["priority"],
                       })
                     }
-                    className="w-full bg-white/[0.03] border border-white/[0.08] rounded-[10px] px-3.5 py-2.5 text-[13px] text-white appearance-none outline-none focus:border-[#7C6EF5]/50 [color-scheme:dark] [&>option]:bg-[#0D0D12]"
+                    className="w-full bg-white/3 border border-white/8 rounded-[10px] px-3.5 py-2.5 text-[13px] text-white appearance-none outline-none focus:border-[#7C6EF5]/50 [color-scheme:dark] [&>option]:bg-[#0D0D12]"
                   >
                     <option value="none">None</option>
                     <option value="low">Low</option>
@@ -168,7 +168,7 @@ export default function AddCardModal({
                     onChange={(e) =>
                       setFormData({ ...formData, dueDate: e.target.value })
                     }
-                    className="w-full bg-white/[0.03] border border-white/[0.08] rounded-[10px] px-3.5 py-2.5 text-[13px] text-white outline-none focus:border-[#7C6EF5]/50 [color-scheme:dark]"
+                    className="w-full bg-white/3 border border-white/8 rounded-[10px] px-3.5 py-2.5 text-[13px] text-white outline-none focus:border-[#7C6EF5]/50 [color-scheme:dark]"
                   />
                 </div>
               </div>
@@ -189,7 +189,7 @@ export default function AddCardModal({
                     <div
                       key={member.id}
                       onClick={() => toggleAssignee(member.userId)}
-                      className="flex items-center justify-between p-1.5 rounded-[10px] hover:bg-white/[0.03] cursor-pointer group transition-colors"
+                      className="flex items-center justify-between p-1.5 rounded-[10px] hover:bg-white/3 cursor-pointer group transition-colors"
                     >
                       <div className="flex items-center gap-2.5 min-w-0">
                         {member.avatarUrl ? (
@@ -240,7 +240,7 @@ export default function AddCardModal({
           </div>
 
           {/* Footer - Tighter Padding */}
-          <div className="p-4 bg-[#13131C] border-t border-white/[0.05] flex justify-end gap-2.5">
+          <div className="p-4 bg-[#13131C] border-t border-white/5 flex justify-end gap-2.5">
             <button
               onClick={onClose}
               className="px-4 py-2 text-[13px] font-medium text-white/40 hover:text-white transition-colors"

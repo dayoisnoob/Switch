@@ -1,8 +1,26 @@
+import { api } from "@/lib/api";
 import { getErrorMessage } from "@/lib/utils";
 import { CreateProject, ProjectService } from "@/services/projects.service";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+
+export interface Project {
+  id: string;
+  workspaceId: string;
+  name: string;
+  slug: string;
+  status: string;
+  icon: string;
+  description: string;
+  createdBy: string;
+  cardsCount: number;
+  finishedCards: number;
+  assignees: {
+    firstName: string;
+    avatarUrl: string | null;
+  }[];
+}
 
 export function useCreateProject() {
   const router = useRouter();
@@ -27,7 +45,8 @@ export function useCreateProject() {
 export function useWorkspaceProjects(workspaceSlug?: string) {
   return useQuery({
     queryKey: ["projects", workspaceSlug],
-    queryFn: () => ProjectService.getWorkspaceProjects(workspaceSlug!),
+    queryFn: (): Promise<Project[]> =>
+      api.get(`/workspaces/${workspaceSlug}/projects`),
     enabled: !!workspaceSlug,
     staleTime: 1000 * 60 * 5,
   });

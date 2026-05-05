@@ -149,9 +149,9 @@ export default function DashboardPage() {
                   {/* Premium "Create Workspace" Card */}
                   <button
                     onClick={() => setIsAddWorkspaceOpen(true)}
-                    className="bg-white/[0.01] border border-dashed border-white/[0.1] rounded-xl p-5 hover:border-white/[0.2] hover:bg-white/[0.03] transition-all flex flex-col items-center justify-center h-[200px] group"
+                    className="bg-white/1 border border-dashed border-white/10 rounded-xl p-5 hover:border-white/20 hover:bg-white/3 transition-all flex flex-col items-center justify-center h-[200px] group"
                   >
-                    <div className="w-10 h-10 rounded-full bg-white/[0.03] flex items-center justify-center mb-3 group-hover:bg-[#7C6EF5]/10 group-hover:scale-110 transition-all duration-300">
+                    <div className="w-10 h-10 rounded-full bg-white/3 flex items-center justify-center mb-3 group-hover:bg-[#7C6EF5]/10 group-hover:scale-110 transition-all duration-300">
                       <Plus
                         size={20}
                         className="text-white/40 group-hover:text-[#7C6EF5] transition-colors"
@@ -196,7 +196,7 @@ function StatCard({
   subtitle,
 }: StatCardProps) {
   return (
-    <div className="bg-white/[0.02] border border-white/[0.05] rounded-xl p-5 flex flex-col hover:border-white/[0.1] transition-colors">
+    <div className="bg-white/2 border border-white/5 rounded-xl p-5 flex flex-col hover:border-white/10 transition-colors">
       <div className="flex items-center gap-3 mb-3">
         <div
           className={cn(

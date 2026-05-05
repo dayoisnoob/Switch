@@ -38,10 +38,6 @@ export const ProjectService = {
     });
   },
 
-  getWorkspaceProjects: async (workspaceSlug: string): Promise<Project[]> => {
-    return api.get(`/workspaces/${workspaceSlug}/projects`);
-  },
-
   getProjectBySlug: async (
     workspaceSlug: string,
     projectSlug: string,

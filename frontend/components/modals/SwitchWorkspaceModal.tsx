@@ -48,10 +48,10 @@ export default function WorkspaceSwitcherModal({
           {/* Modal Panel - Stop propagation so clicking inside doesn't close it */}
           <div
             onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-[380px] bg-[#0A0A0A] border border-white/[0.08] rounded-2xl shadow-[0_0_40px_rgba(0,0,0,0.8)] relative flex flex-col overflow-hidden animate-in zoom-in-95 duration-200"
+            className="w-full max-w-[380px] bg-[#0A0A0A] border border-white/8 rounded-2xl shadow-[0_0_40px_rgba(0,0,0,0.8)] relative flex flex-col overflow-hidden animate-in zoom-in-95 duration-200"
           >
             {/* ── SEARCH AREA ── */}
-            <div className="p-4 border-b border-white/[0.05]">
+            <div className="p-4 border-b border-white/5">
               <div className="relative">
                 <Search
                   size={16}
@@ -63,7 +63,7 @@ export default function WorkspaceSwitcherModal({
                   placeholder="Search workspaces..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-white/[0.03] border border-white/[0.08] focus:border-[#7C6EF5]/50 focus:bg-white/[0.05] rounded-xl pl-10 pr-4 py-3 text-sm text-white placeholder-white/30 outline-none transition-all shadow-inner"
+                  className="w-full bg-white/3 border border-white/8 focus:border-[#7C6EF5]/50 focus:bg-white/5 rounded-xl pl-10 pr-4 py-3 text-sm text-white placeholder-white/30 outline-none transition-all shadow-inner"
                 />
               </div>
             </div>
@@ -94,7 +94,7 @@ export default function WorkspaceSwitcherModal({
                           "w-full flex items-center gap-3 p-2.5 rounded-xl transition-all text-left group",
                           isActive
                             ? "bg-[#2d1b4e]/60 border border-[#7C6EF5]/20"
-                            : "border border-transparent hover:bg-white/[0.04]",
+                            : "border border-transparent hover:bg-white/4",
                         )}
                       >
                         {/* Avatar */}
@@ -131,13 +131,13 @@ export default function WorkspaceSwitcherModal({
             </div>
 
             {/* ── FOOTER: CREATE WORKSPACE ── */}
-            <div className="p-2 border-t border-white/[0.05] bg-[#050505]">
+            <div className="p-2 border-t border-white/5 bg-[#050505]">
               <button
                 onClick={() => {
                   onClose();
                   onCreateWorkspace();
                 }}
-                className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-white/[0.04] transition-colors text-left group"
+                className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-white/4 transition-colors text-left group"
               >
                 <div className="w-9 h-9 shrink-0 rounded-lg border border-dashed border-white/20 flex items-center justify-center group-hover:border-[#7C6EF5]/50 group-hover:bg-[#7C6EF5]/10 transition-all">
                   <Plus

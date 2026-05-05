@@ -168,7 +168,7 @@ export const ProjectCard = ({
   return (
     <div
       onClick={() => router.push(`/${activeWorkspaceSlug}/${project.slug}`)}
-      className="group/card bg-[#141419] border border-white/[0.04] hover:border-white/10 rounded-[20px] p-5 transition-all duration-300 cursor-pointer flex flex-col min-h-[220px] relative overflow-hidden shadow-sm hover:shadow-md"
+      className="group/card bg-[#141419] border border-white/4 hover:border-white/10 rounded-[20px] p-5 transition-all duration-300 cursor-pointer flex flex-col min-h-[220px] relative overflow-hidden shadow-sm hover:shadow-md"
     >
       {/* --- HEADER --- */}
       <div className="flex items-start justify-between mb-4">
@@ -225,7 +225,7 @@ export const ProjectCard = ({
 
       {/* --- PROGRESS SECTION --- */}
       <div className="mt-6">
-        <div className="h-1.5 w-full bg-white/[0.04] rounded-full overflow-hidden">
+        <div className="h-1.5 w-full bg-white/4 rounded-full overflow-hidden">
           <div
             className="h-full rounded-full transition-all duration-1000 ease-out"
             style={{
@@ -241,7 +241,7 @@ export const ProjectCard = ({
       </div>
 
       {/* --- DIVIDER --- */}
-      <div className="h-px w-full bg-white/[0.04] my-4" />
+      <div className="h-px w-full bg-white/4 my-4" />
 
       {/* --- FOOTER --- */}
       <div className="flex items-center justify-between mt-auto">

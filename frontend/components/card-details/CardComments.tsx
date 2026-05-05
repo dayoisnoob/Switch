@@ -173,7 +173,7 @@ export function CardComments({ cardId }: { cardId: string }) {
                         className="w-full bg-transparent p-3 text-[13px] text-white/90 placeholder:text-white/30 outline-none resize-none min-h-[70px] custom-scrollbar"
                         autoFocus
                       />
-                      <div className="bg-white/[0.02] border-t border-white/5 p-2 flex justify-between items-center">
+                      <div className="bg-white/2 border-t border-white/5 p-2 flex justify-between items-center">
                         <span className="text-[10px] text-white/30 ml-2 hidden sm:inline-block">
                           <kbd className="font-sans">Ctrl</kbd> +{" "}
                           <kbd className="font-sans">Enter</kbd> to save
@@ -208,7 +208,7 @@ export function CardComments({ cardId }: { cardId: string }) {
             );
           })
         ) : (
-          <div className="py-10 text-center border-2 border-white/5 border-dashed rounded-xl bg-white/[0.01]">
+          <div className="py-10 text-center border-2 border-white/5 border-dashed rounded-xl bg-white/1">
             <p className="text-[13px] text-white/40 font-medium">
               No comments yet. Start the conversation!
             </p>
