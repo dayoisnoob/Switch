@@ -1,7 +1,7 @@
 import { db } from '../config/db';
 import { activitiesTable, activityTypeEnum, usersTable } from '../db';
 import { logger } from '../config/logger';
-import { desc, eq } from 'drizzle-orm';
+import { and, desc, eq, lt } from 'drizzle-orm';
 
 interface LogActivityInput {
   type: (typeof activityTypeEnum.enumValues)[number];
@@ -20,7 +20,14 @@ export class ActivityService {
     }
   }
 
-  static async getLogs(cardId: string) {
+  static async getLogs(cardId: string, cursor?: string, limit = 20) {
+    const conditions = cursor
+      ? and(
+          eq(activitiesTable.cardId, cardId),
+          lt(activitiesTable.createdAt, new Date(cursor))
+        )
+      : eq(activitiesTable.cardId, cardId);
+
     const activities = await db
       .select({
         id: activitiesTable.id,
@@ -35,10 +42,18 @@ export class ActivityService {
       })
       .from(activitiesTable)
       .leftJoin(usersTable, eq(activitiesTable.userId, usersTable.id))
-      .where(eq(activitiesTable.cardId, cardId))
+      .where(conditions)
       .orderBy(desc(activitiesTable.createdAt))
-      .limit(30);
+      .limit(limit + 1);
 
-    return activities;
+    const hasMore = activities.length > limit;
+    if (hasMore) activities.pop();
+
+    return {
+      activities,
+      nextCursor: hasMore
+        ? activities[activities.length - 1]?.createdAt.toISOString()
+        : null,
+    };
   }
 }

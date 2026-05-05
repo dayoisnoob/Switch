@@ -1,18 +1,17 @@
 import {
+  index,
   pgTable,
-  uuid,
-  varchar,
+  real,
   text,
   timestamp,
-  real,
-  index,
-  pgEnum,
   uniqueIndex,
+  uuid,
+  varchar,
 } from 'drizzle-orm/pg-core';
 import { boardsTable } from './boards.schema';
 import { columnsTable } from './columns.schema';
-import { usersTable } from './users.schema';
 import { priorityEnum, statusEnum } from './enums.schema';
+import { usersTable } from './users.schema';
 
 export const cardsTable = pgTable(
   'cards',

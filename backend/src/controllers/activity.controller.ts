@@ -6,9 +6,10 @@ import { ApiResponse } from '../utils/api-response';
 export class ActivityController {
   static async getLogs(req: AuthenticatedRequest, res: Response) {
     const cardId = req.params.cardId as string;
+    const cursor = req.query.cursor as string | undefined;
 
-    const logs = await ActivityService.getLogs(cardId);
+    const result = await ActivityService.getLogs(cardId, cursor);
 
-    res.json(new ApiResponse(200, 'Logs retrieved successfully.', logs));
+    res.json(new ApiResponse(200, 'Logs retrieved successfully.', result));
   }
 }
