@@ -8,6 +8,7 @@ import {
   useGetComments,
 } from "@/hooks/useComments";
 import { useGetMembers } from "@/hooks/useWorkspace";
+import { useWorkspaceRole } from "@/hooks/useWorkspaceRole";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
 import { Pencil, Trash2 } from "lucide-react";
@@ -39,6 +40,8 @@ export function CardComments({ cardId }: { cardId: string }) {
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
+
+  const { canManageWorkspace } = useWorkspaceRole(workspaceSlug);
 
   const handleSubmit = () => {
     if (!commentValue.trim()) return;
@@ -76,7 +79,8 @@ export function CardComments({ cardId }: { cardId: string }) {
               `${comment.author.firstName?.[0] || ""}${comment.author.lastName?.[0] || ""}`.toUpperCase();
             const isOptimistic = comment.id.startsWith("temp-");
             const isEditing = editingId === comment.id;
-            const isOwner = currentUser?.id === comment.author.id;
+            const canDelete =
+              currentUser?.id === comment.author.id || canManageWorkspace;
 
             return (
               <div
@@ -133,7 +137,7 @@ export function CardComments({ cardId }: { cardId: string }) {
                     </div>
 
                     {/* Hover Actions */}
-                    {isOwner && !isOptimistic && !isEditing && (
+                    {canDelete && !isOptimistic && !isEditing && (
                       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button
                           onClick={() => {

@@ -199,7 +199,7 @@ export class CommentService {
     const comment = await CommentService.fetchComment(commentId, cardId);
 
     const canDelete =
-      comment.userId === userId || ['admin', 'owner'].includes(role);
+      comment.userId === userId || ['Admin', 'Owner'].includes(role);
 
     if (!canDelete) throw new ApiError(403, 'You cannot delete this comment.');
 

@@ -1,5 +1,4 @@
 import { CreateLabelType, LabelService } from "@/services/labels.service";
-import { BoardLabel } from "@/types/board.types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
@@ -15,7 +14,7 @@ export const useCreateLabel = (workspaceSlug: string) => {
         queryKey: ["workspaceLabels", workspaceSlug],
       });
       queryClient.invalidateQueries({
-        queryKey: ["card"],
+        queryKey: ["cards"],
       });
 
       toast.success("Workspace label created");
