@@ -15,6 +15,7 @@ export interface JwtPayload {
   isActive?: boolean;
   role?: 'user' | 'admin';
   purpose?: string;
+  avatarUrl: string;
 }
 
 export interface UserType {
@@ -23,6 +24,7 @@ export interface UserType {
   lastName?: string;
   isActive: boolean;
   role: 'user' | 'admin';
+  avatarUrl: string;
 }
 
 export type WorkspaceRoles = 'Member' | 'Admin' | 'Owner';

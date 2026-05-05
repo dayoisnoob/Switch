@@ -25,6 +25,8 @@ export const socketAuthMiddleware = (
 
     socket.data.userId = decoded.id;
     socket.data.firstName = decoded.firstName;
+    socket.data.lastName = decoded.lastName;
+    socket.data.avatarUrl = decoded.avatarUrl;
 
     next();
   } catch {

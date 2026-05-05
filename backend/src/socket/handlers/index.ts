@@ -36,6 +36,7 @@ const broadcastPresence = (io: Server, room: string) => {
         return {
           userId: s?.data.userId,
           firstName: s?.data.firstName,
+          lastName: s?.data.lastName,
           avatarUrl: s?.data.avatarUrl,
         };
       })

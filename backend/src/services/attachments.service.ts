@@ -16,6 +16,12 @@ export class AttachmentsService {
     userId: string,
     file: Express.Multer.File
   ) {
+    const getResourceType = (mimetype: string) => {
+      if (mimetype.startsWith('image/')) return 'image';
+      if (mimetype.startsWith('video/')) return 'video';
+      return 'raw';
+    };
+
     const uploaded = await new Promise<{
       secure_url: string;
       public_id: string;
@@ -24,7 +30,7 @@ export class AttachmentsService {
       const stream = cloudinary.uploader.upload_stream(
         {
           folder: 'switch/attachments',
-          resource_type: 'auto',
+          resource_type: getResourceType(file.mimetype),
         },
         (error, result) => {
           if (error || !result)

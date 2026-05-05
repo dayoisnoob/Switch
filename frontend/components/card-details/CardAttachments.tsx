@@ -1,6 +1,11 @@
 "use client";
 
-import { cn } from "@/lib/utils";
+import {
+  cn,
+  formatDateShort,
+  formattedTime,
+  handleDownload,
+} from "@/lib/utils";
 import {
   Download,
   FileText,
@@ -20,7 +25,6 @@ import {
 import { useWorkspaceRole } from "@/hooks/useWorkspaceRole";
 import { useParams } from "next/navigation";
 
-// Format bytes to KB/MB nicely
 function formatBytes(bytes: number) {
   if (bytes === 0) return "0 Bytes";
   const k = 1024;
@@ -114,34 +118,27 @@ export function CardAttachments({ card }: { card: BoardCard }) {
                   {getFileIcon(file.mimeType)}
                 </div>
                 <div className="flex flex-col min-w-0">
-                  <a
-                    href={file.fileUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-[14px] font-semibold text-white/90 group-hover:text-[#7C6EF5] transition-colors truncate"
-                  >
+                  <span className="text-[14px] font-semibold text-white/90 transition-colors truncate">
                     {file.fileName}
-                  </a>
+                  </span>
                   <span className="text-[11px] text-white/40 flex items-center gap-1.5">
                     {formatBytes(file.fileSize)}
-                    <span>·</span>
-                    Uploaded by {file.user?.firstName}
-                  </span>
-                  <span className="text-[11px] text-white/40">
-                    {formatBytes(file.fileSize)}
+                    <span>•</span>
+                    {file.user?.firstName}
+                    <span>•</span>
+                    {formatDateShort(file.createdAt)} at{" "}
+                    {formattedTime(file.createdAt)}
                   </span>
                 </div>
               </div>
 
               <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity pl-4 shrink-0">
-                <a
-                  href={file.fileUrl}
-                  download
-                  target="_blank"
+                <button
+                  onClick={() => handleDownload(file.fileUrl, file.fileName)}
                   className="p-1.5 text-white/40 hover:text-white hover:bg-white/10 rounded-md transition-colors"
                 >
                   <Download size={14} />
-                </a>
+                </button>
                 {canDelete && (
                   <button
                     onClick={() => remove(file.id)}

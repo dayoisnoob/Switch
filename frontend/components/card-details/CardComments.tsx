@@ -7,11 +7,12 @@ import {
   useEditComment,
   useGetComments,
 } from "@/hooks/useComments";
+import { useGetMembers } from "@/hooks/useWorkspace";
 import { cn } from "@/lib/utils";
-import { useAuthStore } from "@/store/auth.store";
 import { formatDistanceToNow } from "date-fns";
 import { Pencil, Trash2 } from "lucide-react";
 import Image from "next/image";
+import { useParams } from "next/navigation";
 import { useState } from "react";
 
 const getAvatarColor = (name: string) => {
@@ -25,7 +26,10 @@ const getAvatarColor = (name: string) => {
 };
 
 export function CardComments({ cardId }: { cardId: string }) {
+  const params = useParams();
+  const workspaceSlug = params.workspaceSlug as string;
   const { data: currentUser, isLoading: userLoading } = useMe();
+  const { data: members } = useGetMembers(workspaceSlug);
 
   const [commentValue, setCommentValue] = useState("");
   const { data: comments = [], isLoading } = useGetComments(cardId);
@@ -39,7 +43,7 @@ export function CardComments({ cardId }: { cardId: string }) {
   const handleSubmit = () => {
     if (!commentValue.trim()) return;
     createComment(commentValue);
-    setCommentValue(""); // Instantly clear input
+    setCommentValue("");
   };
 
   const handleSaveEdit = (commentId: string) => {
@@ -53,69 +57,17 @@ export function CardComments({ cardId }: { cardId: string }) {
     deleteComment(commentId);
   };
 
-  if (isLoading) {
+  if (isLoading || !members) {
     return (
       <div className="py-8 flex justify-center">
         <div className="w-5 h-5 border-2 border-[#7C6EF5]/30 border-t-[#7C6EF5] rounded-full animate-spin" />
       </div>
     );
   }
+  const currentMember = members?.find((m) => m.userId === currentUser?.id);
 
   return (
     <div className="space-y-8 pb-4">
-      {/* ── CREATE COMMENT ── */}
-      <div className="flex gap-4">
-        <div className="shrink-0 mt-1">
-          {currentUser?.avatarUrl ? (
-            <Image
-              src={currentUser.avatarUrl}
-              alt="You"
-              width={32}
-              height={32}
-              className="w-8 h-8 rounded-full object-cover border border-white/10"
-              unoptimized
-              referrerPolicy="no-referrer"
-            />
-          ) : (
-            <div
-              className={cn(
-                "w-8 h-8 rounded-full border border-white/5 flex items-center justify-center text-[11px] font-bold",
-                getAvatarColor(currentUser?.firstName as string),
-              )}
-            >
-              {currentUser?.firstName?.charAt(0)?.toUpperCase()}
-              {currentUser?.lastName?.charAt(0)?.toUpperCase()}
-            </div>
-          )}
-        </div>
-
-        <div className="flex-1 flex flex-col rounded-xl border border-white/10 bg-[#13131A] focus-within:border-[#7C6EF5]/50 focus-within:ring-1 focus-within:ring-[#7C6EF5]/20 transition-all overflow-hidden shadow-sm">
-          <textarea
-            value={commentValue}
-            onChange={(e) => setCommentValue(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
-                handleSubmit();
-              }
-            }}
-            placeholder="Write a comment..."
-            className="w-full bg-transparent p-3 text-[13px] text-white/90 placeholder:text-white/30 outline-none resize-none min-h-[80px] custom-scrollbar"
-          />
-          <div className="bg-white/[0.02] border-t border-white/5 p-2 flex justify-between items-center">
-            <span className="text-[10px] text-white/20 font-medium px-2 hidden sm:block tracking-wide">
-              Pro tip: Cmd/Ctrl + Enter to send
-            </span>
-            <button
-              onClick={handleSubmit}
-              disabled={!commentValue.trim() || isPending}
-              className="px-4 py-1.5 ml-auto bg-[#7C6EF5] hover:bg-[#6B5ED4] disabled:bg-[#7C6EF5]/30 disabled:text-white/30 disabled:cursor-not-allowed text-white text-[12px] font-semibold rounded-lg transition-colors"
-            >
-              Comment
-            </button>
-          </div>
-        </div>
-      </div>
-
       {/* ── COMMENTS LIST ── */}
       <div className="space-y-6">
         {comments.length > 0 ? (
@@ -217,22 +169,29 @@ export function CardComments({ cardId }: { cardId: string }) {
                         className="w-full bg-transparent p-3 text-[13px] text-white/90 placeholder:text-white/30 outline-none resize-none min-h-[70px] custom-scrollbar"
                         autoFocus
                       />
-                      <div className="bg-white/[0.02] border-t border-white/5 p-2 flex justify-end gap-2">
-                        <button
-                          onClick={() => setEditingId(null)}
-                          className="px-3 py-1.5 text-white/40 hover:text-white hover:bg-white/5 text-[12px] font-semibold rounded-lg transition-colors"
-                        >
-                          Cancel
-                        </button>
-                        <button
-                          onClick={() => handleSaveEdit(comment.id)}
-                          disabled={
-                            !editValue.trim() || editValue === comment.content
-                          }
-                          className="px-3 py-1.5 bg-[#7C6EF5] hover:bg-[#6B5ED4] disabled:bg-[#7C6EF5]/30 disabled:text-white/30 text-white text-[12px] font-semibold rounded-lg transition-colors"
-                        >
-                          Save
-                        </button>
+                      <div className="bg-white/[0.02] border-t border-white/5 p-2 flex justify-between items-center">
+                        <span className="text-[10px] text-white/30 ml-2 hidden sm:inline-block">
+                          <kbd className="font-sans">Ctrl</kbd> +{" "}
+                          <kbd className="font-sans">Enter</kbd> to save
+                        </span>
+
+                        <div className="flex gap-2 ml-auto">
+                          <button
+                            onClick={() => setEditingId(null)}
+                            className="px-3 py-1.5 text-white/40 hover:text-white hover:bg-white/5 text-[12px] font-semibold rounded-lg transition-colors"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            onClick={() => handleSaveEdit(comment.id)}
+                            disabled={
+                              !editValue.trim() || editValue === comment.content
+                            }
+                            className="px-3 py-1.5 bg-[#7C6EF5] hover:bg-[#6B5ED4] disabled:bg-[#7C6EF5]/30 disabled:text-white/30 text-white text-[12px] font-semibold rounded-lg transition-colors"
+                          >
+                            Save
+                          </button>
+                        </div>
                       </div>
                     </div>
                   ) : (
@@ -251,6 +210,60 @@ export function CardComments({ cardId }: { cardId: string }) {
             </p>
           </div>
         )}
+      </div>
+
+      {/* ── CREATE COMMENT ── */}
+      <div className="flex gap-4">
+        <div className="shrink-0 mt-1">
+          {currentMember?.avatarUrl ? (
+            <Image
+              src={currentMember.avatarUrl}
+              alt="You"
+              width={32}
+              height={32}
+              className="w-8 h-8 rounded-full object-cover border border-white/10"
+              unoptimized
+              referrerPolicy="no-referrer"
+            />
+          ) : (
+            <div
+              className={cn(
+                "w-8 h-8 rounded-full border border-white/5 flex items-center justify-center text-[11px] font-bold",
+                getAvatarColor(currentUser?.firstName as string),
+              )}
+            >
+              {currentUser?.firstName?.charAt(0)?.toUpperCase()}
+              {currentUser?.lastName?.charAt(0)?.toUpperCase()}
+            </div>
+          )}
+        </div>
+
+        <div className="flex-1 flex flex-col rounded-xl border border-white/10 bg-[#13131A] focus-within:border-[#7C6EF5]/50 focus-within:ring-1 focus-within:ring-[#7C6EF5]/20 transition-all overflow-hidden shadow-sm">
+          <textarea
+            value={commentValue}
+            onChange={(e) => setCommentValue(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+                handleSubmit();
+              }
+            }}
+            placeholder="Write a comment..."
+            className="w-full bg-transparent p-3 text-[13px] text-white/90 placeholder:text-white/30 outline-none resize-none min-h-20 custom-scrollbar"
+          />
+          <div className="  p-2 flex justify-between items-center">
+            <span className="text-[10px] text-white/30 ml-2 hidden sm:inline-block">
+              <kbd className="font-sans">Ctrl</kbd> +{" "}
+              <kbd className="font-sans">Enter</kbd> to send
+            </span>
+            <button
+              onClick={handleSubmit}
+              disabled={!commentValue.trim() || isPending}
+              className="px-4 py-1.5 ml-auto bg-[#7C6EF5] hover:bg-[#6B5ED4] disabled:bg-[#7C6EF5]/30 disabled:text-white/30 disabled:cursor-not-allowed text-white text-[12px] font-semibold rounded-lg transition-colors"
+            >
+              Comment
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );

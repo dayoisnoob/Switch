@@ -376,5 +376,6 @@ export const useBoardStore = create<BoardStore>((set) => ({
 type PresenceUser = {
   userId: string;
   firstName: string;
+  lastName: string;
   avatarUrl: string | null;
 };

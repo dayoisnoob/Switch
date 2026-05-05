@@ -1,6 +1,7 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { formatDistanceToNow, format } from "date-fns";
+import { toast } from "sonner";
 
 // The standard Tailwind class utility — use this everywhere
 // cn('px-4', isActive && 'bg-accent', className)
@@ -17,6 +18,8 @@ export const formatDate = (date: string | Date) =>
 // "Dec 18"
 export const formatDateShort = (date: string | Date) =>
   format(new Date(date), "MMM d");
+
+export const formattedTime = (date: string) => format(new Date(date), "h:mm a");
 
 // First letter of first + last name → "AO"
 export const initials = (firstName: string, lastName?: string | null) =>
@@ -151,8 +154,21 @@ export const getConsistentColor = (id: string) => {
   return colors[Math.abs(hash) % colors.length];
 };
 
-// export const formatDate = (date: string) => {new Intl.DateTimeFormat("en-US", {
-//   month: "short",
-//   day: "numeric",
-//   year: "numeric",
-// }).format(new Date(member.joinedAt));};
+export const handleDownload = async (fileUrl: string, fileName: string) => {
+  try {
+    const response = await fetch(fileUrl);
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  } catch {
+    toast.error("Failed to download file");
+  }
+};

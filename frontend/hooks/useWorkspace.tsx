@@ -66,7 +66,7 @@ export function useUpdateWorkspace(workspaceSlug: string) {
   });
 }
 
-export const useGetMembers = (workspaceSlug?: string) => {
+export const useGetMembers = (workspaceSlug: string) => {
   return useQuery({
     queryKey: ["members", workspaceSlug],
     queryFn: () => WorkspaceService.getMembers(workspaceSlug!),

@@ -26,6 +26,7 @@ export const authTokens = async (
     lastName: userData.lastName as string,
     isActive: userData.isActive,
     role: userData.role,
+    avatarUrl: userData.avatarUrl,
   };
 
   const accessToken = jwtToken(jwtPayload);
