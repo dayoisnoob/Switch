@@ -8,6 +8,7 @@ import { ProjectsTab } from "@/components/workspace/ProjectsTab";
 import { SettingsTab } from "@/components/workspace/SettingsTab";
 import { useWorkspaceProjects } from "@/hooks/useProjects";
 import { useGetMembers, useGetWorkspaces } from "@/hooks/useWorkspace";
+import { useWorkspaceRole } from "@/hooks/useWorkspaceRole";
 import { cn } from "@/lib/utils";
 import { LayoutGrid, UserPlus } from "lucide-react";
 import {
@@ -26,6 +27,8 @@ export default function WorkspacePage() {
 
   const workspaceSlug = params?.workspaceSlug as string;
 
+  const { canManageWorkspace, isOwner } = useWorkspaceRole(workspaceSlug);
+
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
 
@@ -43,7 +46,12 @@ export default function WorkspacePage() {
 
   if (!activeWorkspace) return null;
 
-  const tabs = [{ id: "Projects" }, { id: "Members" }, { id: "Settings" }];
+  // 🛡️ THE FIX: Only add the Settings tab if they have permission
+  const tabs = [
+    { id: "Projects" },
+    { id: "Members" },
+    ...(canManageWorkspace ? [{ id: "Settings" }] : []),
+  ];
 
   if (projectsLoading || membersloading) return <div>Loading...</div>;
 
@@ -62,7 +70,7 @@ export default function WorkspacePage() {
           <div
             style={{ backgroundColor: activeWorkspace?.colour }}
             className={cn(
-              "w-12 h-12 rounded-lg  flex items-center justify-center text-xl font-black text-white shrink-0",
+              "w-12 h-12 rounded-lg flex items-center justify-center text-xl font-black text-white shrink-0",
             )}
           >
             {activeWorkspace.name.substring(0, 2).toUpperCase()}
@@ -93,7 +101,7 @@ export default function WorkspacePage() {
           return (
             <button
               key={tab.id}
-              onClick={() => handleTabChange(tab.id)} // 3. Use new handler
+              onClick={() => handleTabChange(tab.id)}
               className={cn(
                 "pb-3 text-sm font-semibold transition-all relative flex items-center group",
                 isActive ? "text-[#7C6EF5]" : "text-[#a1a1a1] hover:text-white",
@@ -111,16 +119,12 @@ export default function WorkspacePage() {
       {/* ── TAB CONTENT: PROJECTS ── */}
       {activeTab === "Projects" &&
         (projects.length === 0 ? (
-          // Show the premium empty state if there are no projects
           <div className="pt-8">
-            {" "}
-            {/* Optional: add a little top padding so it doesn't hug the tabs */}
             <EmptyProjectState
               onCreateProject={() => setIsProjectModalOpen(true)}
             />
           </div>
         ) : (
-          // Show the populated grid if they have projects
           <ProjectsTab
             workspaceSlug={activeWorkspace.slug}
             workspace={activeWorkspace}
@@ -136,9 +140,11 @@ export default function WorkspacePage() {
       )}
 
       {/* ── TAB CONTENT: SETTINGS ── */}
-      {activeTab === "Settings" && (
+      {/* 🛡️ THE FIX: Render settings only if they have permission, and pass down isOwner */}
+      {activeTab === "Settings" && canManageWorkspace && (
         <SettingsTab
           activeWorkspace={activeWorkspace}
+          isOwner={isOwner}
           onOpenDeleteModal={() => setIsDeleteModalOpen(true)}
         />
       )}

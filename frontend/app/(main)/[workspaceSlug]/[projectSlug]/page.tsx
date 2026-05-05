@@ -443,18 +443,16 @@ export default function KanbanBoardPage() {
                   />
                 ))}
 
-                {canManageWorkspace && (
-                  <button
-                    onClick={() => setIsColumnModalOpen(true)}
-                    className="self-start flex items-center justify-center gap-2 w-85 shrink-0 h-15 rounded-2xl border border-dashed border-white/10 bg-white/1 text-white/40 font-medium hover:text-white/80 hover:bg-white/3 hover:border-white/20 transition-all group"
-                  >
-                    <Plus
-                      size={16}
-                      className="group-hover:scale-110 transition-transform"
-                    />
-                    Add Column
-                  </button>
-                )}
+                <button
+                  onClick={() => setIsColumnModalOpen(true)}
+                  className="self-start flex items-center justify-center gap-2 w-85 shrink-0 h-15 rounded-2xl border border-dashed border-white/10 bg-white/1 text-white/40 font-medium hover:text-white/80 hover:bg-white/3 hover:border-white/20 transition-all group"
+                >
+                  <Plus
+                    size={16}
+                    className="group-hover:scale-110 transition-transform"
+                  />
+                  Add Column
+                </button>
               </div>
             </SortableContext>
 
@@ -645,56 +643,57 @@ const SortableColumn = memo(function SortableColumn({
 
         <div className="flex items-center gap-2">
           {/* UPDATED PREMIUM CONTEXT MENU */}
-          {canManageWorkspace && (
-            <div className="relative shrink-0" ref={menuRef}>
-              <button
-                onClick={() => setIsMenuOpen(!isMenuOpen)}
-                onPointerDown={(e) => e.stopPropagation()}
-                className="text-white/20 hover:text-white/80 p-1 rounded-md hover:bg-white/5 opacity-0 group-hover:opacity-100 transition-all"
-              >
-                <MoreHorizontal size={14} />
-              </button>
-              {isMenuOpen && (
-                <div className="absolute right-0 top-full mt-1 w-56 bg-[#18181B] border border-white/8 rounded-xl shadow-2xl z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-100 py-1.5">
-                  <button
-                    onClick={() => {
-                      setIsEditing(true);
-                      setIsMenuOpen(false);
-                    }}
-                    onPointerDown={(e) => e.stopPropagation()}
-                    className="flex items-center justify-between px-3 py-2 text-[13px] font-medium text-white/70 hover:bg-white/5 hover:text-white transition-colors w-full text-left"
-                  >
-                    <span className="flex items-center gap-2.5">
-                      <Edit2 size={14} className="text-white/40" /> Rename
+
+          <div className="relative shrink-0" ref={menuRef}>
+            <button
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              onPointerDown={(e) => e.stopPropagation()}
+              className="text-white/20 hover:text-white/80 p-1 rounded-md hover:bg-white/5 opacity-0 group-hover:opacity-100 transition-all"
+            >
+              <MoreHorizontal size={14} />
+            </button>
+            {isMenuOpen && (
+              <div className="absolute right-0 top-full mt-1 w-56 bg-[#18181B] border border-white/8 rounded-xl shadow-2xl z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-100 py-1.5">
+                <button
+                  onClick={() => {
+                    setIsEditing(true);
+                    setIsMenuOpen(false);
+                  }}
+                  onPointerDown={(e) => e.stopPropagation()}
+                  className="flex items-center justify-between px-3 py-2 text-[13px] font-medium text-white/70 hover:bg-white/5 hover:text-white transition-colors w-full text-left"
+                >
+                  <span className="flex items-center gap-2.5">
+                    <Edit2 size={14} className="text-white/40" /> Rename column
+                  </span>
+                  <kbd className="hidden md:inline-flex bg-white/10 rounded px-1.5 py-0.5 text-[10px] text-white/40 font-sans">
+                    R
+                  </kbd>
+                </button>
+
+                {canManageWorkspace && (
+                  <>
+                    <div className="h-px bg-white/4 my-1.5 mx-2" />
+                    <button
+                      onClick={() => setIsMenuOpen(false)}
+                      onPointerDown={(e) => e.stopPropagation()}
+                      className="flex items-center gap-2.5 px-3 py-2 text-[13px] font-medium text-white/70 hover:bg-white/5 hover:text-white transition-colors w-full text-left"
+                    >
+                      <Eraser size={14} className="text-white/40" /> Clear all
+                      cards
+                    </button>
+                    <button
+                      onClick={handleDeleteColumn}
+                      onPointerDown={(e) => e.stopPropagation()}
+                      className="flex items-center gap-2.5 px-3 py-2 text-[13px] font-medium text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 transition-colors w-full text-left"
+                    >
+                      <Trash2 size={14} className="text-rose-400/60" /> Delete
                       column
-                    </span>
-                    <kbd className="hidden md:inline-flex bg-white/10 rounded px-1.5 py-0.5 text-[10px] text-white/40 font-sans">
-                      R
-                    </kbd>
-                  </button>
-
-                  <div className="h-px bg-white/4 my-1.5 mx-2" />
-
-                  <button
-                    onClick={() => setIsMenuOpen(false)}
-                    onPointerDown={(e) => e.stopPropagation()}
-                    className="flex items-center gap-2.5 px-3 py-2 text-[13px] font-medium text-white/70 hover:bg-white/5 hover:text-white transition-colors w-full text-left"
-                  >
-                    <Eraser size={14} className="text-white/40" /> Clear all
-                    cards
-                  </button>
-                  <button
-                    onClick={handleDeleteColumn}
-                    onPointerDown={(e) => e.stopPropagation()}
-                    className="flex items-center gap-2.5 px-3 py-2 text-[13px] font-medium text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 transition-colors w-full text-left"
-                  >
-                    <Trash2 size={14} className="text-rose-400/60" /> Delete
-                    column
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
+                    </button>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
 
           {!isEditing && (
             <div className="flex items-center justify-center min-w-5 h-5 px-1.5 rounded-full bg-white/5 border border-white/10 text-[11px] font-bold text-white/40 select-none shrink-0">

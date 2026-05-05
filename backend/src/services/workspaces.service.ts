@@ -233,6 +233,9 @@ export class WorkspaceService {
   }
 
   static async removeMember(userId: string, workspaceId: string) {
+    console.log('userId:', userId);
+    console.log('wpId:', workspaceId);
+
     const [member] = await db
       .select()
       .from(workspaceMembershipsTable)

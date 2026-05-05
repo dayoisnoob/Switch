@@ -36,7 +36,6 @@ router.patch(
   validateUrlParams(paramsSchema),
   validateInput(updateColumnSchema),
   requireWorkspaceMember,
-  requireWorkspaceRole(['Owner', 'Admin']),
   asyncHandler(ColumnsController.updateColumnName)
 );
 

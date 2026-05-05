@@ -23,6 +23,7 @@ import CreateProjectModal, {
 import DeleteProjectModal from "../modals/DeleteProjectModal";
 import Image from "next/image";
 import { useDeleteProject } from "@/hooks/useProjects";
+import { useWorkspaceRole } from "@/hooks/useWorkspaceRole";
 
 interface ProjectsTab {
   workspaceSlug: string;
@@ -39,6 +40,8 @@ export const ProjectsTab = ({
   projectsLoading,
   onOpenProjectModal,
 }: ProjectsTab) => {
+  const { canManageWorkspace, isOwner } = useWorkspaceRole(workspaceSlug);
+
   return (
     <div>
       <>
@@ -85,25 +88,27 @@ export const ProjectsTab = ({
               <ProjectCard
                 key={project.id}
                 project={project}
-                workspace={workspace}
+                isOwner={isOwner}
+                canManageWorkspace={canManageWorkspace}
                 activeWorkspaceSlug={workspaceSlug}
                 colorHash={getConsistentColor(project.id)}
               />
             ))}
 
-            {/* "Create Project" Card (Matches the dashed card in the layout) */}
-            <button
-              onClick={onOpenProjectModal}
-              className="bg-transparent border border-dashed border-[#333] rounded-xl p-6 hover:border-[#7C6EF5] hover:bg-[#7C6EF5]/5 transition-all flex flex-col items-center justify-center min-h-55 group"
-            >
-              <Plus
-                size={24}
-                className="text-[#a1a1a1] group-hover:text-[#7C6EF5] mb-2 transition-colors"
-              />
-              <span className="text-sm font-semibold text-[#a1a1a1] group-hover:text-white transition-colors">
-                Create Project
-              </span>
-            </button>
+            {canManageWorkspace && (
+              <button
+                onClick={onOpenProjectModal}
+                className="bg-transparent border border-dashed border-[#333] rounded-xl p-6 hover:border-[#7C6EF5] hover:bg-[#7C6EF5]/5 transition-all flex flex-col items-center justify-center min-h-55 group"
+              >
+                <Plus
+                  size={24}
+                  className="text-[#a1a1a1] group-hover:text-[#7C6EF5] mb-2 transition-colors"
+                />
+                <span className="text-sm font-semibold text-[#a1a1a1] group-hover:text-white transition-colors">
+                  Create Project
+                </span>
+              </button>
+            )}
           </div>
         ) : (
           // EMPTY STATE (Fallback if no projects at all)
@@ -129,14 +134,16 @@ export const ProjectsTab = ({
 
 interface ProjectCardProps {
   project: Project;
-  workspace: Workspace;
+  isOwner: boolean;
+  canManageWorkspace: boolean;
   activeWorkspaceSlug: string;
   colorHash: string;
 }
 
 export const ProjectCard = ({
   project,
-  workspace,
+  isOwner,
+  canManageWorkspace,
   activeWorkspaceSlug,
   colorHash,
 }: ProjectCardProps) => {
@@ -144,9 +151,6 @@ export const ProjectCard = ({
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const { mutate: deleteProject, isPending } = useDeleteProject();
-
-  const isAdminOrOwner =
-    workspace.role === "Owner" || workspace.role === "Admin";
 
   const Icon = PROJECT_ICON_MAP[project.icon] || Palette;
   const progressPercent =
@@ -179,7 +183,7 @@ export const ProjectCard = ({
             {project.status || "Active"}
           </span>
 
-          {isAdminOrOwner && (
+          {canManageWorkspace && (
             <div className="flex items-center opacity-0 group-hover/card:opacity-100 transition-opacity duration-200">
               <button
                 onClick={(e) => {
@@ -192,16 +196,18 @@ export const ProjectCard = ({
                 <Edit2 size={14} />
               </button>
 
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setIsDeleteModalOpen(true);
-                }}
-                className="p-1.5 rounded-md text-white/30 hover:text-rose-400 hover:bg-rose-500/10 transition-all"
-                title="Delete Project"
-              >
-                <Trash2 size={14} />
-              </button>
+              {isOwner && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsDeleteModalOpen(true);
+                  }}
+                  className="p-1.5 rounded-md text-white/30 hover:text-rose-400 hover:bg-rose-500/10 transition-all"
+                  title="Delete Project"
+                >
+                  <Trash2 size={14} />
+                </button>
+              )}
             </div>
           )}
         </div>
@@ -287,7 +293,7 @@ export const ProjectCard = ({
       </div>
 
       {/* --- MODALS --- */}
-      {isAdminOrOwner && (
+      {canManageWorkspace && (
         <>
           <CreateProjectModal
             isOpen={isEditModalOpen}

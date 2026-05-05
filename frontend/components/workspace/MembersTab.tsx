@@ -1,11 +1,13 @@
+"use client";
+
+import { useWorkspaceRole } from "@/hooks/useWorkspaceRole";
 import { formatDate, getConsistentColor } from "@/lib/utils";
 import { Workspace, WorkspaceMembers } from "@/services/workspace.service";
-import { ChevronDown, Plus, Search, Trash2 } from "lucide-react";
+import { ChevronDown, Plus, Search, Trash2, Users } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
 import InviteMemberModal from "../modals/InviteMemberModal";
 import RemoveMemberModal from "../modals/RemoveMemberModal";
-import { useWorkspaceRole } from "@/hooks/useWorkspaceRole";
 
 export const MembersTab = ({
   members,
@@ -21,7 +23,9 @@ export const MembersTab = ({
     null,
   );
 
-  const { canManageWorkspace } = useWorkspaceRole(activeWorkspace.slug);
+  const { canManageWorkspace, isOwner } = useWorkspaceRole(
+    activeWorkspace.slug,
+  );
 
   const filteredMembers = members?.filter((member) => {
     const searchLower = searchQuery.toLowerCase();
@@ -37,37 +41,46 @@ export const MembersTab = ({
   });
 
   return (
-    <div className="animate-in fade-in duration-300">
-      <div className="flex items-center justify-between mb-6">
+    <div className="animate-in fade-in duration-300 pb-10">
+      {/* ── TOOLBAR ── */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div className="flex items-center gap-3">
-          <div className="relative">
+          <div className="relative group">
             <Search
-              size={16}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-[#a1a1a1]"
+              size={15}
+              className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/30 group-focus-within:text-[#7C6EF5] transition-colors"
             />
             <input
               type="text"
               placeholder="Search members..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="h-9 w-70 bg-[#1C1C1E] border border-[#2a2a2a] rounded-md pl-9 pr-4 text-sm text-white placeholder:text-[#a1a1a1] focus:outline-none focus:border-[#7C6EF5] transition-colors"
+              className="h-10 w-64 lg:w-72 bg-black/20 border border-white/10 rounded-lg pl-10 pr-4 text-[13px] text-white placeholder:text-white/30 focus:outline-none focus:border-[#7C6EF5]/50 focus:ring-4 focus:ring-[#7C6EF5]/10 transition-all shadow-sm"
             />
           </div>
 
-          <div className="relative">
+          <div className="relative group">
             <select
               value={roleFilter}
               onChange={(e) => setRoleFilter(e.target.value)}
-              className="h-9 pl-3 pr-8 appearance-none bg-[#1C1C1E] border border-[#2a2a2a] rounded-md text-sm font-semibold text-[#a1a1a1] hover:text-white transition-colors cursor-pointer focus:outline-none focus:border-[#7C6EF5]"
+              className="h-10 pl-3 pr-9 appearance-none bg-black/20 border border-white/10 rounded-lg text-[13px] font-medium text-white/70 hover:text-white hover:bg-black/40 transition-all cursor-pointer focus:outline-none focus:border-[#7C6EF5]/50 focus:ring-4 focus:ring-[#7C6EF5]/10 shadow-sm"
             >
-              <option value="All">All Roles</option>
-              <option value="Owner">Owner</option>
-              <option value="Admin">Admin</option>
-              <option value="Member">Member</option>
+              <option value="All" className="bg-[#13131A] text-white">
+                All Roles
+              </option>
+              <option value="Owner" className="bg-[#13131A] text-white">
+                Owner
+              </option>
+              <option value="Admin" className="bg-[#13131A] text-white">
+                Admin
+              </option>
+              <option value="Member" className="bg-[#13131A] text-white">
+                Member
+              </option>
             </select>
             <ChevronDown
               size={14}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-[#a1a1a1] pointer-events-none"
+              className="absolute right-3.5 top-1/2 -translate-y-1/2 text-white/40 group-focus-within:text-[#7C6EF5] pointer-events-none transition-colors"
             />
           </div>
         </div>
@@ -75,21 +88,24 @@ export const MembersTab = ({
         {canManageWorkspace && (
           <button
             onClick={() => setInviteModal(true)}
-            className="h-9 px-4 bg-[#7C6EF5] hover:bg-[#6b5ee6] text-white flex items-center gap-2 rounded-md font-semibold transition-all shadow-[0_0_15px_rgba(124,110,245,0.2)]"
+            className="h-10 px-5 bg-[#7C6EF5] hover:bg-[#6b5ee6] text-white flex items-center justify-center gap-2 rounded-lg text-[13px] font-semibold transition-all shadow-lg shadow-[#7C6EF5]/20 shrink-0"
           >
             <Plus size={16} /> Invite Member
           </button>
         )}
       </div>
 
-      <div className="bg-[#1C1C1E] border border-[#2a2a2a] rounded-xl overflow-hidden shadow-sm">
-        <div className="grid grid-cols-[2fr_1fr_1fr_auto] gap-4 p-4 border-b border-[#2a2a2a] text-[11px] font-bold text-[#a1a1a1] uppercase tracking-wider">
+      {/* ── MEMBERS LIST ── */}
+      <div className="bg-[#13131A] border border-white/5 rounded-xl overflow-hidden shadow-xl">
+        {/* Table Header */}
+        <div className="grid grid-cols-[2.5fr_1fr_1fr_auto] gap-4 px-6 py-3.5 border-b border-white/5 bg-white/2 text-[10px] font-bold text-white/40 uppercase tracking-widest">
           <div>Member</div>
           <div>Joined</div>
           <div>Role</div>
           <div className="w-8"></div>
         </div>
 
+        {/* Table Body */}
         <div className="flex flex-col">
           {filteredMembers && filteredMembers.length > 0 ? (
             [...filteredMembers]
@@ -109,24 +125,23 @@ export const MembersTab = ({
                 return (
                   <div
                     key={member.id || index}
-                    className="grid grid-cols-[2fr_1fr_1fr_auto] gap-4 p-4 items-center border-b border-[#2a2a2a] last:border-b-0 hover:bg-[#252529]/40 transition-colors"
+                    className="group grid grid-cols-[2.5fr_1fr_1fr_auto] gap-4 px-6 py-4 items-center border-b border-white/5 last:border-b-0 hover:bg-white/2 transition-colors"
                   >
-                    <div className="flex items-center gap-3">
+                    {/* User Info */}
+                    <div className="flex items-center gap-3.5 min-w-0">
                       {member.avatarUrl ? (
-                        <div className="w-8 h-8 rounded-full overflow-hidden shrink-0 border border-[#2a2a2a]">
-                          <Image
-                            src={member.avatarUrl}
-                            alt={name}
-                            width={32}
-                            height={32}
-                            className="object-cover w-full h-full"
-                            unoptimized
-                            referrerPolicy="no-referrer"
-                          />
-                        </div>
+                        <Image
+                          src={member.avatarUrl}
+                          alt={name}
+                          width={36}
+                          height={36}
+                          className="w-9 h-9 rounded-full object-cover shrink-0 border border-white/10 shadow-sm"
+                          unoptimized
+                          referrerPolicy="no-referrer"
+                        />
                       ) : (
                         <div
-                          className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0"
+                          className="w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0 border border-white/10 shadow-sm"
                           style={{
                             backgroundColor: getConsistentColor(
                               member.id || name,
@@ -137,61 +152,67 @@ export const MembersTab = ({
                         </div>
                       )}
                       <div className="flex flex-col min-w-0">
-                        <span className="text-sm font-semibold text-white truncate">
+                        <span className="text-[13px] font-semibold text-white/90 truncate">
                           {name}
                         </span>
-                        <span className="text-xs text-[#a1a1a1] truncate">
+                        <span className="text-[12px] font-medium text-white/40 truncate mt-0.5">
                           {email}
                         </span>
                       </div>
                     </div>
 
-                    <div className="text-sm text-[#a1a1a1]">{joinedDate}</div>
+                    {/* Joined Date */}
+                    <div className="text-[13px] text-white/50 font-medium">
+                      {joinedDate}
+                    </div>
 
+                    {/* Role Control */}
                     <div>
                       {role === "Owner" ? (
-                        <span className="inline-flex items-center px-2.5 py-1 rounded bg-[#7C6EF5]/10 text-[#7C6EF5] text-xs font-semibold">
+                        <span className="inline-flex items-center px-2.5 py-1 rounded-md bg-[#7C6EF5]/10 border border-[#7C6EF5]/20 text-[#7C6EF5] text-[11px] font-bold tracking-wide">
                           Owner
                         </span>
-                      ) : canManageWorkspace ? (
-                        <div className="relative inline-block w-27.5">
+                      ) : isOwner ? (
+                        <div className="relative inline-block w-28 group/select">
                           <select
                             value={role}
                             onChange={(e) =>
                               console.log("Update role to:", e.target.value)
                             }
-                            className="w-full h-8 pl-3 pr-8 appearance-none bg-transparent border border-[#2a2a2a] hover:bg-[#252529] rounded text-sm text-[#a1a1a1] hover:text-white transition-colors focus:outline-none focus:border-[#7C6EF5] cursor-pointer"
+                            className="w-full h-8 pl-3 pr-8 appearance-none bg-transparent hover:bg-white/5 border border-transparent hover:border-white/10 rounded-md text-[13px] font-medium text-white/70 hover:text-white transition-all focus:outline-none focus:border-[#7C6EF5]/50 focus:bg-black/20 cursor-pointer"
                           >
                             <option
                               value="Admin"
-                              className="bg-[#1C1C1E] text-white"
+                              className="bg-[#13131A] text-white"
                             >
                               Admin
                             </option>
                             <option
                               value="Member"
-                              className="bg-[#1C1C1E] text-white"
+                              className="bg-[#13131A] text-white"
                             >
                               Member
                             </option>
                           </select>
                           <ChevronDown
                             size={14}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-[#a1a1a1] pointer-events-none"
+                            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-white/30 group-hover/select:text-white/60 pointer-events-none transition-colors"
                           />
                         </div>
                       ) : (
-                        <span className="text-sm text-[#a1a1a1] pl-3">
+                        <span className="text-[13px] font-medium text-white/50 pl-3">
                           {role}
                         </span>
                       )}
                     </div>
 
-                    <div className="w-8 flex justify-end">
+                    {/* Action Button */}
+                    <div className="w-8 flex justify-end opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                       {role !== "Owner" && canManageWorkspace && (
                         <button
                           onClick={() => setMemberToRemove(member)}
-                          className="text-[#a1a1a1] hover:text-red-400 p-1.5 rounded-md hover:bg-red-400/10 transition-colors"
+                          className="text-white/30 hover:text-rose-400 p-1.5 rounded-md hover:bg-rose-500/10 transition-colors"
+                          title="Remove member"
                         >
                           <Trash2 size={15} />
                         </button>
@@ -201,12 +222,16 @@ export const MembersTab = ({
                 );
               })
           ) : (
-            <div className="p-8 flex flex-col items-center justify-center text-center">
-              <span className="text-sm font-semibold text-white mb-1">
+            <div className="py-16 flex flex-col items-center justify-center text-center">
+              <div className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mb-4 text-white/20">
+                <Users size={24} />
+              </div>
+              <span className="text-[14px] font-semibold text-white/90 mb-1">
                 No members found
               </span>
-              <span className="text-[13px] text-[#a1a1a1]">
-                Try adjusting your search or role filter.
+              <span className="text-[13px] text-white/40 max-w-62.5">
+                Try adjusting your search query or role filter to find what
+                you&apos;re looking for.
               </span>
             </div>
           )}

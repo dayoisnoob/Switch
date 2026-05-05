@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect } from "react";
-import { X, UserMinus, AlertTriangle } from "lucide-react";
-import { WorkspaceMembers } from "@/services/workspace.service";
-import { getConsistentColor } from "@/lib/utils";
-import Image from "next/image";
 import { useRemoveMember } from "@/hooks/useWorkspace";
+import { getConsistentColor } from "@/lib/utils";
+import { WorkspaceMembers } from "@/services/workspace.service";
+import { AlertTriangle, UserMinus, X } from "lucide-react";
+import Image from "next/image";
+import { useEffect } from "react";
 
 interface RemoveMemberModalProps {
   isOpen: boolean;
@@ -27,9 +27,9 @@ export default function RemoveMemberModal({
   const handleRemove = (userId: string) => {
     removeMember(userId);
     onClose();
+    window.location.href = "/dashboard";
   };
 
-  // Prevent background scrolling when modal is open
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden";
@@ -57,9 +57,7 @@ export default function RemoveMemberModal({
         onClick={onClose}
       />
 
-      {/* Modal Container */}
-      <div className="relative w-full max-w-[460px] bg-[#151517] border border-[#2a2a2a] rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-        {/* Close Button */}
+      <div className="relative w-full max-w-115 bg-[#151517] border border-[#2a2a2a] rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
         <button
           onClick={onClose}
           disabled={isPending}
@@ -144,7 +142,7 @@ export default function RemoveMemberModal({
               Cancel
             </button>
             <button
-              onClick={() => handleRemove(member.id)}
+              onClick={() => handleRemove(member.userId)}
               disabled={isPending}
               className="px-4 h-10 rounded-lg text-sm font-semibold text-[#ef4444] bg-[#3f1c22] border border-[#7f1d1d]/50 hover:bg-[#4c1d28] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >

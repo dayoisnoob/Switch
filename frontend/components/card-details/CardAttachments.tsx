@@ -90,14 +90,24 @@ export function CardAttachments({ card }: { card: BoardCard }) {
         <button
           onClick={() => fileInputRef.current?.click()}
           disabled={isUploading}
+          aria-busy={isUploading}
+          aria-live="polite"
           className="flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-semibold text-white/70 hover:text-white bg-white/5 hover:bg-white/10 rounded-lg transition-colors border border-white/5 disabled:opacity-50"
         >
           {isUploading ? (
-            <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            <>
+              <div
+                className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin"
+                aria-hidden="true"
+              />
+              <span>Uploading…</span>
+            </>
           ) : (
-            <Upload size={13} />
+            <>
+              <Upload size={13} aria-hidden="true" />
+              <span>Upload</span>
+            </>
           )}
-          Upload
         </button>
       </div>
 
