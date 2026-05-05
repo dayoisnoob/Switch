@@ -1,26 +1,16 @@
 "use client";
 
-import { useGetActivities } from "@/hooks/useGetActivities";
+import { ActivityPage, useGetActivities } from "@/hooks/useGetActivities";
 import { getActivityConfig, renderActivityText } from "@/lib/activityHelpers";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export function ActivityTab({ cardId }: { cardId: string }) {
-  const [cursor, setCursor] = useState<string | undefined>(undefined);
-  const [allActivities, setAllActivities] = useState<any[]>([]);
-  const [hasMore, setHasMore] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
+  const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } =
+    useGetActivities(cardId);
 
-  const { data: activities = [], isLoading } = useGetActivities(cardId, cursor);
-
-  const handleLoadMore = async () => {
-    const last = allActivities[allActivities.length - 1];
-    if (!last) return;
-    setLoadingMore(true);
-    setCursor(last.createdAt);
-    setLoadingMore(false);
-  };
+  const allActivities = data?.pages.flatMap((p) => p.activities) ?? [];
 
   if (isLoading && allActivities.length === 0) {
     return (
@@ -67,17 +57,17 @@ export function ActivityTab({ cardId }: { cardId: string }) {
             );
           })}
 
-          {hasMore && (
+          {hasNextPage && (
             <button
-              onClick={handleLoadMore}
-              disabled={loadingMore}
+              onClick={() => fetchNextPage()}
+              disabled={isFetchingNextPage}
               className="w-full text-[12px] text-white/40 hover:text-white/60 py-2 transition-colors disabled:opacity-50"
             >
-              {loadingMore ? "Loading..." : "Load more activity"}
+              {isFetchingNextPage ? "Loading..." : "Load more activity"}
             </button>
           )}
 
-          {!hasMore && (
+          {!hasNextPage && (
             <p className="text-center text-[11px] text-white/20 py-2">
               No more activity
             </p>

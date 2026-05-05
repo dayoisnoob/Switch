@@ -1,6 +1,5 @@
 import { api } from "@/lib/api";
-import { ActivityService } from "@/services/activity.service";
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery } from "@tanstack/react-query";
 
 type activityTypeEnum =
   | "card_created"
@@ -43,15 +42,19 @@ export interface CardActivity {
   };
 }
 
-export const useGetActivities = (
-  cardId: string,
-  cursor?: string,
-): Promise<CardActivity[]> => {
-  return useQuery({
-    queryKey: ["activities", cardId, cursor],
-    queryFn: () =>
+export interface ActivityPage {
+  activities: CardActivity[];
+  nextCursor: string | null;
+}
+
+export const useGetActivities = (cardId: string) => {
+  return useInfiniteQuery<ActivityPage>({
+    queryKey: ["activities", cardId],
+    queryFn: ({ pageParam }): Promise<ActivityPage> =>
       api.get(
-        `/cards/${cardId}/activities${cursor ? `?cursor=${cursor}` : ""}`,
+        `/cards/${cardId}/activities${pageParam ? `?cursor=${pageParam}` : ""}`,
       ),
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+    initialPageParam: undefined,
   });
 };
