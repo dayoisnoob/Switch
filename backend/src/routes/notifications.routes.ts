@@ -15,7 +15,7 @@ router.get(
 );
 
 router.patch(
-  '/:NotificationId/read',
+  '/:notificationId/read',
   authenticate,
   validateUrlParams(paramsSchema),
   asyncHandler(NotificationController.markRead)

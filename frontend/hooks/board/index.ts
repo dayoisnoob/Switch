@@ -14,6 +14,8 @@ export const useBoard = (projectSlug: string, workspaceSlug: string) => {
     queryKey: ["board", projectSlug],
     queryFn: () => BoardService.getBoard(workspaceSlug, projectSlug),
     enabled: !!projectSlug,
+    refetchOnWindowFocus: false,
+    staleTime: 1000 * 60 * 5,
   });
 
   useEffect(() => {

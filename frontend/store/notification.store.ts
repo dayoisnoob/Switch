@@ -3,7 +3,17 @@ import { create } from "zustand";
 import { socket } from "@/lib/socket";
 import { api } from "@/lib/api";
 
-type Notification = {
+type NotificationStore = {
+  notifications: Notification[];
+  unreadCount: number;
+  isLoading: boolean;
+  fetchNotifs: () => Promise<void>;
+  markRead: (id: string) => Promise<void>;
+  markAllRead: () => Promise<void>;
+  initSocket: () => void;
+};
+
+export interface Notification {
   id: string;
   type: "card_assigned" | "comment_added" | "card_due_soon" | "mentioned";
   title: string;
@@ -12,45 +22,28 @@ type Notification = {
   entityId: string | null;
   entityType: string | null;
   createdAt: string;
-};
-
-type NotificationStore = {
-  notifications: Notification[];
-  unreadCount: number;
-  isLoading: boolean;
-  fetch: () => Promise<void>;
-  markRead: (id: string) => Promise<void>;
-  markAllRead: () => Promise<void>;
-  initSocket: () => void;
-};
+}
 
 export const useNotificationStore = create<NotificationStore>((set) => ({
   notifications: [],
   unreadCount: 0,
   isLoading: false,
 
-  fetch: async () => {
+  fetchNotifs: async () => {
     set({ isLoading: true });
-    try {
-      const notifications = await api.get<Notification[]>("/notifications");
-
-      set({
-        notifications,
-        unreadCount: notifications.filter((n: Notification) => !n.isRead)
-          .length,
-        isLoading: false,
-      });
-    } catch (error) {
-      console.error("❌ Failed to fetch notifications:", error);
-      set({ isLoading: false });
-    }
+    const notifications = (await api.get("/notifications")) as Notification[];
+    set({
+      notifications,
+      unreadCount: notifications.filter((n: Notification) => !n.isRead).length,
+      isLoading: false,
+    });
   },
 
-  markRead: async (id) => {
-    await api.patch(`/notifications/${id}/read`);
+  markRead: async (notificationId) => {
+    await api.patch(`/notifications/${notificationId}/read`);
     set((s) => ({
       notifications: s.notifications.map((n) =>
-        n.id === id ? { ...n, isRead: true } : n,
+        n.id === notificationId ? { ...n, isRead: true } : n,
       ),
       unreadCount: Math.max(0, s.unreadCount - 1),
     }));

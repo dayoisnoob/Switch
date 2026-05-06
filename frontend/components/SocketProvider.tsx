@@ -4,14 +4,12 @@ import { socket } from "@/lib/socket";
 import { useNotificationStore } from "@/store/notification.store";
 
 export function SocketProvider({ children }: { children: React.ReactNode }) {
-  const { fetch, initSocket } = useNotificationStore();
-
   useEffect(() => {
     socket.connect();
 
     const handleConnect = () => {
       const store = useNotificationStore.getState();
-      store.fetch();
+      store.fetchNotifs();
       store.initSocket();
     };
 

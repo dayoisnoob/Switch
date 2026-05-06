@@ -4,19 +4,16 @@ import { cn } from "@/lib/utils";
 import { useNotificationStore } from "@/store/notification.store";
 import { formatDistanceToNow, isToday, isYesterday } from "date-fns";
 import {
-  AlertTriangle,
   ArrowRight,
   AtSign,
+  BellOff,
   Check,
-  CheckCircle2,
   Clock,
   Mail,
   MessageSquare,
-  Settings,
   UserPlus,
   X,
 } from "lucide-react";
-import Image from "next/image";
 import { useState } from "react";
 
 const getTypeConfig = (type: string) => {
@@ -24,31 +21,38 @@ const getTypeConfig = (type: string) => {
     case "comment_added":
       return {
         icon: MessageSquare,
-        color: "text-blue-400",
-        bg: "bg-blue-500/10",
+        color: "text-[#38bdf8]",
+        bg: "bg-[#38bdf8]/10",
       };
     case "card_assigned":
       return {
         icon: UserPlus,
-        color: "text-emerald-400",
-        bg: "bg-emerald-500/10",
+        color: "text-[#34d399]",
+        bg: "bg-[#34d399]/10",
       };
     case "card_due_soon":
       return {
         icon: Clock,
-        color: "text-amber-400",
-        bg: "bg-amber-500/10",
+        color: "text-[#fbbf24]",
+        bg: "bg-[#fbbf24]/10",
       };
     case "mentioned":
       return {
         icon: AtSign,
-        color: "text-amber-400",
-        bg: "bg-amber-500/10",
+        color: "text-[#fb7185]",
+        bg: "bg-[#fb7185]/10",
+      };
+
+    case "invitation":
+      return {
+        icon: Mail,
+        color: "text-[#818cf8]",
+        bg: "bg-[#818cf8]/10",
       };
     default:
       return {
         icon: Mail,
-        color: "text-white/50",
+        color: "text-white/40",
         bg: "bg-white/5",
       };
   }
@@ -58,18 +62,37 @@ export default function NotificationsPage() {
   const [activeTab, setActiveTab] = useState("All");
   const [activeFilter, setActiveFilter] = useState("All types");
 
-  const { notifications, unreadCount, markRead, markAllRead } =
-    useNotificationStore();
+  const notifications = useNotificationStore((s) => s.notifications);
+  const unreadCount = useNotificationStore((s) => s.unreadCount);
+  const markRead = useNotificationStore((s) => s.markRead);
+  const markAllRead = useNotificationStore((s) => s.markAllRead);
 
-  // Group notifications by dateGroup
-  const groupedNotifications = notifications.reduce(
+  // 🌟 THE FIX: Filter the notifications BEFORE grouping them
+  const filteredNotifications = notifications.filter((notif) => {
+    // 1. Apply Top Navigation Tab Filter
+    if (activeTab === "Unread" && notif.isRead) return false;
+    if (activeTab === "Mentions" && notif.type !== "mentioned") return false;
+
+    // 2. Apply Sub-filter Chips
+    if (activeFilter === "Comments" && notif.type !== "comment_added")
+      return false;
+    if (activeFilter === "Assignments" && notif.type !== "card_assigned")
+      return false;
+    if (activeFilter === "Invitations" && notif.type !== "invitation")
+      return false;
+
+    return true;
+  });
+
+  // Group the *filtered* notifications by dateGroup
+  const groupedNotifications = filteredNotifications.reduce(
     (acc, notif) => {
-      // Use date-fns to determine if it's Today, Yesterday, or Older
-      const dateGroup = isToday(new Date(notif.createdAt))
-        ? "TODAY"
-        : isYesterday(new Date(notif.createdAt))
-          ? "YESTERDAY"
-          : "OLDER";
+      const date = new Date(notif.createdAt);
+      const dateGroup = isToday(date)
+        ? "Today"
+        : isYesterday(date)
+          ? "Yesterday"
+          : "Older";
 
       if (!acc[dateGroup]) acc[dateGroup] = [];
       acc[dateGroup].push(notif);
@@ -79,57 +102,57 @@ export default function NotificationsPage() {
   );
 
   return (
-    <div className="min-h-screen bg-[#0E0E12] text-white p-8 font-sans">
-      <div className="max-w-3xl mx-auto space-y-8">
-        {/* HEADER */}
+    <div className="min-h-screen w-full text-white font-sans pb-20">
+      <div className="max-w-3xl mx-auto space-y-8 animate-in fade-in duration-500">
+        {/* ── HEADER ── */}
         <div className="flex items-start justify-between">
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <div className="flex items-center gap-3">
-              <h1 className="text-3xl font-bold tracking-tight">
-                Notifications
+              <h1 className="text-2xl font-bold tracking-tight text-white/90">
+                Inbox
               </h1>
-              <span className="px-2.5 py-0.5 rounded-full bg-[#7C6EF5]/20 text-[#B8B0FF] text-[11px] font-bold border border-[#7C6EF5]/20">
-                7 unread
-              </span>
+              {unreadCount > 0 && (
+                <span className="px-2 py-0.5 rounded-md bg-[#7C6EF5]/10 text-[#7C6EF5] text-[11px] font-bold tracking-wide">
+                  {unreadCount} new
+                </span>
+              )}
             </div>
-            <p className="text-white/50 text-[15px]">
-              Stay on top of what&apos;s happening across your workspaces.
+            <p className="text-white/40 text-[14px]">
+              Catch up on the latest activity across your projects.
             </p>
           </div>
           <div className="flex items-center gap-3">
             <button
               onClick={() => markAllRead()}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-[13px] font-semibold transition-colors"
+              className="flex items-center gap-2 px-3.5 py-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/5 hover:border-white/10 text-[12px] font-semibold text-white/70 hover:text-white transition-all shadow-sm"
             >
-              <Check size={14} className="text-white/70" />
-              Mark all read
-            </button>
-            <button className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-[13px] font-semibold transition-colors">
-              <Settings size={14} className="text-white/70" />
-              Preferences
+              <Check size={14} className="text-white/40" />
+              Mark all as read
             </button>
           </div>
         </div>
 
-        {/* NAVIGATION TABS */}
+        {/* ── NAVIGATION TABS ── */}
         <div className="flex items-center gap-8 border-b border-white/10 relative">
-          {["All", "Unread", "Mentions", "Preferences"].map((tab) => (
+          {["All", "Unread", "Mentions"].map((tab) => (
             <button
               key={tab}
-              onClick={() => setActiveTab(tab)}
+              onClick={() => {
+                setActiveTab(tab);
+                setActiveFilter("All types"); // Reset chip filter when changing main tabs
+              }}
               className={cn(
-                "pb-3 text-[14px] font-semibold transition-colors relative flex items-center gap-2",
+                "pb-3 text-[13px] font-semibold transition-colors relative flex items-center gap-2",
                 activeTab === tab
                   ? "text-white"
-                  : "text-white/50 hover:text-white/80",
+                  : "text-white/40 hover:text-white/70",
               )}
             >
               {tab}
-              {tab === "All" && (
-                <span className="text-[11px] text-white/30">24</span>
-              )}
-              {tab === "Unread" && (
-                <span className="text-[11px] text-[#B8B0FF]">7</span>
+              {tab === "Unread" && unreadCount > 0 && (
+                <span className="text-[11px] text-[#7C6EF5] font-bold">
+                  {unreadCount}
+                </span>
               )}
 
               {activeTab === tab && (
@@ -139,154 +162,172 @@ export default function NotificationsPage() {
           ))}
         </div>
 
-        {/* FILTER CHIPS */}
+        {/* ── FILTER CHIPS ── */}
         <div className="flex flex-wrap items-center gap-2">
-          {[
-            "All types",
-            "Comments",
-            "Assignments",
-            "Moves",
-            "Invitations",
-            "Card activity",
-          ].map((filter) => (
-            <button
-              key={filter}
-              onClick={() => setActiveFilter(filter)}
-              className={cn(
-                "px-3 py-1.5 rounded-full text-[13px] font-medium border transition-colors flex items-center gap-2",
-                activeFilter === filter
-                  ? "bg-[#7C6EF5]/20 border-[#7C6EF5]/30 text-[#B8B0FF]"
-                  : "bg-white/5 border-white/10 text-white/60 hover:text-white hover:bg-white/10",
-              )}
-            >
-              {/* Optional icons for specific filters based on screenshots */}
-              {filter === "Comments" && <MessageSquare size={12} />}
-              {filter === "Assignments" && <UserPlus size={12} />}
-              {filter === "Moves" && <ArrowRight size={12} />}
-              {filter === "Invitations" && <Mail size={12} />}
-              {filter}
-              {["Comments", "Assignments", "Invitations"].includes(filter) && (
-                <span className="w-4 h-4 rounded-full bg-[#7C6EF5] text-white text-[9px] font-bold flex items-center justify-center ml-1">
-                  {filter === "Comments" ? "3" : "2"}
-                </span>
-              )}
-            </button>
-          ))}
+          {["All types", "Comments", "Assignments", "Invitations"].map(
+            (filter) => (
+              <button
+                key={filter}
+                onClick={() => setActiveFilter(filter)}
+                className={cn(
+                  "px-3.5 py-1.5 rounded-lg text-[12px] font-semibold transition-all flex items-center gap-2",
+                  activeFilter === filter
+                    ? "bg-white/10 text-white shadow-sm"
+                    : "bg-transparent text-white/40 hover:text-white/80 hover:bg-white/5",
+                )}
+              >
+                {filter === "Comments" && (
+                  <MessageSquare size={12} className="opacity-50" />
+                )}
+                {filter === "Assignments" && (
+                  <UserPlus size={12} className="opacity-50" />
+                )}
+
+                {filter === "Invitations" && (
+                  <Mail size={12} className="opacity-50" />
+                )}
+                {filter}
+              </button>
+            ),
+          )}
         </div>
 
-        {/* NOTIFICATION LIST */}
-        <div className="space-y-8">
-          {Object.entries(groupedNotifications).map(
-            ([dateGroup, notifications]) => (
-              <div key={dateGroup} className="space-y-3">
-                <div className="flex items-center gap-4">
-                  <h3 className="text-[11px] font-bold text-white/40 tracking-widest uppercase">
-                    {dateGroup}
-                  </h3>
-                  <div className="flex-1 h-px bg-white/5" />
-                </div>
+        {/* ── NOTIFICATION LIST & EMPTY STATE ── */}
+        <div className="space-y-10">
+          {filteredNotifications.length === 0 ? (
+            /* 🌟 NEW: Premium Empty State */
+            <div className="py-20 flex flex-col items-center justify-center text-center animate-in fade-in duration-300">
+              <div className="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mb-5">
+                <BellOff size={28} className="text-white/20" />
+              </div>
+              <h3 className="text-[15px] font-bold text-white/90 mb-1.5">
+                All caught up
+              </h3>
+              <p className="text-[13px] text-white/40 max-w-[260px]">
+                You have no notifications matching this filter. Check back later
+                for updates.
+              </p>
+              {(activeTab !== "All" || activeFilter !== "All types") && (
+                <button
+                  onClick={() => {
+                    setActiveTab("All");
+                    setActiveFilter("All types");
+                  }}
+                  className="mt-6 text-[13px] font-semibold text-[#7C6EF5] hover:text-[#B8B0FF] transition-colors"
+                >
+                  Clear filters
+                </button>
+              )}
+            </div>
+          ) : (
+            Object.entries(groupedNotifications).map(
+              ([dateGroup, groupNotifications]) => (
+                <div
+                  key={dateGroup}
+                  className="space-y-4 animate-in fade-in duration-300"
+                >
+                  <div className="flex items-center gap-4">
+                    <h3 className="text-[10px] font-bold text-white/30 tracking-widest uppercase">
+                      {dateGroup}
+                    </h3>
+                  </div>
 
-                <div className="space-y-2.5">
-                  {notifications.map((notif) => {
-                    const config = getTypeConfig(notif.type);
-                    const Icon = config.icon;
+                  <div className="space-y-1.5">
+                    {groupNotifications.map((notif) => {
+                      const config = getTypeConfig(notif.type);
+                      const Icon = config.icon;
 
-                    return (
-                      <div
-                        key={notif.id}
-                        className={cn(
-                          "group relative flex gap-4 p-4 rounded-xl border bg-[#15151A] transition-all hover:bg-[#1A1A22]",
-                          notif.isRead
-                            ? "border-white/5 opacity-70"
-                            : "border-white/10 shadow-sm",
-                        )}
-                      >
-                        {/* Left Colored Accent Border */}
+                      return (
                         <div
+                          key={notif.id}
                           className={cn(
-                            "absolute left-0 top-3 bottom-3 w-0.75 rounded-r-full",
-                            config.bg.replace("/10", ""),
+                            "group relative flex items-start gap-4 p-4 rounded-xl transition-all duration-200",
+                            notif.isRead
+                              ? "bg-transparent hover:bg-white/[0.02] opacity-70 hover:opacity-100"
+                              : "bg-[#13131A] border border-white/5 shadow-xl shadow-black/20",
                           )}
-                        />
-
-                        {/* Icon & Avatar Stack */}
-                        <div className="relative shrink-0 mt-0.5">
-                          <div
-                            className={cn(
-                              "w-10 h-10 rounded-xl flex items-center justify-center border",
-                              config.bg,
-                              config.border,
-                            )}
-                          >
-                            <Icon size={18} className={config.color} />
-                          </div>
-                          {/* Fallback "System" badge since we don't have actor initials from the DB yet */}
-                          <div
-                            className={cn(
-                              "absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-2 border-[#15151A] flex items-center justify-center text-[10px] font-bold text-white",
-                              config.bg.replace("/10", ""),
-                            )}
-                          >
-                            <div className="w-1.5 h-1.5 rounded-full bg-white" />
-                          </div>
-                        </div>
-
-                        {/* Content Area */}
-                        <div className="flex-1 min-w-0 space-y-2">
-                          <div className="text-[14px] leading-relaxed text-white/80 pr-12">
-                            {/* Assuming your backend sends the full title like: "James assigned you to a card" */}
-                            <span className="font-semibold text-white mr-1">
-                              {notif.title}
-                            </span>
-                          </div>
-
-                          {/* If there's a body (like a comment), show it as a quote */}
-                          {notif.body && (
-                            <div className="bg-[#0E0E12] border border-white/5 rounded-lg p-3 text-[13px] text-white/70 italic mt-2">
-                              &quot;{notif.body}&quot;
+                        >
+                          {/* Icon Stack */}
+                          <div className="relative shrink-0 mt-0.5">
+                            <div
+                              className={cn(
+                                "w-9 h-9 rounded-full flex items-center justify-center",
+                                config.bg,
+                              )}
+                            >
+                              <Icon size={16} className={config.color} />
                             </div>
-                          )}
 
-                          <div className="flex items-center gap-2 text-[12px] font-medium text-white/40 pt-1">
-                            <span>
+                            {/* Fallback "System" badge */}
+                            <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-[#1A1A24] border-2 border-[#13131A] flex items-center justify-center">
+                              <div className="w-1.5 h-1.5 rounded-full bg-white/50" />
+                            </div>
+                          </div>
+
+                          {/* Content Area */}
+                          <div className="flex-1 min-w-0 pr-12">
+                            <div className="text-[13px] leading-relaxed text-white/60">
+                              <span
+                                className={cn(
+                                  "mr-1",
+                                  notif.isRead
+                                    ? "font-medium text-white/80"
+                                    : "font-semibold text-white/90",
+                                )}
+                              >
+                                {notif.title}
+                              </span>
+                            </div>
+
+                            {/* Quote Body */}
+                            {notif.body && (
+                              <div className="mt-2 text-[13px] text-white/50 line-clamp-2 border-l-2 border-white/10 pl-3 py-0.5">
+                                {notif.body}
+                              </div>
+                            )}
+
+                            <div className="flex items-center gap-2 text-[11px] font-medium text-white/30 pt-2">
                               {formatDistanceToNow(new Date(notif.createdAt))}{" "}
                               ago
-                            </span>
+                            </div>
                           </div>
-                        </div>
 
-                        {/* Right Side Actions / Unread Indicator */}
-                        <div className="absolute right-4 top-4 flex items-center gap-2">
-                          {/* Hover Actions */}
-                          <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 bg-[#1A1A22] pl-2">
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                markRead(notif.id);
-                              }}
-                              className="p-1.5 text-white/30 hover:text-white hover:bg-white/10 rounded-md transition-all"
-                              title="Mark as read"
-                            >
-                              <Check size={14} />
-                            </button>
-                            <button
-                              className="p-1.5 text-white/30 hover:text-rose-400 hover:bg-rose-500/10 rounded-md transition-all"
-                              title="Dismiss"
-                            >
-                              <X size={14} />
-                            </button>
+                          {/* Right Side Actions & Unread Indicator */}
+                          <div className="absolute right-4 top-4 flex items-center gap-2">
+                            {/* Hover Actions */}
+                            <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 bg-[#13131A] pl-2">
+                              {!notif.isRead && (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    markRead(notif.id);
+                                  }}
+                                  className="p-1.5 text-white/30 hover:text-white hover:bg-white/10 rounded-md transition-colors"
+                                  title="Mark as read"
+                                >
+                                  <Check size={14} />
+                                </button>
+                              )}
+                              <button
+                                className="p-1.5 text-white/30 hover:text-rose-400 hover:bg-rose-500/10 rounded-md transition-colors"
+                                title="Dismiss"
+                              >
+                                <X size={14} />
+                              </button>
+                            </div>
+
+                            {/* Unread Dot */}
+                            {!notif.isRead && (
+                              <div className="w-2 h-2 rounded-full bg-[#7C6EF5] group-hover:opacity-0 transition-opacity" />
+                            )}
                           </div>
-                          {/* Unread Dot */}
-                          {!notif.isRead && (
-                            <div className="w-2.5 h-2.5 rounded-full bg-[#7C6EF5] group-hover:hidden shadow-[0_0_8px_rgba(124,110,245,0.6)]" />
-                          )}
                         </div>
-                      </div>
-                    );
-                  })}
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
-            ),
+              ),
+            )
           )}
         </div>
       </div>
