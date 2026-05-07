@@ -282,6 +282,9 @@ export class AuthService {
         'Please verify your email address before signing in'
       );
 
+    if (!existing.hasRegistered)
+      throw new ApiError(403, 'Please complete your registration');
+
     if (!existing.passwordHash)
       throw new ApiError(403, 'Invalid email or password.');
 

@@ -3,6 +3,7 @@ import {
   CreateWP,
   SendInvite,
   UpdateWp,
+  Workspace,
   WorkspaceService,
 } from "@/services/workspace.service";
 import { useWorkspaceStore } from "@/store/workspace.store";
@@ -20,6 +21,11 @@ export function useCreateWorkspace() {
       WorkspaceService.createWorkspace(data),
 
     onSuccess: (workspace) => {
+      queryClient.setQueryData(["workspaces"], (old: Workspace[] = []) => [
+        ...old,
+        workspace,
+      ]);
+
       queryClient.invalidateQueries({ queryKey: ["workspaces"] });
       setActiveWorkspace(workspace);
 

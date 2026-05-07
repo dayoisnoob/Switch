@@ -1,20 +1,150 @@
+import { FormValues } from "@/app/(auth)/register/onboarding/page";
+import { api } from "@/lib/api";
+import { getErrorMessage } from "@/lib/utils";
 import { AuthService } from "@/services/auth.service";
 import { useAuthStore } from "@/store/auth.store";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useWorkspaceStore } from "@/store/workspace.store";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
-export const useLogout = () => {
+export interface CompleteUserData extends FormValues {
+  email: string;
+}
+
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
+
+export function useInitialiseReg() {
   const router = useRouter();
-  const queryClient = useQueryClient();
-  const clearUser = useAuthStore((s) => s.clearUser);
 
-  return async () => {
-    await AuthService.logout();
-    clearUser();
-    queryClient.clear();
-    router.replace("/login");
-  };
-};
+  return useMutation({
+    mutationFn: (email: string) =>
+      api.post("/auth/register/initialise", { email }),
+
+    onSuccess: (res, email) => {
+      router.push(
+        `/register/verify?email=${encodeURIComponent(email)}&status=${res.status || "success"}`,
+      );
+    },
+
+    onError: (err) => {
+      const message = getErrorMessage(err);
+      toast.error(message);
+    },
+  });
+}
+
+export function useVerifyReg() {
+  const router = useRouter();
+
+  return useMutation({
+    mutationFn: (data: { email: string; code: string }) =>
+      api.post("/auth/register/verify-otp", data),
+
+    onSuccess: (_, variables) => {
+      toast.success("Email verified!");
+      router.push(
+        `/register/onboarding?email=${encodeURIComponent(variables.email)}`,
+      );
+    },
+
+    onError: (err) => {
+      const message = getErrorMessage(err);
+      toast.error(message);
+    },
+  });
+}
+export function useResendOtp() {
+  return useMutation({
+    mutationFn: (email: string) =>
+      api.post("/auth/register/resend-otp", { email }),
+
+    onSuccess: () => {
+      toast.success("otp resent!");
+    },
+
+    onError: (err) => {
+      const message = getErrorMessage(err);
+      toast.error(message);
+    },
+  });
+}
+
+export function useCompleteReg() {
+  const router = useRouter();
+
+  return useMutation({
+    mutationFn: (data: CompleteUserData) =>
+      api.patch("/auth/register/onboarding", data),
+    onSuccess: () => {
+      router.push("/getting-started");
+    },
+
+    onError: (err) => {
+      const message = getErrorMessage(err);
+      toast.error(message);
+    },
+  });
+}
+
+export function useLogin() {
+  const router = useRouter();
+
+  return useMutation({
+    mutationFn: (data: LoginRequest) => api.post("/auth/login", data),
+
+    onSuccess: () => {
+      router.push("/dashboard");
+    },
+
+    onError: async (err, variables) => {
+      const message = getErrorMessage(err);
+
+      const isUnverifiedError = message
+        .toLowerCase()
+        .includes("verify your email");
+
+      const isIncompleteRegError = message
+        .toLowerCase()
+        .includes("complete your registration");
+
+      if (isUnverifiedError) {
+        toast.info("Please verify your email. Sending a new code...");
+
+        try {
+          await api.post("/auth/register/resend-otp", {
+            email: variables.email,
+          });
+
+          router.push(
+            `/register/verify?email=${encodeURIComponent(variables.email)}`,
+          );
+        } catch (resendErr) {
+          toast.error(
+            "Failed to send verification code. Please try signing up again.",
+          );
+        }
+
+        return;
+      }
+
+      if (isIncompleteRegError) {
+        toast.info("Please complete your registration");
+
+        router.push(
+          `/register/onboarding?email=${encodeURIComponent(variables.email)}`,
+        );
+
+        return;
+      }
+
+      toast.error(message);
+    },
+  });
+}
 
 export function useMe() {
   return useQuery({
@@ -31,3 +161,16 @@ export function useTeammates() {
     staleTime: 1000 * 60 * 5,
   });
 }
+
+export const useLogout = () => {
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  const clearUser = useAuthStore((s) => s.clearUser);
+
+  return async () => {
+    await AuthService.logout();
+    clearUser();
+    queryClient.clear();
+    router.replace("/login");
+  };
+};

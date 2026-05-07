@@ -1,25 +1,16 @@
 "use client";
 
+import { useLogin } from "@/hooks/useAuth";
+import { LoginRequest } from "@/services/auth.service";
+import { ChevronLeft, Eye, EyeOff, Loader2 } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
-import { ChevronLeft, Eye, EyeOff } from "lucide-react";
-import {
-  AuthCard,
-  AuthInput,
-  PrimaryButton,
-  ServerError,
-} from "@/components/auth/auth-components";
-import { AuthService, LoginRequest } from "@/services/auth.service";
-import { getErrorMessage } from "@/lib/utils";
-import { useAuthStore } from "@/store/auth.store";
 
-export default function EmailLoginPage() {
-  const router = useRouter();
-  const [serverError, setServerError] = useState("");
-  const [loading, setLoading] = useState(false);
+export default function LoginEmailPage() {
   const [showPassword, setShowPassword] = useState(false);
-  const setUser = useAuthStore((s) => s.setUser);
+
+  const { mutate: login, isPending, isSuccess } = useLogin();
 
   const {
     register,
@@ -27,119 +18,121 @@ export default function EmailLoginPage() {
     formState: { errors },
   } = useForm<LoginRequest>();
 
-  const onLogin = async (data: LoginRequest) => {
-    setServerError("");
-    setLoading(true);
-
-    try {
-      const user = await AuthService.login(data);
-      setUser(user);
-      router.push("/dashboard");
-    } catch (err) {
-      setServerError(getErrorMessage(err));
-    } finally {
-      setLoading(false);
-    }
+  const handleLogin = (data: LoginRequest) => {
+    login(data);
   };
 
   return (
-    <AuthCard>
-      <button
-        onClick={() => router.back()}
-        className="flex items-center gap-1 text-[#8b949e] hover:text-[#c9d1d9] transition-colors mb-6 text-sm self-start"
-      >
-        <ChevronLeft size={16} />
-        Back
-      </button>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[#0A0A0A] p-4 font-sans text-white selection:bg-[#7C6EF5]/30">
+      <div className="flex items-center gap-3 mb-8">
+        <div className="w-10 h-10 rounded-xl bg-[#7C6EF5] flex items-center justify-center text-white text-lg font-black shadow-lg shadow-[#7C6EF5]/20">
+          S
+        </div>
+        <span className="text-2xl font-bold tracking-tight text-white/90">
+          Switch
+        </span>
+      </div>
 
-      <div className="w-full">
-        <h1 className="text-xl font-semibold text-[#f0f6fc] mb-1">
-          Sign in with email
-        </h1>
-        <p className="text-sm text-[#8b949e] mb-8">
-          Enter your credentials to access your account.
-        </p>
+      <div className="w-full max-w-105 bg-[#13131A] border border-white/5 rounded-2xl p-8 shadow-2xl animate-in fade-in zoom-in-95 duration-300">
+        <div className="mb-8">
+          <Link
+            href="/login"
+            className="inline-flex items-center gap-1 text-[13px] font-medium text-white/40 hover:text-white transition-colors mb-6"
+          >
+            <ChevronLeft size={16} />
+            Back to all options
+          </Link>
 
-        <form onSubmit={handleSubmit(onLogin)} className="w-full space-y-4">
-          <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-[#c9d1d9]">
+          <h1 className="text-2xl font-bold text-white/90 tracking-tight mb-2">
+            Sign in with email
+          </h1>
+          <p className="text-[13px] text-white/40">
+            Enter your credentials to access your workspace.
+          </p>
+        </div>
+
+        <form className="space-y-4" onSubmit={handleSubmit(handleLogin)}>
+          <div className="space-y-1.5">
+            <label className="text-[13px] font-medium text-white/60 pl-1">
               Email address
             </label>
-            <AuthInput
+            <input
+              {...register("email", { required: "Email is required" })}
               type="email"
-              placeholder="name@example.com"
-              {...register("email", {
-                required: "Email is required",
-                pattern: { value: /^\S+@\S+$/i, message: "Invalid email" },
-              })}
-              disabled={loading}
               autoFocus
+              placeholder="you@company.com"
+              className="w-full h-11 bg-black/20 border border-white/10 rounded-xl px-4 text-[14px] text-white placeholder:text-white/20 focus:outline-none focus:border-[#7C6EF5]/50 focus:ring-4 focus:ring-[#7C6EF5]/10 transition-all shadow-inner"
             />
             {errors.email && (
-              <span className="text-[11px] text-red-400">
+              <p className="text-[11px] text-rose-400 pl-1">
                 {errors.email.message}
-              </span>
+              </p>
             )}
           </div>
 
-          <div className="flex flex-col gap-1.5">
-            <div className="flex justify-between items-center">
-              <label className="text-sm font-medium text-[#c9d1d9]">
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between pl-1 pr-1">
+              <label className="text-[13px] font-medium text-white/60">
                 Password
               </label>
-              <button
-                type="button"
-                tabIndex={-1}
-                className="text-xs text-[#58a6ff] hover:underline"
-                onClick={() => router.push("/forgot-password")}
+              <Link
+                href="/forgot-password"
+                className="text-[12px] font-medium text-[#7C6EF5] hover:text-[#B8B0FF] transition-colors"
               >
                 Forgot password?
-              </button>
+              </Link>
             </div>
             <div className="relative">
-              <AuthInput
+              <input
+                {...register("password", { required: "Password is required" })}
                 type={showPassword ? "text" : "password"}
                 placeholder="••••••••"
-                className="pr-10"
-                {...register("password", { required: "Password is required" })}
-                disabled={loading}
+                className="w-full h-11 bg-black/20 border border-white/10 rounded-xl pl-4 pr-10 text-[14px] text-white placeholder:text-white/20 focus:outline-none focus:border-[#7C6EF5]/50 focus:ring-4 focus:ring-[#7C6EF5]/10 transition-all shadow-inner"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#484f58] hover:text-[#8b949e] transition-colors"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/70 transition-colors"
+                tabIndex={-1}
               >
                 {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
             </div>
             {errors.password && (
-              <span className="text-[11px] text-red-400">
+              <p className="text-[11px] text-rose-400 pl-1">
                 {errors.password.message}
-              </span>
+              </p>
             )}
           </div>
 
-          {serverError && <ServerError message={serverError} />}
-
-          <div className="pt-2">
-            <PrimaryButton type="submit" loading={loading}>
-              Sign In
-            </PrimaryButton>
-          </div>
+          <button
+            type="submit"
+            disabled={isPending || isSuccess}
+            className="w-full h-11 mt-4 bg-[#7C6EF5] hover:bg-[#6B5ED4] disabled:bg-[#7C6EF5]/50 text-white rounded-xl text-[14px] font-semibold transition-all shadow-lg shadow-[#7C6EF5]/20 active:scale-[0.98] flex items-center justify-center gap-2"
+          >
+            {isPending || isSuccess ? (
+              <>
+                <Loader2 size={16} className="animate-spin" />
+                {isSuccess ? "Redirecting..." : "Signing in..."}{" "}
+              </>
+            ) : (
+              "Sign in"
+            )}
+          </button>
         </form>
-
-        <div className="mt-8 pt-6 border-t border-[#30363d] text-center">
-          <p className="text-sm text-[#8b949e]">
-            Don&apos;t have an account?{" "}
-            <button
-              onClick={() => router.push("/register")}
-              className="text-[#58a6ff] hover:underline font-medium"
-            >
-              Sign up
-            </button>
-          </p>
-        </div>
       </div>
-    </AuthCard>
+
+      <div className="mt-8">
+        <p className="text-[13px] text-white/40">
+          Don&apos;t have an account?{" "}
+          <Link
+            href="/register"
+            className="text-white/80 hover:text-white font-medium transition-colors"
+          >
+            Create one free
+          </Link>
+        </p>
+      </div>
+    </div>
   );
 }

@@ -13,7 +13,7 @@ export const deleteAccountSchema = z.object({
 export const completeRegSchema = z
   .object({
     email: z.string().email().trim().toLowerCase(),
-    firstName: z.string().min(2).trim().transform(capitalize),
+    firstName: z.string().min(2, 'Name too short').trim().transform(capitalize),
     lastName: z.string().min(2).trim().transform(capitalize).optional(),
     password: z
       .string()

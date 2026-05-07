@@ -35,8 +35,7 @@ import {
   ProjectsSkeleton,
 } from "@/components/skeletons/main-layout/skeletons";
 
-// ── HELPERS ──────────────────────────────────────────────────────────────────
-
+// ── HELPERS ──
 const PROJECT_COLORS = [
   "#38bdf8",
   "#818cf8",
@@ -72,10 +71,7 @@ const getPageLabel = (pathname: string, projectSlug?: string): string => {
   return "Dashboard";
 };
 
-// ── SKELETON ─────────────────────────────────────────────────────────────────
-
-// ── LAYOUT ───────────────────────────────────────────────────────────────────
-
+// ── LAYOUT ──
 export default function MainLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -96,26 +92,32 @@ export default function MainLayout({ children }: { children: ReactNode }) {
   const unreadCount = useNotificationStore((s) => s.unreadCount);
   const logout = useLogout();
 
-  // Critical — block render until we have user + workspaces
   const { data: user, isLoading: userLoading } = useMe();
-  const { data: workspaces = [], isLoading: workspacesLoading } =
-    useGetWorkspaces();
+  const {
+    data: workspaces = [],
+    isLoading: workspacesLoading,
+    isFetching,
+  } = useGetWorkspaces();
 
-  // Non-critical — show inline skeletons while loading
   const { data: projects = [], isLoading: projectsLoading } =
     useWorkspaceProjects(activeWorkspace?.slug);
   const { data: members = [] } = useGetMembers(activeWorkspace?.slug ?? "");
-
   const { canManageWorkspace } = useWorkspaceRole(activeWorkspace?.slug ?? "");
 
-  // ⌘K shortcut
+  const hasWorkspaces = workspaces.length > 0;
+
+  useEffect(() => {
+    if (!workspacesLoading && !isFetching && workspaces.length === 0) {
+      router.replace("/getting-started");
+    }
+  }, [workspacesLoading, workspaces.length, router]);
+
   useEffect(() => {
     const handleOpenSearch = () => setIsSearchOpen(true);
     document.addEventListener("open-search", handleOpenSearch);
     return () => document.removeEventListener("open-search", handleOpenSearch);
   }, []);
 
-  // Sync active workspace from URL params or default to first
   useEffect(() => {
     if (!workspaces.length) return;
 
@@ -133,7 +135,9 @@ export default function MainLayout({ children }: { children: ReactNode }) {
     return <LayoutSkeleton />;
   }
 
-  // ── NAV ITEMS ──
+  if (!hasWorkspaces) {
+    return <LayoutSkeleton />;
+  }
 
   const mainNavItems = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutGrid },
@@ -164,7 +168,6 @@ export default function MainLayout({ children }: { children: ReactNode }) {
             name: "Settings",
             href: `/${activeWorkspace?.slug}?tab=settings`,
             icon: Settings2Icon,
-            count: undefined,
           },
         ]
       : []),
@@ -175,12 +178,10 @@ export default function MainLayout({ children }: { children: ReactNode }) {
   return (
     <SocketProvider>
       <div className="flex h-screen bg-[#0A0A0A] overflow-hidden text-[#A1A1AA] font-sans selection:bg-[#7C6EF5]/30">
-        {/* ── SIDEBAR ── */}
         <aside className="w-65 shrink-0 bg-[#13131A] border-r border-white/5 flex flex-col z-20">
-          {/* Logo + workspace switcher */}
           <div className="p-4">
             <div className="flex items-center gap-3 mb-6 px-1">
-              <div className="w-8 h-8 rounded-lg  flex items-center justify-center text-white text-sm font-black shadow-[0_0_15px_rgba(124,110,245,0.4)]">
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-sm font-black shadow-[0_0_15px_rgba(124,110,245,0.4)]">
                 S
               </div>
               <span className="text-xl font-bold text-white tracking-tight">
@@ -189,41 +190,69 @@ export default function MainLayout({ children }: { children: ReactNode }) {
             </div>
 
             <button
-              onClick={() => setIsSwitcherOpen(!isSwitcherOpen)}
+              onClick={() =>
+                hasWorkspaces
+                  ? setIsSwitcherOpen(!isSwitcherOpen)
+                  : setIsAddWorkspaceOpen(true)
+              }
               className={cn(
-                "w-full flex items-center gap-3 p-2.5 rounded-xl transition-all duration-200 border",
+                "w-full flex items-center gap-3 p-2.5 rounded-xl transition-all duration-200 border group",
                 isSwitcherOpen
                   ? "bg-white/5 border-white/10 shadow-sm"
-                  : "bg-white/2 border-white/5 hover:bg-white/4 hover:border-white/8",
+                  : "bg-white/2 border-white/5 hover:bg-white/4 hover:border-white/10",
               )}
             >
               <div
-                className="w-8 h-8 shrink-0 rounded-lg flex items-center justify-center text-white text-[11px] font-black"
-                style={{ backgroundColor: activeWorkspace?.colour }}
+                className={cn(
+                  "w-8 h-8 shrink-0 rounded-lg flex items-center justify-center text-white text-[11px] font-black transition-colors",
+                  !hasWorkspaces &&
+                    "bg-[#7C6EF5]/10 text-[#7C6EF5] group-hover:bg-[#7C6EF5]/20",
+                )}
+                style={
+                  hasWorkspaces && activeWorkspace
+                    ? { backgroundColor: activeWorkspace.colour }
+                    : {}
+                }
               >
-                {activeWorkspace?.name
-                  ? getInitials(activeWorkspace.name)
-                  : "AC"}
+                {hasWorkspaces ? (
+                  activeWorkspace?.name ? (
+                    getInitials(activeWorkspace.name)
+                  ) : (
+                    "AC"
+                  )
+                ) : (
+                  <Plus size={16} />
+                )}
               </div>
               <div className="flex flex-col items-start overflow-hidden flex-1">
-                <span className="text-[13px] font-semibold text-white/90 truncate w-full text-left">
-                  {activeWorkspace?.name}
+                <span
+                  className={cn(
+                    "text-[13px] font-semibold truncate w-full text-left transition-colors",
+                    hasWorkspaces ? "text-white/90" : "text-[#7C6EF5]",
+                  )}
+                >
+                  {hasWorkspaces ? activeWorkspace?.name : "New Workspace"}
                 </span>
                 <span className="text-[10px] font-medium text-[#7C6EF5] mt-0.5">
-                  {canManageWorkspace ? "Admin" : "Member"}
+                  {hasWorkspaces
+                    ? canManageWorkspace
+                      ? "Admin"
+                      : "Member"
+                    : "Create one to start"}
                 </span>
               </div>
-              <ChevronDown
-                size={14}
-                className={cn(
-                  "text-white/40 shrink-0 ml-auto transition-transform duration-200",
-                  isSwitcherOpen && "rotate-180 text-white/80",
-                )}
-              />
+              {hasWorkspaces && (
+                <ChevronDown
+                  size={14}
+                  className={cn(
+                    "text-white/40 shrink-0 ml-auto transition-transform duration-200",
+                    isSwitcherOpen && "rotate-180 text-white/80",
+                  )}
+                />
+              )}
             </button>
           </div>
 
-          {/* Nav */}
           <nav className="flex-1 px-4 space-y-1 py-2 overflow-y-auto custom-scrollbar">
             {mainNavItems.map((item) => {
               const isActive = pathname === item.href;
@@ -234,18 +263,17 @@ export default function MainLayout({ children }: { children: ReactNode }) {
                   className={cn(
                     "flex items-center gap-3 px-3 py-2 text-[13px] font-medium rounded-lg transition-all duration-200 group",
                     isActive
-                      ? "bg-white/6 text-white"
-                      : "text-white/60 hover:bg-white/4 hover:text-white",
+                      ? "bg-white/5 text-white"
+                      : "text-white/60 hover:bg-white/5 hover:text-white",
                   )}
                 >
                   <item.icon
                     size={16}
-                    className={cn(
-                      "transition-colors duration-200",
+                    className={
                       isActive
                         ? "text-white"
-                        : "text-white/40 group-hover:text-white/80",
-                    )}
+                        : "text-white/40 group-hover:text-white/80"
+                    }
                   />
                   {item.name}
                   {item.count !== undefined && (
@@ -257,15 +285,13 @@ export default function MainLayout({ children }: { children: ReactNode }) {
               );
             })}
 
-            {/* Projects */}
-            {activeWorkspace && (
-              <div className="mt-8">
+            {hasWorkspaces && (
+              <div className="mt-8 animate-in fade-in duration-300">
                 <div className="flex items-center justify-between mb-2 px-3">
                   <span className="text-[10px] font-bold text-white/40 uppercase tracking-wider">
                     Projects
                   </span>
                 </div>
-
                 {projectsLoading ? (
                   <ProjectsSkeleton />
                 ) : (
@@ -276,12 +302,12 @@ export default function MainLayout({ children }: { children: ReactNode }) {
                       return (
                         <Link
                           key={p.id}
-                          href={`/${activeWorkspace.slug}/${p.slug}`}
+                          href={`/${activeWorkspace?.slug}/${p.slug}`}
                           className={cn(
                             "flex items-center gap-3 px-3 py-2 text-[13px] font-medium rounded-lg transition-colors group",
                             isActive
-                              ? "bg-white/6 text-white"
-                              : "text-white/60 hover:bg-white/4 hover:text-white",
+                              ? "bg-white/5 text-white"
+                              : "text-white/60 hover:bg-white/5 hover:text-white",
                           )}
                         >
                           <div
@@ -295,11 +321,10 @@ export default function MainLayout({ children }: { children: ReactNode }) {
                         </Link>
                       );
                     })}
-
                     {canManageWorkspace && (
                       <button
                         onClick={() => setIsProjectModalOpen(true)}
-                        className="flex items-center gap-3 px-3 py-2 mt-1 w-full text-left text-[13px] font-medium text-white/40 hover:text-white hover:bg-white/4 rounded-lg transition-colors group"
+                        className="flex items-center gap-3 px-3 py-2 mt-1 w-full text-left text-[13px] font-medium text-white/40 hover:text-white hover:bg-white/5 rounded-lg transition-colors group"
                       >
                         <Plus
                           size={14}
@@ -313,37 +338,37 @@ export default function MainLayout({ children }: { children: ReactNode }) {
               </div>
             )}
 
-            {/* Workspace nav */}
-            <div className="mt-8">
-              <div className="mb-2 px-3">
-                <span className="text-[10px] font-bold text-white/40 uppercase tracking-wider">
-                  Workspace
-                </span>
+            {hasWorkspaces && (
+              <div className="mt-8 animate-in fade-in duration-300">
+                <div className="mb-2 px-3">
+                  <span className="text-[10px] font-bold text-white/40 uppercase tracking-wider">
+                    Workspace
+                  </span>
+                </div>
+                <div className="space-y-0.5">
+                  {workspaceNavItems.map((item) => (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className="flex items-center gap-3 px-3 py-2 text-[13px] font-medium text-white/60 hover:bg-white/5 hover:text-white rounded-lg transition-colors group"
+                    >
+                      <item.icon
+                        size={16}
+                        className="text-white/40 group-hover:text-white/80 transition-colors"
+                      />
+                      {item.name}
+                      {item.count !== undefined && (
+                        <div className="ml-auto flex items-center justify-center px-2 py-0.5 rounded-full bg-white/5 text-[10px] font-bold text-white/70 min-w-5 border border-white/5">
+                          {item.count}
+                        </div>
+                      )}
+                    </Link>
+                  ))}
+                </div>
               </div>
-              <div className="space-y-0.5">
-                {workspaceNavItems.map((item) => (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className="flex items-center gap-3 px-3 py-2 text-[13px] font-medium text-white/60 hover:bg-white/4 hover:text-white rounded-lg transition-colors group"
-                  >
-                    <item.icon
-                      size={16}
-                      className="text-white/40 group-hover:text-white/80 transition-colors"
-                    />
-                    {item.name}
-                    {item.count !== undefined && (
-                      <div className="ml-auto flex items-center justify-center px-2 py-0.5 rounded-full bg-white/5 text-[10px] font-bold text-white/70 min-w-5 border border-white/5">
-                        {item.count}
-                      </div>
-                    )}
-                  </Link>
-                ))}
-              </div>
-            </div>
+            )}
           </nav>
 
-          {/* User footer */}
           <div className="p-4 mt-auto relative">
             {isUserDropdownOpen && (
               <div
@@ -352,16 +377,20 @@ export default function MainLayout({ children }: { children: ReactNode }) {
               />
             )}
             {isUserDropdownOpen && (
-              <div className="absolute bottom-[calc(100%-8px)] left-4 right-4 bg-[#121212]/95 backdrop-blur-xl border border-white/8 rounded-xl shadow-[0_-8px_30px_rgb(0,0,0,0.5)] z-50 overflow-hidden p-1.5 animate-in fade-in slide-in-from-bottom-2 duration-200">
-                <Link
-                  href={`/${activeWorkspace?.slug}?tab=settings`}
-                  onClick={() => setIsUserDropdownOpen(false)}
-                  className="flex items-center gap-3 p-2.5 text-[13px] font-medium text-white/70 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
-                >
-                  <Settings size={15} />
-                  <span>Account Settings</span>
-                </Link>
-                <div className="h-px bg-white/5 my-1 mx-1" />
+              <div className="absolute bottom-[calc(100%-8px)] left-4 right-4 bg-[#121212]/95 backdrop-blur-xl border border-white/10 rounded-xl shadow-[0_-8px_30px_rgb(0,0,0,0.5)] z-50 overflow-hidden p-1.5 animate-in fade-in slide-in-from-bottom-2 duration-200">
+                {hasWorkspaces && (
+                  <>
+                    <Link
+                      href={`/${activeWorkspace?.slug}?tab=settings`}
+                      onClick={() => setIsUserDropdownOpen(false)}
+                      className="flex items-center gap-3 p-2.5 text-[13px] font-medium text-white/70 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
+                    >
+                      <Settings size={15} />
+                      <span>Account Settings</span>
+                    </Link>
+                    <div className="h-px bg-white/5 my-1 mx-1" />
+                  </>
+                )}
                 <button
                   onClick={() => {
                     setIsUserDropdownOpen(false);
@@ -378,15 +407,15 @@ export default function MainLayout({ children }: { children: ReactNode }) {
             <button
               onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)}
               className={cn(
-                "w-full flex items-center gap-3 p-2 rounded-xl transition-all duration-200 hover:bg-white/4",
-                isUserDropdownOpen && "bg-white/4",
+                "w-full flex items-center gap-3 p-2 rounded-xl transition-all duration-200 hover:bg-white/5",
+                isUserDropdownOpen && "bg-white/5",
               )}
             >
               <div className="w-8 h-8 shrink-0 rounded-full overflow-hidden bg-white/10 flex items-center justify-center text-white text-xs font-bold ring-2 ring-transparent hover:ring-white/10 transition-all">
                 {user?.avatarUrl ? (
                   <Image
                     src={user.avatarUrl}
-                    alt={`${user.firstName} ${user.lastName}`}
+                    alt="Avatar"
                     width={32}
                     height={32}
                     className="w-full h-full object-cover"
@@ -412,58 +441,60 @@ export default function MainLayout({ children }: { children: ReactNode }) {
           </div>
         </aside>
 
-        {/* ── MAIN AREA ── */}
         <div className="flex flex-col flex-1 min-w-0 relative z-10">
           <header className="h-14 shrink-0 bg-[#0A0A0A]/80 backdrop-blur-md border-b border-white/5 flex items-center px-8 z-20 sticky top-0">
-            {/* Breadcrumb */}
-            <div className="flex items-center gap-2 text-[13px] font-medium ml-4">
-              <span className="text-white/40 hover:text-white/60 transition-colors cursor-pointer">
-                {activeWorkspace?.name}
-              </span>
-              <ChevronRight size={14} className="text-white/20" />
-              <span className="text-white/90">{pageLabel}</span>
-            </div>
+            {hasWorkspaces && (
+              <div className="flex items-center gap-2 text-[13px] font-medium ml-4 animate-in fade-in duration-300">
+                <span className="text-white/40 hover:text-white/60 transition-colors cursor-pointer">
+                  {activeWorkspace?.name}
+                </span>
+                <ChevronRight size={14} className="text-white/20" />
+                <span className="text-white/90">{pageLabel}</span>
+              </div>
+            )}
 
             <div className="flex items-center gap-3 ml-auto">
-              {/* Online users (board only) */}
               {projectSlug && onlineUsers.length > 0 && (
                 <div className="flex items-center mr-2 pr-4 border-r border-white/5">
-                  <div className="flex items-center -space-x-2">
-                    {onlineUsers.slice(0, 4).map((u, i) => (
-                      <div
-                        key={u.userId ?? i}
-                        title={`${u.firstName} ${u.lastName}`}
-                        className="w-8 h-8 rounded-full bg-[#1A1A24] border-2 border-[#0A0A0A] flex items-center justify-center relative z-10 hover:z-20 transition-transform hover:scale-110 cursor-default"
-                      >
-                        {u.avatarUrl ? (
-                          <Image
-                            src={u.avatarUrl}
-                            alt={u.firstName ?? "User"}
-                            width={28}
-                            height={28}
-                            className="w-full h-full object-cover rounded-full"
-                            unoptimized
-                            referrerPolicy="no-referrer"
-                          />
-                        ) : (
-                          <span className="text-[10px] font-bold text-white">
-                            {u.firstName?.charAt(0)}
-                            {u.lastName?.charAt(0)}
-                          </span>
+                  {projectSlug && onlineUsers.length > 0 && (
+                    <div className="flex items-center mr-2 pr-4 border-r border-white/5">
+                      <div className="flex items-center -space-x-2">
+                        {onlineUsers.slice(0, 4).map((u, i) => (
+                          <div
+                            key={u.userId ?? i}
+                            title={`${u.firstName} ${u.lastName}`}
+                            className="w-8 h-8 rounded-full bg-[#1A1A24] border-2 border-[#0A0A0A] flex items-center justify-center relative z-10 hover:z-20 transition-transform hover:scale-110 cursor-default"
+                          >
+                            {u.avatarUrl ? (
+                              <Image
+                                src={u.avatarUrl}
+                                alt={u.firstName ?? "User"}
+                                width={28}
+                                height={28}
+                                className="w-full h-full object-cover rounded-full"
+                                unoptimized
+                                referrerPolicy="no-referrer"
+                              />
+                            ) : (
+                              <span className="text-[10px] font-bold text-white">
+                                {u.firstName?.charAt(0)}
+                                {u.lastName?.charAt(0)}
+                              </span>
+                            )}
+                            <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-[#0A0A0A]" />
+                          </div>
+                        ))}
+                        {onlineUsers.length > 4 && (
+                          <div className="w-8 h-8 rounded-full bg-white/5 border-2 border-[#0A0A0A] flex items-center justify-center text-[10px] font-bold text-white/50">
+                            +{onlineUsers.length - 4}
+                          </div>
                         )}
-                        <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-[#0A0A0A]" />
                       </div>
-                    ))}
-                    {onlineUsers.length > 4 && (
-                      <div className="w-8 h-8 rounded-full bg-white/5 border-2 border-[#0A0A0A] flex items-center justify-center text-[10px] font-bold text-white/50">
-                        +{onlineUsers.length - 4}
-                      </div>
-                    )}
-                  </div>
+                    </div>
+                  )}{" "}
                 </div>
               )}
 
-              {/* Search trigger */}
               <button
                 onClick={() => setIsSearchOpen(true)}
                 className="flex items-center gap-2 px-2.5 py-1.5 text-white/40 hover:text-white transition-colors rounded-lg hover:bg-white/5"
@@ -474,7 +505,6 @@ export default function MainLayout({ children }: { children: ReactNode }) {
                 </kbd>
               </button>
 
-              {/* Notifications */}
               <Link
                 href="/notifications"
                 className="relative p-2 text-white/40 hover:text-white transition-colors rounded-lg hover:bg-white/5"
@@ -499,7 +529,6 @@ export default function MainLayout({ children }: { children: ReactNode }) {
           </main>
         </div>
 
-        {/* ── MODALS ── */}
         <CreateWorkspaceModal
           isOpen={isAddWorkspaceOpen}
           onClose={() => setIsAddWorkspaceOpen(false)}

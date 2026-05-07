@@ -1,33 +1,30 @@
 "use client";
 
-import {
-  AuthCard,
-  PrimaryButton,
-  ServerError,
-} from "@/components/auth/auth-components";
-import { cn, getErrorMessage } from "@/lib/utils";
-import { AuthService } from "@/services/auth.service";
-import { ChevronLeft } from "lucide-react";
+import { useResendOtp, useVerifyReg } from "@/hooks/useAuth";
+import { cn } from "@/lib/utils";
+import { Check, ChevronDown, ChevronLeft, Loader2, Mail } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 
 export default function VerifyPage() {
-  const [otp, setOtp] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [resending, setResending] = useState(false);
-  const [timer, setTimer] = useState(30);
-
+  const router = useRouter();
   const searchParams = useSearchParams();
   const email = searchParams.get("email");
-  const status = searchParams.get("status");
 
-  const router = useRouter();
+  const [code, setCode] = useState(["", "", "", "", "", ""]);
+  const [error, setError] = useState("");
+  const [timer, setTimer] = useState(30);
 
-  const inputRef = useRef<HTMLInputElement>(null);
+  const {
+    mutate: verifyOtp,
+    isPending: isVerifying,
+    isSuccess,
+  } = useVerifyReg();
+  const { mutate: resendOtp, isPending: isResending } = useResendOtp();
 
-  const OTP_LENGTH = 6;
+  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
+  // ── TIMER LOGIC ──
   useEffect(() => {
     if (timer > 0) {
       const interval = setInterval(() => setTimer((t) => t - 1), 1000);
@@ -37,123 +34,228 @@ export default function VerifyPage() {
 
   useEffect(() => {
     if (!email) router.replace("/register");
-    if (otp.length === OTP_LENGTH) {
-      handleVerify();
-    }
-  }, [email, otp, router]);
+  }, [email, router]);
 
-  const handleVerify = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    if (otp.length < OTP_LENGTH || loading || !email) return;
+  const handleChange = (index: number, value: string) => {
+    if (value.length > 1) return;
 
+    const newCode = [...code];
+    newCode[index] = value;
+    setCode(newCode);
     setError("");
-    setLoading(true);
 
-    try {
-      await AuthService.verifyLoginOtp(email, otp);
-      router.push(`/register/onboarding?email=${encodeURIComponent(email)}`);
-    } catch (err) {
-      setError(getErrorMessage(err));
-      setOtp("");
-      inputRef.current?.focus();
-    } finally {
-      setLoading(false);
+    if (value && index < 5) {
+      inputRefs.current[index + 1]?.focus();
     }
+  };
+
+  const handleKeyDown = (
+    index: number,
+    e: React.KeyboardEvent<HTMLInputElement>,
+  ) => {
+    if (e.key === "Backspace" && !code[index] && index > 0) {
+      inputRefs.current[index - 1]?.focus();
+    }
+  };
+
+  const handlePaste = (e: React.ClipboardEvent) => {
+    e.preventDefault();
+    const pastedData = e.clipboardData
+      .getData("text")
+      .replace(/\D/g, "")
+      .slice(0, 6)
+      .split("");
+    if (pastedData.length === 0) return;
+
+    const newCode = [...code];
+    pastedData.forEach((char, i) => {
+      if (i < 6) newCode[i] = char;
+    });
+    setCode(newCode);
+    setError("");
+
+    const focusIndex = Math.min(pastedData.length, 5);
+    inputRefs.current[focusIndex]?.focus();
+  };
+
+  const handleVerify = async (e: FormEvent) => {
+    e.preventDefault();
+    const fullCode = code.join("");
+
+    if (fullCode.length !== 6 || isVerifying || !email) return;
+    setError("");
+
+    verifyOtp(
+      { email, code: fullCode },
+      {
+        onError: (err: any) => {
+          setError(
+            err?.response?.data?.message || "Invalid verification code.",
+          );
+          setCode(["", "", "", "", "", ""]);
+          inputRefs.current[0]?.focus();
+        },
+      },
+    );
   };
 
   const handleResend = async () => {
-    if (timer > 0 || !email || resending) return;
+    if (timer > 0 || !email || isResending) return;
 
-    setError("");
-    setResending(true);
-
-    try {
-      await AuthService.resendOtp(email);
-      setTimer(60);
-    } catch (err) {
-      setError(getErrorMessage(err));
-    }
-    setResending(false);
+    resendOtp(email, {
+      onSuccess: () => {
+        setTimer(60);
+      },
+    });
   };
 
+  if (!email) return null;
+
   return (
-    <AuthCard>
-      <button
-        onClick={() => router.back()}
-        className="flex items-center gap-1 text-[#8b949e] hover:text-[#c9d1d9] transition-colors mb-6 text-sm"
-      >
-        <ChevronLeft size={16} />
-        Back
-      </button>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[#0A0A0A] p-4 font-sans text-white selection:bg-[#7C6EF5]/30">
+      {/* ── LOGO & BRANDING ── */}
+      <div className="flex items-center gap-3 mb-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div className="w-10 h-10 rounded-xl bg-[#7C6EF5] flex items-center justify-center text-white text-lg font-black shadow-lg shadow-[#7C6EF5]/20">
+          S
+        </div>
+        <span className="text-2xl font-bold tracking-tight text-white/90">
+          Switch
+        </span>
+      </div>
 
-      <div className="w-full">
-        <h1 className="text-xl font-semibold text-[#f0f6fc] mb-1">
-          {status === "resuming_registration"
-            ? "Welcome back, let's finish your setup"
-            : "Verify email"}
-        </h1>
-        <p className="text-sm text-[#8b949e] mb-8">
-          Enter the 6-digit code sent to {email}.
-        </p>
+      {/* ── MAIN CARD ── */}
+      <div className="w-full max-w-105 bg-[#13131A] border border-white/5 rounded-2xl p-8 shadow-2xl animate-in fade-in zoom-in-95 duration-500 delay-150">
+        {/* ── STEPPER ── */}
+        <div className="flex items-center justify-between mb-8">
+          {/* Step 1: Success */}
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 rounded-full bg-[#00D287] flex items-center justify-center shadow-sm">
+              <Check size={14} strokeWidth={3} className="text-[#13131A]" />
+            </div>
+            <span className="text-[12px] font-bold text-[#00D287]">Email</span>
+          </div>
 
-        <div className="relative w-full mb-6">
-          <input
-            ref={inputRef}
-            type="text"
-            value={otp}
-            onChange={(e) =>
-              setOtp(e.target.value.replace(/\D/g, "").slice(0, OTP_LENGTH))
-            }
-            className="absolute inset-0 opacity-0 cursor-default"
-            autoFocus
-          />
+          <div className="flex-1 h-px bg-[#00D287]/30 mx-3"></div>
 
-          <div
-            className="flex justify-between gap-2"
-            onClick={() => inputRef.current?.focus()}
-          >
-            {Array.from({ length: OTP_LENGTH }).map((_, i) => (
-              <div
-                key={i}
-                className={cn(
-                  "flex-1 h-12 flex items-center justify-center text-lg font-medium border border-[#30363d] rounded-md transition-colors",
-                  otp.length === i && "border-[#58a6ff] ring-1 ring-[#58a6ff]",
-                  otp[i] ? "text-[#f0f6fc]" : "text-[#484f58]",
-                )}
-              >
-                {otp[i] || ""}
-              </div>
-            ))}
+          {/* Step 2: Active */}
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 rounded-full bg-[#7C6EF5] flex items-center justify-center text-[11px] font-bold text-white shadow-sm">
+              2
+            </div>
+            <span className="text-[12px] font-bold text-white/90">Verify</span>
+          </div>
+
+          <div className="flex-1 h-px bg-white/10 mx-3"></div>
+
+          {/* Step 3: Inactive */}
+          <div className="flex items-center gap-2 opacity-40">
+            <div className="w-6 h-6 rounded-full border border-white/20 flex items-center justify-center text-[11px] font-bold text-white">
+              3
+            </div>
+            <span className="text-[12px] font-medium text-white">Profile</span>
           </div>
         </div>
 
-        {error && <ServerError message={error} />}
+        {/* ── HEADER & INFO BOX ── */}
+        <h1 className="text-2xl font-bold text-white/90 tracking-tight mb-6">
+          Check your inbox
+        </h1>
 
-        <PrimaryButton
-          onClick={() => handleVerify()}
-          loading={loading}
-          disabled={otp.length < OTP_LENGTH || loading || resending}
-        >
-          Verify
-        </PrimaryButton>
+        <div className="w-full bg-white/2 border border-white/5 rounded-xl p-4 flex items-center gap-4 mb-8">
+          <Mail size={20} className="text-[#7C6EF5]" />
+          <div className="flex flex-col">
+            <span className="text-[14px] font-semibold text-white/90 truncate max-w-70">
+              {email}
+            </span>
+            <span className="text-[12px] text-white/40">
+              6-digit code sent - expires in 10 min
+            </span>
+          </div>
+        </div>
 
-        <div className="mt-6 text-center">
-          <p className="text-sm text-[#8b949e]">
-            Didn&apos;t receive a code?{" "}
+        {/* ── OTP FORM ── */}
+        <form onSubmit={handleVerify} className="flex flex-col items-center">
+          <div className="w-full flex justify-between gap-2 mb-3">
+            {code.map((digit, index) => (
+              <input
+                key={index}
+                ref={(el) => {
+                  inputRefs.current[index] = el;
+                }}
+                type="text"
+                inputMode="numeric"
+                maxLength={1}
+                value={digit}
+                onChange={(e) =>
+                  handleChange(index, e.target.value.replace(/\D/g, ""))
+                }
+                onKeyDown={(e) => handleKeyDown(index, e)}
+                onPaste={handlePaste}
+                className={cn(
+                  "w-full aspect-square bg-black/20 border border-white/10 rounded-xl text-center text-xl font-bold text-white focus:outline-none focus:border-[#7C6EF5]/50 focus:ring-4 focus:ring-[#7C6EF5]/10 transition-all shadow-inner",
+                  error &&
+                    "border-rose-500/50 focus:border-rose-500 focus:ring-rose-500/10",
+                )}
+              />
+            ))}
+          </div>
+
+          <p className="text-[12px] text-white/30 text-center mb-6">
+            Enter the 6-digit code from your email
+          </p>
+
+          {error && (
+            <p className="text-[13px] text-rose-400 mb-4 font-medium text-center bg-rose-500/10 py-2 px-4 rounded-lg w-full border border-rose-500/20">
+              {error}
+            </p>
+          )}
+
+          <button
+            type="submit"
+            disabled={code.join("").length !== 6 || isVerifying || isSuccess}
+            className="w-full h-11 bg-[#2C1D42] hover:bg-[#3D295C] disabled:bg-[#2C1D42]/50 disabled:cursor-not-allowed text-[#B8B0FF] disabled:text-[#B8B0FF]/50 rounded-xl text-[14px] font-semibold transition-all flex items-center justify-center gap-2 group"
+          >
+            {isVerifying || isSuccess ? (
+              <>
+                <Loader2 size={16} className="animate-spin" />
+                {isSuccess ? "Redirecting..." : "Verifying..."}{" "}
+              </>
+            ) : (
+              <>
+                Verify code
+                <ChevronDown size={16} className="text-[#B8B0FF]/70" />
+              </>
+            )}
+          </button>
+        </form>
+
+        {/* ── FOOTER ACTIONS ── */}
+        <div className="mt-8 flex flex-col items-center gap-5">
+          <p className="text-[13px] text-white/40">
+            Didn't get it?{" "}
             {timer > 0 ? (
-              <span className="text-[#484f58]">Wait {timer}s</span>
+              <span className="text-white/30 ml-1">Wait {timer}s</span>
             ) : (
               <button
                 onClick={handleResend}
-                disabled={resending}
-                className="text-[#58a6ff] hover:underline font-medium disabled:opacity-50"
+                disabled={isResending}
+                className="text-[#7C6EF5] hover:text-[#B8B0FF] font-medium transition-colors ml-1 disabled:opacity-50"
               >
-                {resending ? "Sending..." : "Resend"}
+                {isResending ? "Sending..." : "Resend code"}{" "}
               </button>
             )}
           </p>
+
+          <button
+            onClick={() => router.back()}
+            type="button"
+            className="text-[13px] font-medium text-white/30 hover:text-white/70 transition-colors flex items-center gap-1.5"
+          >
+            <ChevronLeft size={14} />
+            Change email
+          </button>
         </div>
       </div>
-    </AuthCard>
+    </div>
   );
 }
