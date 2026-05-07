@@ -1,7 +1,6 @@
 "use client";
 
 import { ListTodo, Package, Plus, Users } from "lucide-react";
-import { Portal } from "@/components/ui/Portal";
 
 interface EmptyProjectStateProps {
   onCreateProject: () => void;

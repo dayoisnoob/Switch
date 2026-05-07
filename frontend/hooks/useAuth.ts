@@ -3,7 +3,6 @@ import { api } from "@/lib/api";
 import { getErrorMessage } from "@/lib/utils";
 import { AuthService } from "@/services/auth.service";
 import { useAuthStore } from "@/store/auth.store";
-import { useWorkspaceStore } from "@/store/workspace.store";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -21,12 +20,12 @@ export function useInitialiseReg() {
   const router = useRouter();
 
   return useMutation({
-    mutationFn: (email: string) =>
+    mutationFn: ({ email, token }: { email: string; token?: string }) =>
       api.post("/auth/register/initialise", { email }),
 
-    onSuccess: (res, email) => {
+    onSuccess: (res, { email, token }) => {
       router.push(
-        `/register/verify?email=${encodeURIComponent(email)}&status=${res.status || "success"}`,
+        `/register/verify?email=${encodeURIComponent(email)}&status=${res.status || "success"}${token ? `&inviteToken=${token}` : ""}`,
       );
     },
 
@@ -41,13 +40,13 @@ export function useVerifyReg() {
   const router = useRouter();
 
   return useMutation({
-    mutationFn: (data: { email: string; code: string }) =>
+    mutationFn: (data: { email: string; code: string; token?: string }) =>
       api.post("/auth/register/verify-otp", data),
 
     onSuccess: (_, variables) => {
       toast.success("Email verified!");
       router.push(
-        `/register/onboarding?email=${encodeURIComponent(variables.email)}`,
+        `/register/onboarding?email=${encodeURIComponent(variables.email)}${variables.token ? `&inviteToken=${variables.token}` : ""}`,
       );
     },
 

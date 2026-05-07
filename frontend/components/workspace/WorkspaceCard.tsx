@@ -1,5 +1,5 @@
+import { Workspace } from "@/hooks/useWorkspace";
 import { cn, getInitials } from "@/lib/utils";
-import { Workspace } from "@/services/workspace.service";
 import { BoardAssignee } from "@/types/board.types";
 import { Folder } from "lucide-react";
 import Image from "next/image";

@@ -1,7 +1,7 @@
 "use client";
 
 import { useCompleteReg } from "@/hooks/useAuth";
-import { useAuthStore } from "@/store/auth.store";
+import { AcceptInviteData, useAcceptInvite } from "@/hooks/useInvitations";
 import { ArrowRight, Check, Eye, EyeOff, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -23,7 +23,7 @@ export default function CompleteRegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const setUser = useAuthStore((s) => s.setUser);
+  const { mutate: acceptInvite, isPending: isAccepting } = useAcceptInvite();
 
   const {
     mutate: completeRegistration,
@@ -47,7 +47,24 @@ export default function CompleteRegisterPage() {
   const onFinish = (data: FormValues) => {
     if (!email) return;
     const userData = { email, ...data };
-    completeRegistration(userData);
+    completeRegistration(userData, {
+      onSuccess: () => {
+        const inviteToken = searchParams.get("inviteToken");
+
+        if (inviteToken) {
+          acceptInvite(inviteToken, {
+            onSuccess: (res: AcceptInviteData) => {
+              router.push(`/${res.workspaceSlug || "dashboard"}`);
+            },
+            onError: () => {
+              router.push("/getting-started");
+            },
+          });
+        } else {
+          router.push("/getting-started");
+        }
+      },
+    });
   };
 
   if (!email) return null;
@@ -65,7 +82,7 @@ export default function CompleteRegisterPage() {
       </div>
 
       {/* ── MAIN CARD ── */}
-      <div className="w-full max-w-[420px] bg-[#13131A] border border-white/5 rounded-2xl p-8 shadow-2xl animate-in fade-in zoom-in-95 duration-500 delay-150">
+      <div className="w-full max-w-105 bg-[#13131A] border border-white/5 rounded-2xl p-8 shadow-2xl animate-in fade-in zoom-in-95 duration-500 delay-150">
         {/* ── STEPPER ── */}
         <div className="flex items-center justify-between mb-8">
           {/* Step 1: Success */}
@@ -214,7 +231,7 @@ export default function CompleteRegisterPage() {
           </div>
           <button
             type="submit"
-            disabled={isPending || isSuccess}
+            disabled={isPending || isSuccess || isAccepting}
             className="w-full h-11 mt-6 bg-[#7C6EF5] hover:bg-[#6B5ED4] disabled:bg-[#7C6EF5]/50 text-white rounded-xl text-[14px] font-semibold transition-all shadow-lg shadow-[#7C6EF5]/20 active:scale-[0.98] flex items-center justify-center gap-2 group"
           >
             {isPending || isSuccess ? (

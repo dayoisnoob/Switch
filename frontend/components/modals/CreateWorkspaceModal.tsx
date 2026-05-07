@@ -1,11 +1,12 @@
 "use client";
 
 import { useCreateWorkspace } from "@/hooks/useWorkspace";
-import { getInitials, slugify } from "@/lib/utils";
+import { getErrorMessage, getInitials, slugify } from "@/lib/utils";
 import { LayoutGrid, Loader2, Plus, X } from "lucide-react";
 import { useState } from "react";
 // 1. Import your new Portal component!
 import { Portal } from "@/components/ui/Portal";
+import { toast } from "sonner";
 
 const AVATAR_COLORS = [
   "#F472B6",
@@ -38,8 +39,14 @@ export default function CreateWorkspaceModal({
 
   const handleCreate = () => {
     if (!name) return;
-    createWorkspace({ name, slug: displayedSlug, colour: selectedColor });
-    onClose();
+    createWorkspace(
+      { name, slug: displayedSlug, colour: selectedColor },
+      {
+        onSuccess: () => {
+          onClose();
+        },
+      },
+    );
   };
 
   const handleClose = () => {

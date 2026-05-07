@@ -28,13 +28,13 @@ import {
 import Image from "next/image";
 import { useRef, useState } from "react";
 import { useGetMembers } from "@/hooks/useWorkspace";
-import { useToggleAssignee } from "@/hooks/useToggleAssignee";
-import { useToggleLabel } from "@/hooks/useToggleLabel";
+import { useToggleAssignee } from "@/hooks/useCards";
+import { useToggleLabel } from "@/hooks/useLabels";
 import { useCreateLabel, useDeleteLabel } from "@/hooks/useLabels";
-import { useWorkspaceRole } from "@/hooks/useWorkspaceRole";
+import { useWorkspaceRole } from "@/hooks/useWorkspace";
 import { useMoveCard } from "@/hooks/useCards";
 import { useCardMenus } from "./useCardMenu";
-import { useUpdateCard } from "@/hooks/useUpdateCard";
+import { useUpdateCard } from "@/hooks/useCards";
 
 const PRIORITIES = [
   { label: "Urgent", value: "urgent", color: "bg-rose-500" },

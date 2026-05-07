@@ -1,6 +1,6 @@
 "use client";
 
-import CreateWorkspaceModal from "@/components/modals/AddWorkspaceModal";
+import CreateWorkspaceModal from "@/components/modals/CreateWorkspaceModal";
 import EmptyWorkspaceState from "@/components/workspace/EmptyWorkspace";
 import { WorkspaceCard } from "@/components/workspace/WorkspaceCard";
 import { useMe, useTeammates } from "@/hooks/useAuth";

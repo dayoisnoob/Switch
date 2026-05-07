@@ -4,7 +4,7 @@ import { GithubIcon, GoogleIcon } from "@/components/auth/auth-components";
 import { useInitialiseReg } from "@/hooks/useAuth";
 import { ArrowRight, Loader2 } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 
 interface SignupInitiateRequest {
@@ -12,12 +12,11 @@ interface SignupInitiateRequest {
 }
 
 export default function SignupPage() {
-  const {
-    mutate: sendOtp,
-    isPending,
-    isSuccess,
-    reset: resetInitMutation,
-  } = useInitialiseReg();
+  const searchParams = useSearchParams();
+
+  const inviteToken = searchParams.get("inviteToken");
+
+  const { mutate: sendOtp, isPending, isSuccess } = useInitialiseReg();
 
   const {
     register,
@@ -26,24 +25,8 @@ export default function SignupPage() {
     reset: resetForm,
   } = useForm<SignupInitiateRequest>();
 
-  // bfcache
-  useEffect(() => {
-    const handlePageShow = (event: PageTransitionEvent) => {
-      if (event.persisted) {
-        resetInitMutation();
-
-        resetForm();
-      }
-    };
-
-    window.addEventListener("pageshow", handlePageShow);
-    return () => {
-      window.removeEventListener("pageshow", handlePageShow);
-    };
-  }, [resetInitMutation, resetForm]);
-
   const handleSignup = async (data: SignupInitiateRequest) => {
-    sendOtp(data.email);
+    sendOtp({ email: data.email, token: inviteToken || "" });
   };
 
   const handleSocialAuth = (provider: "google" | "github") => {

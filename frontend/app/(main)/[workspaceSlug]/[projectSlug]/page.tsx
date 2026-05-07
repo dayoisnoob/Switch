@@ -55,13 +55,15 @@ import {
   useUpdateColumn,
 } from "@/hooks/useColumns";
 import { useGetProjectBySlug } from "@/hooks/useProjects";
-import { useGetMembers } from "@/hooks/useWorkspace";
-import { WorkspaceMembers } from "@/services/workspace.service";
+import {
+  useGetMembers,
+  useWorkspaceRole,
+  WorkspaceMembers,
+} from "@/hooks/useWorkspace";
 import { useBoardStore } from "@/store/board.store";
 import { useWorkspaceStore } from "@/store/workspace.store";
 import { BoardCard, BoardColumn } from "@/types/board.types";
 import { toast } from "sonner";
-import { useWorkspaceRole } from "@/hooks/useWorkspaceRole";
 
 function findColumnInSnapshot(
   id: string,

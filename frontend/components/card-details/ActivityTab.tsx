@@ -1,6 +1,6 @@
 "use client";
 
-import { ActivityPage, useGetActivities } from "@/hooks/useGetActivities";
+import { ActivityPage, useGetActivities } from "@/hooks/useActivities";
 import { getActivityConfig, renderActivityText } from "@/lib/activityHelpers";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
@@ -23,7 +23,7 @@ export function ActivityTab({ cardId }: { cardId: string }) {
   return (
     <div className="relative space-y-6 pb-4 pt-2">
       {allActivities.length > 0 && (
-        <div className="absolute top-4 bottom-4 left-[15px] w-px bg-gradient-to-b from-white/10 via-white/5 to-transparent pointer-events-none" />
+        <div className="absolute top-4 bottom-4 left-3.75 w-px bg-gradient-to-b from-white/10 via-white/5 to-transparent pointer-events-none" />
       )}
 
       {allActivities.length > 0 ? (

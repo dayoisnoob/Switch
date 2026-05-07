@@ -24,6 +24,7 @@ export const authTokens = async (
     id: userData.id,
     firstName: userData.firstName as string,
     lastName: userData.lastName as string,
+    email: userData.email,
     isActive: userData.isActive,
     role: userData.role,
     avatarUrl: userData.avatarUrl,

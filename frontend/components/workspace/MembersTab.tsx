@@ -1,13 +1,16 @@
 "use client";
 
-import { useWorkspaceRole } from "@/hooks/useWorkspaceRole";
 import { formatDate, getConsistentColor } from "@/lib/utils";
-import { Workspace, WorkspaceMembers } from "@/services/workspace.service";
 import { ChevronDown, Plus, Search, Trash2, Users } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
 import InviteMemberModal from "../modals/InviteMemberModal";
 import RemoveMemberModal from "../modals/RemoveMemberModal";
+import {
+  useWorkspaceRole,
+  Workspace,
+  WorkspaceMembers,
+} from "@/hooks/useWorkspace";
 
 export const MembersTab = ({
   members,

@@ -22,6 +22,7 @@ export interface UserType {
   id: string;
   firstName: string | null;
   lastName?: string;
+  email?: string;
   isActive: boolean;
   role: 'user' | 'admin';
   avatarUrl: string;

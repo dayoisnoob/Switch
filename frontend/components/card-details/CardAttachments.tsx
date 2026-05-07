@@ -22,7 +22,7 @@ import {
   useDeleteAttachment,
   useUploadAttachment,
 } from "@/hooks/useAttacments";
-import { useWorkspaceRole } from "@/hooks/useWorkspaceRole";
+import { useWorkspaceRole } from "@/hooks/useWorkspace";
 import { useParams } from "next/navigation";
 
 function formatBytes(bytes: number) {

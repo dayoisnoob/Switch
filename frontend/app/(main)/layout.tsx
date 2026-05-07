@@ -1,14 +1,17 @@
 "use client";
 
-import CreateWorkspaceModal from "@/components/modals/AddWorkspaceModal";
+import CreateWorkspaceModal from "@/components/modals/CreateWorkspaceModal";
 import WorkspaceSwitcherModal from "@/components/modals/SwitchWorkspaceModal";
 import CreateProjectModal from "@/components/modals/CreateProjectModal";
 import GlobalSearchModal from "@/components/modals/GlobalSearchModal";
 import { SocketProvider } from "@/components/SocketProvider";
 import { useLogout, useMe } from "@/hooks/useAuth";
 import { useWorkspaceProjects } from "@/hooks/useProjects";
-import { useGetMembers, useGetWorkspaces } from "@/hooks/useWorkspace";
-import { useWorkspaceRole } from "@/hooks/useWorkspaceRole";
+import {
+  useGetMembers,
+  useGetWorkspaces,
+  useWorkspaceRole,
+} from "@/hooks/useWorkspace";
 import { cn } from "@/lib/utils";
 import { useBoardStore } from "@/store/board.store";
 import { useNotificationStore } from "@/store/notification.store";
@@ -121,15 +124,27 @@ export default function MainLayout({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!workspaces.length) return;
 
+    const isCurrentActiveValid = workspaces.some(
+      (w) => w.slug === activeWorkspace?.slug,
+    );
+
     if (workspaceSlug) {
       const matched = workspaces.find((w) => w.slug === workspaceSlug);
-      if (matched && matched.slug !== activeWorkspace?.slug) {
-        setActiveWorkspace(matched);
+
+      if (matched) {
+        if (matched.slug !== activeWorkspace?.slug) {
+          setActiveWorkspace(matched);
+        }
+      } else {
+        setActiveWorkspace(workspaces[0]);
+        router.push("/dashboard");
       }
-    } else if (!activeWorkspace) {
-      setActiveWorkspace(workspaces[0]);
+    } else {
+      if (!activeWorkspace || !isCurrentActiveValid) {
+        setActiveWorkspace(workspaces[0]);
+      }
     }
-  }, [workspaces, workspaceSlug, activeWorkspace, setActiveWorkspace]);
+  }, [workspaces, workspaceSlug, activeWorkspace, setActiveWorkspace, router]);
 
   if (userLoading || workspacesLoading) {
     return <LayoutSkeleton />;

@@ -2,7 +2,6 @@
 
 import { getConsistentColor } from "@/lib/utils";
 import { Project } from "@/services/projects.service";
-import { Workspace } from "@/services/workspace.service";
 import {
   ChevronDown,
   Edit2,
@@ -23,7 +22,7 @@ import CreateProjectModal, {
 import DeleteProjectModal from "../modals/DeleteProjectModal";
 import Image from "next/image";
 import { useDeleteProject } from "@/hooks/useProjects";
-import { useWorkspaceRole } from "@/hooks/useWorkspaceRole";
+import { useWorkspaceRole, Workspace } from "@/hooks/useWorkspace";
 
 interface ProjectsTab {
   workspaceSlug: string;

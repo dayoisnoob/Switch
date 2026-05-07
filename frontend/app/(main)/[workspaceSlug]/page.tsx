@@ -7,8 +7,11 @@ import { MembersTab } from "@/components/workspace/MembersTab";
 import { ProjectsTab } from "@/components/workspace/ProjectsTab";
 import { SettingsTab } from "@/components/workspace/SettingsTab";
 import { useWorkspaceProjects } from "@/hooks/useProjects";
-import { useGetMembers, useGetWorkspaces } from "@/hooks/useWorkspace";
-import { useWorkspaceRole } from "@/hooks/useWorkspaceRole";
+import {
+  useGetMembers,
+  useGetWorkspaces,
+  useWorkspaceRole,
+} from "@/hooks/useWorkspace";
 import { cn } from "@/lib/utils";
 import { LayoutGrid, UserPlus } from "lucide-react";
 import {

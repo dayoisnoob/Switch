@@ -1,7 +1,11 @@
-import { and, countDistinct, eq, gt, isNull, sql } from 'drizzle-orm';
+import { and, countDistinct, eq, gt, inArray, isNull, sql } from 'drizzle-orm';
 import { db } from '../config/db';
 import { env } from '../config/env';
 import {
+  boardsTable,
+  cardAssigneeRelations,
+  cardAssigneesTable,
+  cardsTable,
   projectsTable,
   usersTable,
   workspaceInvitationsTable,
@@ -233,9 +237,6 @@ export class WorkspaceService {
   }
 
   static async removeMember(userId: string, workspaceId: string) {
-    console.log('userId:', userId);
-    console.log('wpId:', workspaceId);
-
     const [member] = await db
       .select()
       .from(workspaceMembershipsTable)
@@ -254,15 +255,35 @@ export class WorkspaceService {
       throw new ApiError(403, 'You cannot remove the owner of this workspace.');
     }
 
-    const [deletedMember] = await db
-      .delete(workspaceMembershipsTable)
-      .where(
-        and(
-          eq(workspaceMembershipsTable.workspaceId, workspaceId),
-          eq(workspaceMembershipsTable.userId, userId)
+    const deletedMember = await db.transaction(async (tx) => {
+      const [deletedMember] = await tx
+        .delete(workspaceMembershipsTable)
+        .where(
+          and(
+            eq(workspaceMembershipsTable.workspaceId, workspaceId),
+            eq(workspaceMembershipsTable.userId, userId)
+          )
         )
-      )
-      .returning();
+        .returning();
+
+      const cardIds = tx
+        .select({ id: cardsTable.id })
+        .from(cardsTable)
+        .innerJoin(boardsTable, eq(cardsTable.boardId, boardsTable.id))
+        .innerJoin(projectsTable, eq(boardsTable.projectId, projectsTable.id))
+        .where(eq(projectsTable.workspaceId, workspaceId));
+
+      await tx
+        .delete(cardAssigneesTable)
+        .where(
+          and(
+            eq(cardAssigneesTable.userId, userId),
+            inArray(cardAssigneesTable.cardId, cardIds)
+          )
+        );
+
+      return deletedMember;
+    });
 
     if (!deletedMember) {
       throw new ApiError(500, 'Error deleting this member. Please try again.');
@@ -276,7 +297,8 @@ export class WorkspaceService {
     data: SendInvite,
     workspaceId: string,
     inviterName: string,
-    workspaceName: string
+    workspaceName: string,
+    workspaceSlug: string
   ) {
     const [existingMember] = await db
       .select({
@@ -389,7 +411,8 @@ export class WorkspaceService {
     workspaceId: string,
     email: string,
     inviterName: string,
-    workspaceName: string
+    workspaceName: string,
+    workspaceSlug: string
   ) {
     const { token, tokenHash, expiresAt } = tempTokens();
 

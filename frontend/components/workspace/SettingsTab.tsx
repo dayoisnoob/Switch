@@ -1,15 +1,13 @@
 "use client";
 
-import { useUpdateWorkspace } from "@/hooks/useWorkspace";
-import { Workspace } from "@/services/workspace.service";
+import { useUpdateWorkspace, Workspace } from "@/hooks/useWorkspace";
 import { AlertTriangle, Building2, Link2, Loader2, Save } from "lucide-react";
 import { useState } from "react";
-import { cn } from "@/lib/utils"; // Assuming you have this utility
 
 interface SettingsTabProps {
   activeWorkspace: Workspace;
   onOpenDeleteModal: () => void;
-  isOwner: boolean; // 🌟 NEW: Passed from the parent
+  isOwner: boolean;
 }
 
 export const SettingsTab = ({

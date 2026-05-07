@@ -8,7 +8,7 @@ import {
   useGetComments,
 } from "@/hooks/useComments";
 import { useGetMembers } from "@/hooks/useWorkspace";
-import { useWorkspaceRole } from "@/hooks/useWorkspaceRole";
+import { useWorkspaceRole } from "@/hooks/useWorkspace";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
 import { Pencil, Trash2 } from "lucide-react";

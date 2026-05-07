@@ -91,7 +91,7 @@ router.post(
 );
 
 router.get(
-  '/:workspaceSlug/invitations',
+  '/:workspaceSlug/invitations/pending',
   authenticate,
   validateUrlParams(paramsSchema),
   requireWorkspaceMember,

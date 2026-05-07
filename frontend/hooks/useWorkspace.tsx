@@ -1,15 +1,47 @@
+import { api } from "@/lib/api";
 import { getErrorMessage } from "@/lib/utils";
-import {
-  CreateWP,
-  SendInvite,
-  UpdateWp,
-  Workspace,
-  WorkspaceService,
-} from "@/services/workspace.service";
 import { useWorkspaceStore } from "@/store/workspace.store";
+import { BoardAssignee } from "@/types/board.types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { useMe } from "./useAuth";
+
+export type WorkspaceRole = "Owner" | "Admin" | "Member";
+
+export interface WorkspaceMembers {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  avatarUrl: string;
+  role: WorkspaceRole;
+  joinedAt: string;
+  userId: string;
+}
+
+export interface Workspace {
+  id: string;
+  name: string;
+  slug: string;
+  ownerId: string;
+  role: WorkspaceRole;
+  colour: string;
+  projectsCount: number;
+  membersCount: number;
+  members: BoardAssignee[];
+}
+
+export interface CreateWorkspace {
+  name: string;
+  slug: string;
+  colour: string;
+}
+
+export interface UpdateWorkspace {
+  name?: string;
+  slug?: string;
+}
 
 export function useCreateWorkspace() {
   const router = useRouter();
@@ -17,8 +49,8 @@ export function useCreateWorkspace() {
   const setActiveWorkspace = useWorkspaceStore((s) => s.setActiveWorkspace);
 
   return useMutation({
-    mutationFn: async (data: CreateWP) =>
-      WorkspaceService.createWorkspace(data),
+    mutationFn: async (data: CreateWorkspace): Promise<Workspace> =>
+      api.post("/workspaces", data),
 
     onSuccess: (workspace) => {
       queryClient.setQueryData(["workspaces"], (old: Workspace[] = []) => [
@@ -42,7 +74,7 @@ export function useCreateWorkspace() {
 export const useGetWorkspaces = () => {
   return useQuery({
     queryKey: ["workspaces"],
-    queryFn: () => WorkspaceService.getWorkspaces(),
+    queryFn: (): Promise<Workspace[]> => api.get("/workspaces"),
     staleTime: 1000 * 60 * 5,
   });
 };
@@ -52,8 +84,10 @@ export function useUpdateWorkspace(workspaceSlug: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (data: UpdateWp) =>
-      WorkspaceService.updateWorkspace(workspaceSlug, data),
+    mutationFn: async (
+      data: UpdateWorkspace,
+    ): Promise<{ name: string; slug: string }> =>
+      api.patch(`/workspaces/${workspaceSlug}`, data),
 
     onSuccess: (updatedWorkspace) => {
       toast.success("Workspace Updated");
@@ -75,87 +109,19 @@ export function useUpdateWorkspace(workspaceSlug: string) {
 export const useGetMembers = (workspaceSlug: string) => {
   return useQuery({
     queryKey: ["members", workspaceSlug],
-    queryFn: () => WorkspaceService.getMembers(workspaceSlug!),
+    queryFn: (): Promise<WorkspaceMembers[]> =>
+      api.get(`/workspaces/${workspaceSlug}/members`),
     enabled: !!workspaceSlug,
     staleTime: 1000 * 60 * 5,
   });
 };
-
-export function useSendInvite(workspaceSlug: string) {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (data: SendInvite) =>
-      WorkspaceService.sendInvite(workspaceSlug, data),
-
-    onSuccess: () => {
-      toast.success("Invitation sent successfully!");
-      queryClient.invalidateQueries({ queryKey: ["invitations"] });
-    },
-
-    onError: (err) => {
-      const message = getErrorMessage(err);
-      toast.error(message);
-    },
-  });
-}
-
-export const useGetPendingInvites = (workspaceSlug?: string) => {
-  return useQuery({
-    queryKey: ["invitations", workspaceSlug],
-    queryFn: () => WorkspaceService.getPendingInvites(workspaceSlug!),
-    enabled: !!workspaceSlug,
-    staleTime: 1000 * 60 * 5,
-  });
-};
-
-export function useRevokeInvite(workspaceSlug: string) {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (email: string) =>
-      WorkspaceService.revokeInvite(workspaceSlug, email),
-
-    onSuccess: () => {
-      toast.success("Invitation revoked");
-      queryClient.invalidateQueries({
-        queryKey: ["invitations", workspaceSlug],
-      });
-    },
-
-    onError: (err) => {
-      toast.error(getErrorMessage(err));
-    },
-  });
-}
-
-export function useResendInvite(workspaceSlug: string) {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (email: string) =>
-      WorkspaceService.resendInvite(workspaceSlug, email),
-
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["invitations", workspaceSlug],
-      });
-      toast.success("Invitation resent successfully!");
-    },
-
-    onError: (err) => {
-      const message = getErrorMessage(err);
-      toast.error(message);
-    },
-  });
-}
 
 export function useRemoveMember(workspaceSlug: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (userId: string) =>
-      WorkspaceService.removeMember(workspaceSlug, userId),
+      api.delete(`/workspaces/${workspaceSlug}/members/${userId}`),
 
     onSuccess: () => {
       toast.success("User removed");
@@ -174,7 +140,7 @@ export function useDeleteWorkspace(workspaceSlug: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async () => WorkspaceService.deleteWorkspace(workspaceSlug),
+    mutationFn: async () => api.delete(`/workspaces/${workspaceSlug}`),
 
     onSuccess: () => {
       toast.success("Workspace deleted");
@@ -187,4 +153,22 @@ export function useDeleteWorkspace(workspaceSlug: string) {
       toast.error(getErrorMessage(err));
     },
   });
+}
+
+export function useWorkspaceRole(workspaceSlug: string) {
+  const { data: currentUser } = useMe();
+  const { data: workspaceMembers } = useGetMembers(workspaceSlug);
+
+  const currentMember = workspaceMembers?.find(
+    (m) => m.userId === currentUser?.id,
+  );
+
+  const role = currentMember?.role ?? "Member";
+
+  return {
+    role,
+    isOwner: role === "Owner",
+    isAdmin: role === "Admin",
+    canManageWorkspace: ["Owner", "Admin"].includes(role),
+  };
 }

@@ -1,8 +1,7 @@
 "use client";
 
-import { useRemoveMember } from "@/hooks/useWorkspace";
+import { useRemoveMember, WorkspaceMembers } from "@/hooks/useWorkspace";
 import { getConsistentColor } from "@/lib/utils";
-import { WorkspaceMembers } from "@/services/workspace.service";
 import { AlertTriangle, UserMinus, X } from "lucide-react";
 import Image from "next/image";
 import { useEffect } from "react";
@@ -27,7 +26,7 @@ export default function RemoveMemberModal({
   const handleRemove = (userId: string) => {
     removeMember(userId);
     onClose();
-    window.location.href = "/dashboard";
+    window.location.reload;
   };
 
   useEffect(() => {

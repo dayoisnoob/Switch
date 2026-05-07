@@ -1,6 +1,6 @@
 "use client";
 
-import CreateWorkspaceModal from "@/components/modals/AddWorkspaceModal";
+import CreateWorkspaceModal from "@/components/modals/CreateWorkspaceModal";
 import Link from "next/link";
 import { useState } from "react";
 
