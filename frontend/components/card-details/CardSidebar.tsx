@@ -247,8 +247,11 @@ export function CardSidebar({
               type="date"
               value={dateInputValue}
               onChange={(e) => {
-                if (e.target.value)
+                if (e.target.value) {
                   updateCard({ dueDate: new Date(e.target.value) });
+                } else {
+                  updateCard({ dueDate: null });
+                }
               }}
               className="absolute bottom-0 left-0 w-0 h-0 opacity-0 pointer-events-none scheme-dark"
             />
