@@ -50,6 +50,7 @@ import { formatAvatarUrls } from "@/components/workspace/WorkspaceCard";
 import { useBoardSocket } from "@/hooks/useBoardSocket";
 import { useCreateCard, useMoveCard } from "@/hooks/useCards";
 import {
+  useClearColumncards,
   useDeleteColumn,
   useMoveColumn,
   useUpdateColumn,
@@ -526,6 +527,7 @@ const SortableColumn = memo(function SortableColumn({
   const { mutateAsync: createCard } = useCreateCard(column.id);
   const { mutateAsync: updateCol } = useUpdateColumn();
   const { mutateAsync: deleteCol } = useDeleteColumn();
+  const { mutateAsync: clearCards } = useClearColumncards();
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -585,8 +587,17 @@ const SortableColumn = memo(function SortableColumn({
     }
   };
 
+  const handleClearCards = async () => {
+    setIsMenuOpen(false);
+    try {
+      await clearCards(column.id);
+      setColumns((prev) =>
+        prev.map((col) => (col.id === column.id ? { ...col, cards: [] } : col)),
+      );
+    } catch {}
+  };
+
   const handleAddCard = async (data: AddCardFormData) => {
-    console.log(data);
     await createCard({
       title: data.title,
       description: data.description,
@@ -676,7 +687,7 @@ const SortableColumn = memo(function SortableColumn({
                   <>
                     <div className="h-px bg-white/4 my-1.5 mx-2" />
                     <button
-                      onClick={() => setIsMenuOpen(false)}
+                      onClick={handleClearCards}
                       onPointerDown={(e) => e.stopPropagation()}
                       className="flex items-center gap-2.5 px-3 py-2 text-[13px] font-medium text-white/70 hover:bg-white/5 hover:text-white transition-colors w-full text-left"
                     >
@@ -718,7 +729,7 @@ const SortableColumn = memo(function SortableColumn({
         ) : (
           <SortableContext
             id={column.id}
-            items={column.cards.map((c) => c.id)}
+            items={(column.cards ?? []).map((c) => c.id)}
             strategy={verticalListSortingStrategy}
           >
             <div className="flex flex-col gap-3 p-3 pb-4">

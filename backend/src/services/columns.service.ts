@@ -1,4 +1,4 @@
-import { desc, eq } from 'drizzle-orm';
+import { desc, eq, inArray } from 'drizzle-orm';
 import { db } from '../config/db';
 import { cardsTable, columnsTable } from '../db';
 import { ApiError } from '../utils/api-response';
@@ -142,5 +142,42 @@ export class ColumnsService {
     });
 
     return deletedColumn;
+  }
+
+  static async deleteCards(
+    userId: string,
+    actorName: string,
+    columnId: string
+  ) {
+    const [column] = await db
+      .select({
+        id: columnsTable.id,
+        boardId: columnsTable.boardId,
+        name: columnsTable.name,
+      })
+      .from(columnsTable)
+      .where(eq(columnsTable.id, columnId))
+      .limit(1);
+
+    if (!column) {
+      throw new ApiError(404, 'Column not found.');
+    }
+
+    const deletedCards = await db
+      .delete(cardsTable)
+      .where(eq(cardsTable.columnId, columnId))
+      .returning();
+
+    if (deletedCards.length === 0)
+      throw new ApiError(500, 'Error deleting cards, Please try again');
+
+    emitBoardEvent(column.boardId, 'cards:deleted', {
+      columnId: column.id,
+      actorName,
+      actorId: userId,
+      colName: column.name,
+    });
+
+    return column;
   }
 }

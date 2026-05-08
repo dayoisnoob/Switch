@@ -66,4 +66,18 @@ export class ColumnsController {
 
     res.json(new ApiResponse(200, 'Column deleted successfully', column));
   }
+
+  static async deleteCards(req: AuthenticatedRequest, res: Response) {
+    const userId = req.user.id;
+    const actorName = `${req.user?.firstName} ${req.user?.lastName}`.trim();
+    const columnId = req.params.columnId as string;
+
+    const column = await ColumnsService.deleteCards(
+      userId,
+      actorName,
+      columnId
+    );
+
+    res.json(new ApiResponse(200, 'Cards deleted successfully', column));
+  }
 }

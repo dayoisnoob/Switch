@@ -1,9 +1,11 @@
+import { api } from "@/lib/api";
 import { getErrorMessage } from "@/lib/utils";
 import {
   ColumnService,
   ColUpdate,
   CreateCol,
 } from "@/services/columns.service";
+import { useBoardStore } from "@/store/board.store";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
@@ -49,6 +51,24 @@ export function useMoveColumn() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["column"] });
       queryClient.invalidateQueries({ queryKey: ["board"] });
+    },
+
+    onError: (err) => {
+      const message = getErrorMessage(err);
+      toast.error(message);
+    },
+  });
+}
+
+export function useClearColumncards() {
+  const deleteCards = useBoardStore((s) => s.deleteCards);
+
+  return useMutation({
+    mutationFn: (columnId: string) => api.delete(`/columns/${columnId}/cards`),
+
+    onSuccess: (_, columnId) => {
+      deleteCards(columnId);
+      toast.success("Column cards cleared");
     },
 
     onError: (err) => {

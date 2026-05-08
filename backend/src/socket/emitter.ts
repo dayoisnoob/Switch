@@ -10,6 +10,7 @@ type BoardEvent =
   | 'column:updated'
   | 'column:reordered'
   | 'column:deleted'
+  | 'cards:deleted'
   | 'assignee:added'
   | 'assignee:removed'
   | 'label:attached'

@@ -120,6 +120,14 @@ export function useBoardSocket(boardId: string) {
       },
     );
 
+    socket.on("cards:deleted", ({ columnId, actorName, actorId, colName }) => {
+      useBoardStore.getState().deleteCards(columnId);
+      if (actorId !== currentUser?.id) {
+        const actor = actorName || "A teammate";
+        toast.success(`${actor} deleted all cards in the "${colName}" column`);
+      }
+    });
+
     // --- ASSIGNEES ---
     socket.on(
       "assignee:added",
@@ -266,6 +274,7 @@ export function useBoardSocket(boardId: string) {
       socket.off("column:updated");
       socket.off("column:deleted");
       socket.off("column:reordered");
+      socket.off("cards:deleted");
       socket.off("assignee:added");
       socket.off("assignee:removed");
       socket.off("label:attached");

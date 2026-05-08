@@ -58,4 +58,13 @@ router.delete(
   asyncHandler(ColumnsController.deleteColumn)
 );
 
+router.delete(
+  '/:columnId/cards',
+  authenticate,
+  validateUrlParams(paramsSchema),
+  requireWorkspaceMember,
+  requireWorkspaceRole(['Owner', 'Admin']),
+  asyncHandler(ColumnsController.deleteCards)
+);
+
 export default router;
