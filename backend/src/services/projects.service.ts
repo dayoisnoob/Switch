@@ -185,7 +185,7 @@ export class ProjectService {
     const [updatedProject] = await db
       .update(projectsTable)
       .set({
-        ...(name && { name }),
+        ...(name && { name, slug: slugGen(name) }),
         ...(description && { description }),
         ...(icon && { icon }),
         ...(workspaceId && { workspaceId: toWorkspaceId }),
