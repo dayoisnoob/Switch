@@ -1,6 +1,7 @@
 import { and, count, desc, eq, inArray, notInArray } from 'drizzle-orm';
 import { db } from '../config/db';
 import {
+  attachmentsTable,
   boardsTable,
   cardAssigneesTable,
   cardLabelsTable,
@@ -20,6 +21,8 @@ import type {
 } from '../validations/cards.validation';
 import { ActivityService } from './activity.service';
 import { NotificationService } from './notification.service';
+import { cloudinary } from '../config/cloudinary';
+import { logger } from '../config/logger';
 
 export class CardsService {
   static async createCard(
@@ -294,6 +297,25 @@ export class CardsService {
     projectId: string,
     cardId: string
   ) {
+    const attachments = await db
+      .select()
+      .from(attachmentsTable)
+      .where(eq(attachmentsTable.cardId, cardId));
+
+    if (attachments.length > 0) {
+      try {
+        const deletePromises = attachments.map((attachment) =>
+          cloudinary.uploader.destroy(attachment.publicId, {
+            resource_type: attachment.resourceType,
+          })
+        );
+
+        await Promise.all(deletePromises);
+      } catch (error) {
+        logger.error(error, 'Failed to delete attachments from Cloudinary');
+      }
+    }
+
     const [deletedCard] = await db
       .delete(cardsTable)
       .where(eq(cardsTable.id, cardId))

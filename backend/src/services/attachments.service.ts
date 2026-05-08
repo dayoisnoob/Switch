@@ -2,10 +2,9 @@ import { eq } from 'drizzle-orm';
 import { cloudinary } from '../config/cloudinary';
 import { db } from '../config/db';
 import { attachmentsTable, boardsTable, cardsTable } from '../db';
+import { emitBoardEvent } from '../socket/emitter';
 import { ApiError } from '../utils/api-response';
 import { ActivityService } from './activity.service';
-import { getResourceType } from '../utils/helpers';
-import { emitBoardEvent } from '../socket/emitter';
 
 export class AttachmentsService {
   static async uploadAttachment(
@@ -22,6 +21,7 @@ export class AttachmentsService {
       return 'raw';
     };
 
+    // 1. Upload to Cloudinary FIRST (Outside the DB transaction)
     const uploaded = await new Promise<{
       secure_url: string;
       public_id: string;
@@ -46,50 +46,71 @@ export class AttachmentsService {
 
     const resourceType = getResourceType(file.mimetype);
 
-    const [attachment] = await db
-      .insert(attachmentsTable)
-      .values({
+    try {
+      const attachment = await db.transaction(async (tx) => {
+        const [inserted] = await tx
+          .insert(attachmentsTable)
+          .values({
+            cardId,
+            userId,
+            fileName: file.originalname,
+            fileUrl: uploaded.secure_url,
+            resourceType,
+            publicId: uploaded.public_id,
+            fileSize: uploaded.bytes,
+            mimeType: file.mimetype,
+          })
+          .returning();
+
+        if (!inserted) {
+          throw new ApiError(500, 'Error saving attachment. Please try again.');
+        }
+
+        // so it executes within this exact transaction!
+        await ActivityService.log(
+          {
+            type: 'attachment_added',
+            userId,
+            projectId,
+            cardId,
+            metadata: { name: inserted.fileName },
+          },
+          tx
+        );
+
+        return inserted;
+      });
+
+      const { title } = await AttachmentsService.getCardAndBoardDetails(cardId);
+
+      emitBoardEvent(boardId, 'attachment:uploaded', {
         cardId,
-        userId,
-        fileName: file.originalname,
-        fileUrl: uploaded.secure_url,
-        resourceType,
-        publicId: uploaded.public_id,
-        fileSize: uploaded.bytes,
-        mimeType: file.mimetype,
-      })
-      .returning();
+        attachment,
+        actorId: userId,
+        actorName,
+        cardTitle: title,
+      });
 
-    if (!attachment)
-      throw new ApiError(500, 'Error saving attachment. Please try again.');
+      return {
+        id: attachment.id,
+        fileName: attachment.fileName,
+        fileUrl: attachment.fileUrl,
+        fileSize: attachment.fileSize,
+        mimeType: attachment.mimeType,
+        userId: attachment.userId,
+        createdAt: attachment.createdAt,
+      };
+    } catch (error) {
+      await cloudinary.uploader
+        .destroy(uploaded.public_id, {
+          resource_type: resourceType,
+        })
+        .catch((err) =>
+          console.error('Failed to cleanup Cloudinary file:', err)
+        );
 
-    await ActivityService.log({
-      type: 'attachment_added',
-      userId,
-      projectId,
-      cardId,
-      metadata: { name: attachment.fileName },
-    });
-
-    const { title } = await AttachmentsService.getCardAndBoardDetails(cardId);
-
-    emitBoardEvent(boardId, 'attachment:uploaded', {
-      cardId,
-      attachment,
-      actorId: userId,
-      actorName,
-      cardTitle: title,
-    });
-
-    return {
-      id: attachment.id,
-      fileName: attachment.fileName,
-      fileUrl: attachment.fileUrl,
-      fileSize: attachment.fileSize,
-      mimeType: attachment.mimeType,
-      userId: attachment.userId,
-      createdAt: attachment.createdAt,
-    };
+      throw error;
+    }
   }
 
   static async deleteAttachment(

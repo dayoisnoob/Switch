@@ -40,7 +40,7 @@ export interface CardUpdateType {
   title?: string;
   description?: string;
   priority?: CardPriority;
-  dueDate?: Date;
+  dueDate?: Date | null;
 }
 export interface CreateCard {
   title: string;

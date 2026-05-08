@@ -1,3 +1,4 @@
+import { getErrorMessage } from "@/lib/utils";
 import { CreateLabelType, LabelService } from "@/services/labels.service";
 import { useBoardStore } from "@/store/board.store";
 import { BoardCard } from "@/types/board.types";
@@ -21,7 +22,8 @@ export const useCreateLabel = (workspaceSlug: string) => {
 
       toast.success("Workspace label created");
     },
-    onError: () => toast.error("Failed to create label"),
+    onError: (err) =>
+      toast.error(getErrorMessage(err) || "Failed to create label"),
   });
 };
 export const useDeleteLabel = (workspaceSlug: string) => {
@@ -47,7 +49,8 @@ export const useDeleteLabel = (workspaceSlug: string) => {
 
       toast.success("Workspace label deleted");
     },
-    onError: () => toast.error("Failed to delete label"),
+    onError: (err) =>
+      toast.error(getErrorMessage(err) || "Failed to delete label"),
   });
 };
 

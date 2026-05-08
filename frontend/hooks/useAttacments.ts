@@ -1,4 +1,5 @@
 import { api } from "@/lib/api";
+import { getErrorMessage } from "@/lib/utils";
 import { useBoardStore } from "@/store/board.store";
 import { CardAttachment } from "@/types/board.types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -21,8 +22,8 @@ export function useUploadAttachment(cardId: string) {
       queryClient.invalidateQueries({ queryKey: ["cards"] });
       toast.success("Attachment uploaded successfully");
     },
-    onError: () => {
-      toast.error("Failed to upload attachment");
+    onError: (err) => {
+      toast.error(getErrorMessage(err) || "Failed to upload attachment");
     },
   });
 }

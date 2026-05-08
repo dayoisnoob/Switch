@@ -12,9 +12,9 @@ interface LogActivityInput {
 }
 
 export class ActivityService {
-  static async log(input: LogActivityInput) {
+  static async log(input: LogActivityInput, tx: any = db) {
     try {
-      await db.insert(activitiesTable).values(input);
+      await tx.insert(activitiesTable).values(input);
     } catch (err) {
       logger.error({ err, input }, 'Failed to log activity');
     }
