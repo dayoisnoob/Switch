@@ -297,8 +297,7 @@ export class WorkspaceService {
     data: SendInvite,
     workspaceId: string,
     inviterName: string,
-    workspaceName: string,
-    workspaceSlug: string
+    workspaceName: string
   ) {
     const [existingMember] = await db
       .select({
@@ -411,10 +410,25 @@ export class WorkspaceService {
     workspaceId: string,
     email: string,
     inviterName: string,
-    workspaceName: string,
-    workspaceSlug: string
+    workspaceName: string
   ) {
     const { token, tokenHash, expiresAt } = tempTokens();
+
+    const [invite] = await db
+      .select({
+        acceptedAt: workspaceInvitationsTable.acceptedAt,
+      })
+      .from(workspaceInvitationsTable)
+      .where(
+        and(
+          eq(workspaceInvitationsTable.workspaceId, workspaceId),
+          eq(workspaceInvitationsTable.email, email)
+        )
+      )
+      .limit(1);
+
+    if (invite?.acceptedAt)
+      throw new ApiError(409, 'You have already accepted this invitation');
 
     const [updatedInvite] = await db
       .update(workspaceInvitationsTable)

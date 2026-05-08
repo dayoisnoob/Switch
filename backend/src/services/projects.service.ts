@@ -107,6 +107,8 @@ export class ProjectService {
   }
 
   static async getWorkspaceProjects(workspaceId: string) {
+    console.log('about to fetch:', workspaceId);
+
     const cardsCount = db
       .select({
         projectId: boardsTable.projectId,
@@ -166,7 +168,6 @@ export class ProjectService {
     return projects;
   }
 
- 
   static async getProject(workspaceId: string, slug: string) {
     const project = await ProjectService.verifyProject(workspaceId, slug);
 

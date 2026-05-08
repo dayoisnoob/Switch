@@ -124,7 +124,7 @@ export function useAcceptInvite() {
       ) as Promise<AcceptInviteData>;
     },
 
-    onSuccess: (data) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ["workspaces"],
       });

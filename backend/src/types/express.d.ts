@@ -7,7 +7,6 @@ declare global {
       workspace?: {
         workspaceId: string;
         workspaceName: string;
-        workspaceSlug: string;
         role: WorkspaceRoles;
       };
 

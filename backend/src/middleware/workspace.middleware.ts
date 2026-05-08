@@ -182,7 +182,6 @@ export const requireWorkspaceMember = asyncHandler(
         role: workspaceMembershipsTable.role,
         workspaceId: workspaceMembershipsTable.workspaceId,
         workspaceName: workspacesTable.name,
-        workspaceSlug: workspacesTable.slug,
       })
       .from(workspaceMembershipsTable)
       .innerJoin(

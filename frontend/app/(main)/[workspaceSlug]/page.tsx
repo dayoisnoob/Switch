@@ -45,11 +45,10 @@ export default function WorkspacePage() {
   const { data: members = [], isLoading: membersloading } =
     useGetMembers(workspaceSlug);
   const { data: projects = [], isLoading: projectsLoading } =
-    useWorkspaceProjects(workspaceSlug);
+    useWorkspaceProjects(activeWorkspace?.slug);
 
   if (!activeWorkspace) return null;
 
-  // 🛡️ THE FIX: Only add the Settings tab if they have permission
   const tabs = [
     { id: "Projects" },
     { id: "Members" },

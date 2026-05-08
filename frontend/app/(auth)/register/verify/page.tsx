@@ -11,6 +11,8 @@ export default function VerifyPage() {
   const searchParams = useSearchParams();
   const email = searchParams.get("email");
 
+  const inviteToken = searchParams.get("inviteToken");
+
   const [code, setCode] = useState(["", "", "", "", "", ""]);
   const [error, setError] = useState("");
   const [timer, setTimer] = useState(30);
@@ -86,7 +88,7 @@ export default function VerifyPage() {
     setError("");
 
     verifyOtp(
-      { email, code: fullCode },
+      { email, code: fullCode, token: inviteToken ?? "" },
       {
         onError: (err: any) => {
           setError(

@@ -4,6 +4,7 @@ import { Portal } from "@/components/ui/Portal";
 import { useCreateProject, useUpdateProject } from "@/hooks/useProjects";
 import { useGetWorkspaces } from "@/hooks/useWorkspace";
 import { Project } from "@/services/projects.service";
+import { useWorkspaceStore } from "@/store/workspace.store";
 import {
   AlignLeft,
   BarChart3,
@@ -93,25 +94,19 @@ export default function CreateProjectModal({
 
   const iconPickerRef = useRef<HTMLDivElement>(null);
 
-  const { data: workspaces, isLoading: workspacesLoading } = useGetWorkspaces();
   const { mutate: createProject, isPending: creatingProject } =
     useCreateProject();
   const { mutate: updateProject, isPending: updatingProject } =
     useUpdateProject();
 
   const isEditMode = !!project;
-  // const isPending = creatingProject || updatingProject;
 
-  const activeWorkspaceId =
-    manualWorkspaceId ?? (project?.workspaceId || workspaces?.[0]?.id || "");
-  const activeWorkspace =
-    workspaces?.find((w) => w.id === activeWorkspaceId) || null;
+  const activeWorkspace = useWorkspaceStore((s) => s.activeWorkspace);
 
   const selectedIcon =
     PROJECT_ICONS.find((item) => item.value === icon) || PROJECT_ICONS[0];
   const CurrentIcon = selectedIcon.Icon;
 
-  // 2. TREAT BOTH SUBMITS
   const handleSubmit = () => {
     if (!name || !activeWorkspace || !icon) return;
 
@@ -285,37 +280,6 @@ export default function CreateProjectModal({
                   className="input-premium w-full resize-none p-3 text-sm focus-ring"
                 />
               </div>
-
-              {/* Workspace */}
-              <div>
-                <div className="mb-1.5 flex gap-1 text-sm font-semibold text-primary">
-                  Workspace
-                </div>
-
-                <div className="relative">
-                  <select
-                    value={activeWorkspaceId}
-                    onChange={(e) => setManualWorkspaceId(e.target.value)}
-                    disabled={workspacesLoading || !workspaces?.length}
-                    className="input-premium h-10 w-full appearance-none px-3 text-sm focus-ring disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {workspacesLoading ? (
-                      <option>Loading workspaces...</option>
-                    ) : (
-                      workspaces?.map((ws) => (
-                        <option key={ws.id} value={ws.id}>
-                          {ws.name}
-                        </option>
-                      ))
-                    )}
-                  </select>
-
-                  <ChevronDown
-                    size={16}
-                    className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-muted"
-                  />
-                </div>
-              </div>
             </div>
           </div>
 
@@ -330,12 +294,7 @@ export default function CreateProjectModal({
 
             <button
               onClick={handleSubmit}
-              disabled={
-                !name.trim() ||
-                creatingProject ||
-                workspacesLoading ||
-                updatingProject
-              }
+              disabled={!name.trim() || creatingProject || updatingProject}
               className="btn-primary flex h-9 items-center gap-2 px-4 text-sm font-semibold focus-ring disabled:cursor-not-allowed disabled:opacity-50"
             >
               {project ? (

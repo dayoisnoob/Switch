@@ -76,7 +76,6 @@ export class WorkspaceController {
 
     const inviterName = req.user.firstName;
     const workspaceName = req.workspace!.workspaceName;
-    const workspaceSlug = req.workspace!.workspaceSlug;
 
     if (!workspaceName) throw new ApiError(500, 'Workspace context missing');
 
@@ -85,8 +84,7 @@ export class WorkspaceController {
       req.body,
       workspaceId,
       inviterName,
-      workspaceName,
-      workspaceSlug
+      workspaceName
     );
 
     res.json(new ApiResponse(200, 'Invitation sent successfully'));
@@ -120,7 +118,6 @@ export class WorkspaceController {
     const workspaceId = req.workspace?.workspaceId!;
     const inviterName = req.user.firstName;
     const workspaceName = req.workspace?.workspaceName;
-    const workspaceSlug = req.workspace!.workspaceSlug;
 
     if (!workspaceName) throw new ApiError(500, 'Workspace context missing');
 
@@ -128,8 +125,7 @@ export class WorkspaceController {
       workspaceId,
       req.body.email,
       inviterName,
-      workspaceName,
-      workspaceSlug
+      workspaceName
     );
 
     res.json(new ApiResponse(200, 'Invitation sent successfully'));

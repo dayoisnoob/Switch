@@ -110,10 +110,23 @@ export default function MainLayout({ children }: { children: ReactNode }) {
   const hasWorkspaces = workspaces.length > 0;
 
   useEffect(() => {
+    if (!userLoading && !user) window.location.href = "/login";
+  }, [user, userLoading]);
+
+  useEffect(() => {
+    if (userLoading || !user) return;
+
     if (!workspacesLoading && !isFetching && workspaces.length === 0) {
       router.replace("/getting-started");
     }
-  }, [workspacesLoading, workspaces.length, router]);
+  }, [
+    user,
+    userLoading,
+    workspacesLoading,
+    isFetching,
+    workspaces.length,
+    router,
+  ]);
 
   useEffect(() => {
     const handleOpenSearch = () => setIsSearchOpen(true);

@@ -46,7 +46,7 @@ export default function SignupPage() {
       </div>
 
       {/* ── MAIN CARD ── */}
-      <div className="w-full max-w-105 bg-[#13131A] border border-white/5 rounded-2xl p-8 shadow-2xl animate-in fade-in zoom-in-95 duration-500 delay-150">
+      <div className="w-full max-w-105 bg-[#13131A] border border-white/5 rounded-2xl p-8 shadow-2xl animate-in fade-in zoom-in-95 duration-500 ">
         {/* ── STEPPER ── */}
         <div className="flex items-center justify-between mb-8">
           {/* Step 1: Active */}
@@ -170,7 +170,7 @@ export default function SignupPage() {
       </div>
 
       {/* ── FOOTER ── */}
-      <div className="mt-8 animate-in fade-in duration-500 delay-300">
+      <div className="mt-8 animate-in fade-in duration-500">
         <p className="text-[13px] text-white/40">
           Already have an account?{" "}
           <Link

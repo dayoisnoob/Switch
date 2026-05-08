@@ -1,12 +1,13 @@
 "use client";
 
 import { useCompleteReg } from "@/hooks/useAuth";
-import { AcceptInviteData, useAcceptInvite } from "@/hooks/useInvitations";
+import { useAcceptInvite } from "@/hooks/useInvitations";
 import { ArrowRight, Check, Eye, EyeOff, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 
 export interface FormValues {
   firstName: string;
@@ -53,8 +54,9 @@ export default function CompleteRegisterPage() {
 
         if (inviteToken) {
           acceptInvite(inviteToken, {
-            onSuccess: (res: AcceptInviteData) => {
-              router.push(`/${res.workspaceSlug || "dashboard"}`);
+            onSuccess: (workspaceSlug) => {
+              toast.info("Invitation accepted");
+              router.push(`/${workspaceSlug || "dashboard"}`);
             },
             onError: () => {
               router.push("/getting-started");
@@ -82,7 +84,7 @@ export default function CompleteRegisterPage() {
       </div>
 
       {/* ── MAIN CARD ── */}
-      <div className="w-full max-w-105 bg-[#13131A] border border-white/5 rounded-2xl p-8 shadow-2xl animate-in fade-in zoom-in-95 duration-500 delay-150">
+      <div className="w-full max-w-105 bg-[#13131A] border border-white/5 rounded-2xl p-8 shadow-2xl animate-in fade-in zoom-in-95 duration-500 ">
         {/* ── STEPPER ── */}
         <div className="flex items-center justify-between mb-8">
           {/* Step 1: Success */}
@@ -253,7 +255,7 @@ export default function CompleteRegisterPage() {
       </div>
 
       {/* ── FOOTER ── */}
-      <div className="mt-6 text-center animate-in fade-in duration-500 delay-300">
+      <div className="mt-6 text-center animate-in fade-in duration-500 ">
         <p className="text-[12px] text-white/30">
           By creating an account you agree to our{" "}
           <Link
