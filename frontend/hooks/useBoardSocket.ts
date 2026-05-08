@@ -128,6 +128,17 @@ export function useBoardSocket(boardId: string) {
       }
     });
 
+    socket.on("cards:moved", (payload) => {
+      useBoardStore
+        .getState()
+        .moveAllCards(payload.fromColumnId, payload.toColumnId);
+      if (payload.actorId !== currentUser?.id) {
+        const actor = payload.actorName || "A teammate";
+        //TODO: pass column names
+        toast.success(`${actor} moved all cards in the column`);
+      }
+    });
+
     // --- ASSIGNEES ---
     socket.on(
       "assignee:added",

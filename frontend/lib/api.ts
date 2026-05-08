@@ -1,5 +1,6 @@
 import { ApiResponse } from "@/types";
 import axios, { isAxiosError } from "axios";
+import { ApiError } from "./ApiError";
 
 export const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
@@ -25,7 +26,9 @@ api.interceptors.response.use(
       const data = error.response?.data;
       const message =
         data?.errors?.[0]?.message ?? data?.message ?? "Something went wrong";
-      return Promise.reject(new Error(message));
+      return Promise.reject(
+        new ApiError(message, error.response?.status ?? 500),
+      );
     }
 
     // queue concurrent requests while refresh is in flight

@@ -65,6 +65,7 @@ import { useBoardStore } from "@/store/board.store";
 import { useWorkspaceStore } from "@/store/workspace.store";
 import { BoardCard, BoardColumn } from "@/types/board.types";
 import { toast } from "sonner";
+import DeleteColumnModal from "@/components/modals/DeleteColumnModal";
 
 function findColumnInSnapshot(
   id: string,
@@ -509,7 +510,8 @@ const SortableColumn = memo(function SortableColumn({
 }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false); // Controls Add Card Modal
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [editTitle, setEditTitle] = useState(column.name);
 
   const menuRef = useRef<HTMLDivElement>(null);
@@ -569,24 +571,6 @@ const SortableColumn = memo(function SortableColumn({
     }
   };
 
-  const handleDeleteColumn = () => {
-    setIsMenuOpen(false);
-    if (column.cards.length > 0) {
-      window.alert(
-        `Cannot delete "${column.name}". Please move or delete the cards inside it first.`,
-      );
-      return;
-    }
-    if (!window.confirm(`Are you sure you want to delete "${column.name}"?`))
-      return;
-    try {
-      deleteCol({ columnId: column.id });
-      setColumns((prev) => prev.filter((col) => col.id !== column.id));
-    } catch (err) {
-      toast.error(getErrorMessage(err) || "Failed to delete column");
-    }
-  };
-
   const handleClearCards = async () => {
     setIsMenuOpen(false);
     try {
@@ -609,6 +593,22 @@ const SortableColumn = memo(function SortableColumn({
 
     setIsAddModalOpen(false);
   };
+
+  const handleDeleteColumn = async () => {
+    setIsMenuOpen(false);
+
+    try {
+      await deleteCol(column.id);
+    } catch (err: any) {
+      if (err?.status === 409) {
+        toast.error("Please confirm you want to delete this column.");
+        setIsDeleteModalOpen(true);
+        return;
+      }
+      toast.error(getErrorMessage(err) || "Failed to delete column");
+    }
+  };
+
   const dotColor = getColumnColor(column.name);
 
   const activeWorkspace = useWorkspaceStore((s) => s.activeWorkspace);
@@ -765,6 +765,12 @@ const SortableColumn = memo(function SortableColumn({
           workspaceMembers={workspaceMembers}
           membersLoading={membersLoading}
           onAdd={handleAddCard}
+        />
+
+        <DeleteColumnModal
+          isOpen={isDeleteModalOpen}
+          onClose={() => setIsDeleteModalOpen(false)}
+          column={column}
         />
       </div>
     </div>

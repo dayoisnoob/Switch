@@ -34,6 +34,7 @@ interface BoardStore {
   deleteColumn: (columnId: string) => void;
   moveColumn: (columnId: string, newOrder: number) => void;
   deleteCards: (columnId: string) => void;
+  moveAllCards: (fromColumnId: string, toColumnId: string) => void;
 
   // Label operations
   addLabelToCard: (cardId: string, label: BoardLabel) => void;
@@ -197,6 +198,25 @@ export const useBoardStore = create<BoardStore>((set) => ({
           columns: state.board.columns.map((col) =>
             col.id === columnId ? { ...col, cards: [] } : col,
           ),
+        },
+      };
+    }),
+
+  moveAllCards: (fromColumnId, toColumnId) =>
+    set((state) => {
+      if (!state.board) return state;
+      const fromColumn = state.board.columns.find((c) => c.id === fromColumnId);
+      if (!fromColumn) return state;
+
+      return {
+        board: {
+          ...state.board,
+          columns: state.board.columns.map((col) => {
+            if (col.id === fromColumnId) return { ...col, cards: [] };
+            if (col.id === toColumnId)
+              return { ...col, cards: [...col.cards, ...fromColumn.cards] };
+            return col;
+          }),
         },
       };
     }),

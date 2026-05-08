@@ -40,5 +40,9 @@ export const columnOrderSchema = z.object({
   order: z.number(),
 });
 
+export const moveCardsSchema = z.object({
+  targetColumnId: z.string().uuid(),
+});
+
 export type ProjectInput = z.infer<typeof projectInputSchema>;
 export type CreateColumn = z.infer<typeof createColumnSchema>;

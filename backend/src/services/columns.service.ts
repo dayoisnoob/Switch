@@ -1,4 +1,4 @@
-import { desc, eq, inArray } from 'drizzle-orm';
+import { asc, desc, eq, inArray, sql } from 'drizzle-orm';
 import { db } from '../config/db';
 import { cardsTable, columnsTable } from '../db';
 import { ApiError } from '../utils/api-response';
@@ -131,8 +131,7 @@ export class ColumnsService {
       .where(eq(columnsTable.id, columnId))
       .returning();
 
-    if (!deletedColumn)
-      throw new ApiError(500, 'Error deleting column, Please try again');
+    if (!deletedColumn) throw new ApiError(404, 'Column not found');
 
     emitBoardEvent(deletedColumn.boardId, 'column:deleted', {
       columnId: deletedColumn.id,
@@ -177,6 +176,77 @@ export class ColumnsService {
       actorId: userId,
       colName: column.name,
     });
+
+    return column;
+  }
+
+  static async moveAllCards(
+    columnId: string,
+    targetColumnId: string,
+    actorId: string,
+    actorName: string
+  ) {
+    const [targetColumn] = await db
+      .select({
+        id: columnsTable.id,
+        boardId: columnsTable.boardId,
+        name: columnsTable.name,
+      })
+      .from(columnsTable)
+      .where(eq(columnsTable.id, targetColumnId))
+      .limit(1);
+
+    if (!targetColumn) throw new ApiError(404, 'Target column not found.');
+
+    const [result] = await db
+      .select({ maxOrder: sql<number>`coalesce(max(${cardsTable.order}), 0)` })
+      .from(cardsTable)
+      .where(eq(cardsTable.columnId, targetColumnId));
+
+    const maxOrder = result?.maxOrder ?? 0;
+
+    const cards = await db
+      .select({ id: cardsTable.id, order: cardsTable.order })
+      .from(cardsTable)
+      .where(eq(cardsTable.columnId, columnId))
+      .orderBy(asc(cardsTable.order));
+
+    if (cards.length === 0) throw new ApiError(409, 'No cards to move.');
+
+    await db.transaction(async (tx) => {
+      const updatePromises = cards.map((card, i) => {
+        return tx
+          .update(cardsTable)
+          .set({ columnId: targetColumnId, order: maxOrder + i + 1 })
+          .where(eq(cardsTable.id, card.id));
+      });
+
+      await Promise.all(updatePromises);
+    });
+
+    emitBoardEvent(targetColumn.boardId, 'cards:moved', {
+      fromColumnId: columnId,
+      toColumnId: targetColumnId,
+      actorId,
+      actorName,
+    });
+  }
+
+  static async getColumn(columnId: string) {
+    const [column] = await db
+      .select({
+        id: columnsTable.id,
+        name: columnsTable.name,
+        order: columnsTable.order,
+        cardCount: sql<number>`count(${cardsTable.id})`.mapWith(Number),
+      })
+      .from(columnsTable)
+      .leftJoin(cardsTable, eq(cardsTable.columnId, columnsTable.id))
+      .where(eq(columnsTable.id, columnId))
+      .groupBy(columnsTable.id)
+      .orderBy(columnsTable.order);
+
+    if (!column) throw new ApiError(404, 'Column not found');
 
     return column;
   }

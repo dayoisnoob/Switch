@@ -14,6 +14,7 @@ import { asyncHandler } from '../utils/async-handler';
 import {
   columnOrderSchema,
   createColumnSchema,
+  moveCardsSchema,
   updateColumnSchema,
 } from '../validations/projects.validation';
 import { paramsSchema } from '../validations/urlParams.validation';
@@ -31,12 +32,21 @@ router.post(
 );
 
 router.patch(
-  '/:columnId/',
+  '/:columnId/move-cards',
   authenticate,
   validateUrlParams(paramsSchema),
-  validateInput(updateColumnSchema),
+  validateInput(moveCardsSchema),
   requireWorkspaceMember,
-  asyncHandler(ColumnsController.updateColumnName)
+  asyncHandler(ColumnsController.moveAllCards)
+);
+
+router.delete(
+  '/:columnId/cards',
+  authenticate,
+  validateUrlParams(paramsSchema),
+  requireWorkspaceMember,
+  requireWorkspaceRole(['Owner', 'Admin']),
+  asyncHandler(ColumnsController.deleteCards)
 );
 
 router.patch(
@@ -49,6 +59,23 @@ router.patch(
   asyncHandler(ColumnsController.updateColumnOrder)
 );
 
+router.patch(
+  '/:columnId',
+  authenticate,
+  validateUrlParams(paramsSchema),
+  validateInput(updateColumnSchema),
+  requireWorkspaceMember,
+  asyncHandler(ColumnsController.updateColumnName)
+);
+
+router.get(
+  '/:columnId',
+  authenticate,
+  validateUrlParams(paramsSchema),
+  requireWorkspaceMember,
+  asyncHandler(ColumnsController.getColumn)
+);
+
 router.delete(
   '/:columnId',
   authenticate,
@@ -56,15 +83,6 @@ router.delete(
   requireWorkspaceMember,
   requireWorkspaceRole(['Owner', 'Admin']),
   asyncHandler(ColumnsController.deleteColumn)
-);
-
-router.delete(
-  '/:columnId/cards',
-  authenticate,
-  validateUrlParams(paramsSchema),
-  requireWorkspaceMember,
-  requireWorkspaceRole(['Owner', 'Admin']),
-  asyncHandler(ColumnsController.deleteCards)
 );
 
 export default router;

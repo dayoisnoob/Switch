@@ -1,4 +1,5 @@
 import { api } from "@/lib/api";
+import { ApiError } from "@/lib/ApiError";
 import { getErrorMessage } from "@/lib/utils";
 import {
   ColumnService,
@@ -6,8 +7,15 @@ import {
   CreateCol,
 } from "@/services/columns.service";
 import { useBoardStore } from "@/store/board.store";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+
+export interface Column {
+  id: string;
+  name: string;
+  order: number;
+  cardCount: number;
+}
 
 export function useCreateColumn(boardId: string) {
   const queryClient = useQueryClient();
@@ -15,7 +23,8 @@ export function useCreateColumn(boardId: string) {
   return useMutation({
     mutationFn: (data: CreateCol) => ColumnService.create(boardId, data),
 
-    onSuccess: () => {
+    onSuccess: (response) => {
+      useBoardStore.getState().addColumn(response);
       queryClient.invalidateQueries({ queryKey: ["column"] });
       queryClient.invalidateQueries({ queryKey: ["board"] });
     },
@@ -35,9 +44,15 @@ export function useUpdateColumn() {
 }
 
 export function useDeleteColumn() {
+  const queryClient = useQueryClient();
+
   return useMutation({
-    mutationFn: ({ columnId }: { columnId: string }) =>
-      ColumnService.delete(columnId),
+    mutationFn: (columnId: string) => api.delete(`/columns/${columnId}`),
+
+    onSuccess: (_, columnId) => {
+      useBoardStore.getState().deleteColumn(columnId);
+      queryClient.invalidateQueries({ queryKey: ["board"] });
+    },
   });
 }
 
@@ -49,7 +64,6 @@ export function useMoveColumn() {
       ColumnService.updateOrder(columnId, order),
 
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["column"] });
       queryClient.invalidateQueries({ queryKey: ["board"] });
     },
 
@@ -77,3 +91,32 @@ export function useClearColumncards() {
     },
   });
 }
+
+export function useMoveColumnCards() {
+  return useMutation({
+    mutationFn: ({
+      columnId,
+      targetColumnId,
+    }: {
+      columnId: string;
+      targetColumnId: string;
+    }) => api.patch(`/columns/${columnId}/move-cards`, { targetColumnId }),
+
+    onSuccess: (_, { columnId, targetColumnId }) => {
+      useBoardStore.getState().moveAllCards(columnId, targetColumnId);
+    },
+
+    onError: (err: any) => {
+      console.log(err);
+      toast.error(getErrorMessage(err) || "Failed to move cards");
+    },
+  });
+}
+
+export const useGetColumn = (columnId: string) => {
+  return useQuery({
+    queryKey: ["column", columnId],
+    queryFn: (): Promise<Column> => api.get(`/columns/${columnId}`),
+    enabled: !!columnId,
+  });
+};

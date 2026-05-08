@@ -80,4 +80,27 @@ export class ColumnsController {
 
     res.json(new ApiResponse(200, 'Cards deleted successfully', column));
   }
+
+  static async moveAllCards(req: AuthenticatedRequest, res: Response) {
+    const userId = req.user.id;
+    const actorName = `${req.user?.firstName} ${req.user?.lastName}`.trim();
+    const columnId = req.params.columnId as string;
+    const targetColumnId = req.body.targetColumnId;
+
+    await ColumnsService.moveAllCards(
+      columnId,
+      targetColumnId,
+      userId,
+      actorName
+    );
+
+    res.json(new ApiResponse(200, 'Cards moved successfully'));
+  }
+
+  static async getColumn(req: AuthenticatedRequest, res: Response) {
+    const columnId = req.params.columnId as string;
+    const column = await ColumnsService.getColumn(columnId);
+
+    res.json(new ApiResponse(200, 'Column retrieved successfully', column));
+  }
 }

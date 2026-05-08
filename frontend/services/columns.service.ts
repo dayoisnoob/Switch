@@ -1,7 +1,8 @@
 import { api } from "@/lib/api";
+import { BoardColumn } from "@/types/board.types";
 
 export const ColumnService = {
-  create: async (boardId: string, data: CreateCol): Promise<ColumnType> => {
+  create: async (boardId: string, data: CreateCol): Promise<BoardColumn> => {
     return api.post(`/boards/${boardId}/columns`, data);
   },
 
@@ -11,10 +12,6 @@ export const ColumnService = {
 
   update: async (columnId: string, data: ColUpdate) => {
     return api.patch(`/columns/${columnId}`, data);
-  },
-
-  delete: async (columnId: string) => {
-    return api.delete(`/columns/${columnId}`);
   },
 };
 
