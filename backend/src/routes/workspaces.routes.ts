@@ -75,7 +75,7 @@ router.patch(
   '/:workspaceSlug/members/:userId',
   authenticate,
   validateUrlParams(paramsSchema),
-  validateInput(updateMemberRoleSchema), // e.g., z.object({ role: z.enum(['Admin', 'Member']) })
+  validateInput(updateMemberRoleSchema),
   requireWorkspaceMember,
   requireWorkspaceRole(['Owner', 'Admin']),
   asyncHandler(WorkspaceController.updateMemberRole)

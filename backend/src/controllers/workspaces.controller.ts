@@ -65,11 +65,13 @@ export class WorkspaceController {
   static async updateMemberRole(req: AuthenticatedRequest, res: Response) {
     const memberId = req.params.userId as string;
     const workspaceId = req.workspace?.workspaceId!;
+    const requesterRole = req.workspace!.role;
     const { role } = req.body;
 
     const members = await WorkspaceService.updateMemberRole(
       memberId,
       workspaceId,
+      requesterRole,
       role
     );
 

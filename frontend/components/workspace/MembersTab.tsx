@@ -50,7 +50,6 @@ export const MembersTab = ({
     e: ChangeEvent<HTMLSelectElement>,
     userId: string,
   ) => {
-    console.log(userId);
     const role = e.target.value as "Admin" | "Member";
     updateRole({ userId, role });
   };

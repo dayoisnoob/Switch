@@ -236,11 +236,33 @@ export class WorkspaceService {
 
     return members;
   }
+
   static async updateMemberRole(
     memberId: string,
     workspaceId: string,
+    requesterRole: string,
     role: UpdateMemberRole
   ) {
+    const [target] = await db
+      .select({ role: workspaceMembershipsTable.role })
+      .from(workspaceMembershipsTable)
+      .where(
+        and(
+          eq(workspaceMembershipsTable.workspaceId, workspaceId),
+          eq(workspaceMembershipsTable.userId, memberId)
+        )
+      )
+      .limit(1);
+
+    if (!target) throw new ApiError(404, 'Member not found');
+    if (target.role === 'Owner')
+      throw new ApiError(403, 'Cannot change the role of the workspace owner');
+    if (target.role === 'Admin' && requesterRole !== 'Owner')
+      throw new ApiError(
+        403,
+        "You do not have permission to change this member's role"
+      );
+
     const [member] = await db
       .update(workspaceMembershipsTable)
       .set({ role })
