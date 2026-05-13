@@ -67,7 +67,6 @@ export default function NotificationsPage() {
   const markRead = useNotificationStore((s) => s.markRead);
   const markAllRead = useNotificationStore((s) => s.markAllRead);
 
-  // 🌟 THE FIX: Filter the notifications BEFORE grouping them
   const filteredNotifications = notifications.filter((notif) => {
     // 1. Apply Top Navigation Tab Filter
     if (activeTab === "Unread" && notif.isRead) return false;
@@ -308,12 +307,6 @@ export default function NotificationsPage() {
                                   <Check size={14} />
                                 </button>
                               )}
-                              <button
-                                className="p-1.5 text-white/30 hover:text-rose-400 hover:bg-rose-500/10 rounded-md transition-colors"
-                                title="Dismiss"
-                              >
-                                <X size={14} />
-                              </button>
                             </div>
 
                             {/* Unread Dot */}

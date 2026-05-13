@@ -21,6 +21,10 @@ export const resendInvitationSchema = z.object({
   email: z.string().email('Please enter a valid email').trim().toLowerCase(),
 });
 
+export const updateMemberRoleSchema = z.object({
+  role: z.enum(['Admin', 'Member']),
+});
+
 export const updateWorkspaceSchema = z.object({
   name: z
     .string()
@@ -35,3 +39,4 @@ export const updateWorkspaceSchema = z.object({
 export type CreateWP = z.infer<typeof createWorkspaceSchema>;
 export type SendInvite = z.infer<typeof sendInvitationSchema>;
 export type UpdateWP = z.infer<typeof updateWorkspaceSchema>;
+export type UpdateMemberRole = z.infer<typeof updateMemberRoleSchema>['role'];

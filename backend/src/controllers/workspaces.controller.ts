@@ -62,6 +62,20 @@ export class WorkspaceController {
     res.json(new ApiResponse(200, 'Members successfully retrieved', members));
   }
 
+  static async updateMemberRole(req: AuthenticatedRequest, res: Response) {
+    const memberId = req.params.userId as string;
+    const workspaceId = req.workspace?.workspaceId!;
+    const { role } = req.body;
+
+    const members = await WorkspaceService.updateMemberRole(
+      memberId,
+      workspaceId,
+      role
+    );
+
+    res.json(new ApiResponse(200, 'Members successfully retrieved', members));
+  }
+
   static async removeMember(req: AuthenticatedRequest, res: Response) {
     const workspaceId = req.workspace?.workspaceId!;
     const userId = req.params.userId as string;

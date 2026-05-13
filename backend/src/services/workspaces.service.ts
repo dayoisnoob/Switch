@@ -18,6 +18,7 @@ import { tempTokens } from '../utils/tokens.util';
 import type {
   CreateWP,
   SendInvite,
+  UpdateMemberRole,
   UpdateWP,
 } from '../validations/workspaces.validation';
 
@@ -234,6 +235,26 @@ export class WorkspaceService {
       .where(eq(workspaceMembershipsTable.workspaceId, workspaceId));
 
     return members;
+  }
+  static async updateMemberRole(
+    memberId: string,
+    workspaceId: string,
+    role: UpdateMemberRole
+  ) {
+    const [member] = await db
+      .update(workspaceMembershipsTable)
+      .set({ role })
+      .where(
+        and(
+          eq(workspaceMembershipsTable.workspaceId, workspaceId),
+          eq(workspaceMembershipsTable.userId, memberId)
+        )
+      )
+      .returning();
+
+    if (!member) throw new ApiError(500, 'Error updating role');
+
+    return member;
   }
 
   static async removeMember(userId: string, workspaceId: string) {

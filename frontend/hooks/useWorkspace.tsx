@@ -172,3 +172,28 @@ export function useWorkspaceRole(workspaceSlug: string) {
     canManageWorkspace: ["Owner", "Admin"].includes(role),
   };
 }
+
+export function useUpdateMemberRole(workspaceSlug: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      userId,
+      role,
+    }: {
+      userId: string;
+      role: "Admin" | "Member";
+    }) => api.patch(`/workspaces/${workspaceSlug}/members/${userId}`, { role }),
+
+    onSuccess: () => {
+      toast.success("Member role successfully updated");
+      queryClient.invalidateQueries({
+        queryKey: ["members", workspaceSlug],
+      });
+    },
+
+    onError: (err) => {
+      toast.error(getErrorMessage(err));
+    },
+  });
+}

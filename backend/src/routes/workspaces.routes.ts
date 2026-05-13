@@ -16,6 +16,7 @@ import {
   createWorkspaceSchema,
   resendInvitationSchema,
   sendInvitationSchema,
+  updateMemberRoleSchema,
   updateWorkspaceSchema,
 } from '../validations/workspaces.validation';
 
@@ -68,6 +69,16 @@ router.get(
   validateUrlParams(paramsSchema),
   requireWorkspaceMember,
   asyncHandler(WorkspaceController.getMembers)
+);
+
+router.patch(
+  '/:workspaceSlug/members/:userId',
+  authenticate,
+  validateUrlParams(paramsSchema),
+  validateInput(updateMemberRoleSchema), // e.g., z.object({ role: z.enum(['Admin', 'Member']) })
+  requireWorkspaceMember,
+  requireWorkspaceRole(['Owner', 'Admin']),
+  asyncHandler(WorkspaceController.updateMemberRole)
 );
 
 router.delete(

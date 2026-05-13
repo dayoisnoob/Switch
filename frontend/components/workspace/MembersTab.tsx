@@ -3,10 +3,11 @@
 import { formatDate, getConsistentColor } from "@/lib/utils";
 import { ChevronDown, Plus, Search, Trash2, Users } from "lucide-react";
 import Image from "next/image";
-import { useState } from "react";
+import { ChangeEvent, useState } from "react";
 import InviteMemberModal from "../modals/InviteMemberModal";
 import RemoveMemberModal from "../modals/RemoveMemberModal";
 import {
+  useUpdateMemberRole,
   useWorkspaceRole,
   Workspace,
   WorkspaceMembers,
@@ -26,6 +27,8 @@ export const MembersTab = ({
     null,
   );
 
+  const { mutate: updateRole } = useUpdateMemberRole(activeWorkspace.slug);
+
   const { canManageWorkspace, isOwner } = useWorkspaceRole(
     activeWorkspace.slug,
   );
@@ -43,9 +46,17 @@ export const MembersTab = ({
     return matchesSearch && matchesRole;
   });
 
+  const handleRoleChange = (
+    e: ChangeEvent<HTMLSelectElement>,
+    userId: string,
+  ) => {
+    console.log(userId);
+    const role = e.target.value as "Admin" | "Member";
+    updateRole({ userId, role });
+  };
+
   return (
     <div className="animate-in fade-in duration-300 pb-10">
-      {/* ── TOOLBAR ── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div className="flex items-center gap-3">
           <div className="relative group">
@@ -179,9 +190,7 @@ export const MembersTab = ({
                         <div className="relative inline-block w-28 group/select">
                           <select
                             value={role}
-                            onChange={(e) =>
-                              console.log("Update role to:", e.target.value)
-                            }
+                            onChange={(e) => handleRoleChange(e, member.userId)}
                             className="w-full h-8 pl-3 pr-8 appearance-none bg-transparent hover:bg-white/5 border border-transparent hover:border-white/10 rounded-md text-[13px] font-medium text-white/70 hover:text-white transition-all focus:outline-none focus:border-[#7C6EF5]/50 focus:bg-black/20 cursor-pointer"
                           >
                             <option
