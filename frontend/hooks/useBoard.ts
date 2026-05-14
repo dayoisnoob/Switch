@@ -9,6 +9,7 @@ import { useGetLabels } from "./useLabels";
 export const useBoard = (projectSlug: string, workspaceSlug: string) => {
   const setBoard = useBoardStore((s) => s.setBoard);
   const setWorkspaceLabels = useBoardStore((s) => s.setWorkspaceLabels);
+  const { data: labels } = useGetLabels(workspaceSlug);
 
   const query = useQuery<BoardState, ApiError>({
     queryKey: ["board", projectSlug],
@@ -24,11 +25,7 @@ export const useBoard = (projectSlug: string, workspaceSlug: string) => {
   }, [query.data, setBoard]);
 
   useEffect(() => {
-    if (!workspaceSlug) return;
-    const { data: labels } = useGetLabels(workspaceSlug);
-
-    if (!labels) return;
-    setWorkspaceLabels(labels);
+    if (labels) setWorkspaceLabels(labels);
   }, [setWorkspaceLabels, workspaceSlug]);
 
   return query;

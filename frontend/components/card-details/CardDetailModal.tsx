@@ -7,9 +7,8 @@ import { CardTitle } from "@/components/card-details/CardTitle";
 import { DeleteCardModal } from "@/components/modals/DeleteCardModal";
 import { Portal } from "@/components/ui/Portal";
 import { useMe } from "@/hooks/useAuth";
-import { useDeleteCard } from "@/hooks/useDeleteCard";
 import { useGetProjectBySlug } from "@/hooks/useProjects";
-import { useUpdateCard } from "@/hooks/useCards";
+import { useDeleteCard, useUpdateCard } from "@/hooks/useCards";
 import { useWorkspaceRole } from "@/hooks/useWorkspace";
 import { cn } from "@/lib/utils";
 import { useBoardStore } from "@/store/board.store";
@@ -51,12 +50,10 @@ export function CardDetailModalInner({
   );
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
-  // 1. Core Data Hooks
   const { data: currentUser } = useMe();
   const { data: project } = useGetProjectBySlug(workspaceSlug, projectSlug);
   const { canManageWorkspace } = useWorkspaceRole(workspaceSlug);
 
-  // 2. Mutations
   const { mutate: updateCard } = useUpdateCard(card.id);
   const currentColumn = columns.find((c) =>
     c.cards.some((c2) => c2.id === card.id),
@@ -69,12 +66,10 @@ export function CardDetailModalInner({
   const canDeleteCard =
     currentUser?.id === card.creator?.id || canManageWorkspace;
 
-  // Handle Escape key to close modal (Fixed to not close if typing in an input!)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape" && isOpen) {
         const activeNode = document.activeElement;
-        // If the user is focused on a textarea or input, let the component handle the escape key!
         if (
           activeNode &&
           (activeNode.tagName === "INPUT" || activeNode.tagName === "TEXTAREA")

@@ -156,7 +156,7 @@ export function useMe() {
   return useQuery({
     queryKey: ["me"],
     staleTime: Infinity,
-    queryFn: () => api.get("/users/me"),
+    queryFn: (): Promise<UserProfile> => api.get("/users/me"),
   });
 }
 

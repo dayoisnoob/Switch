@@ -75,7 +75,7 @@ export function useGetProjectBySlug(
 ) {
   return useQuery({
     queryKey: ["project", projectSlug],
-    queryFn: () =>
+    queryFn: (): Promise<Project> =>
       api.get(`/workspaces/${workspaceSlug}/projects/${projectSlug}`),
     enabled: !!projectSlug,
     staleTime: 1000 * 60 * 5,
