@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { useBoard } from "@/hooks/board";
+import { useBoard } from "@/hooks/useBoard";
 import { BoardCard, BoardColumn } from "@/types/board.types";
 import { CardDetailModal } from "@/components/card-details/CardDetailModal";
 import { useBoardSocket } from "@/hooks/useBoardSocket";

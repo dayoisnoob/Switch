@@ -1,10 +1,9 @@
+import QueryProvider from "@/components/QueryProviders";
+import { cn } from "@/lib/utils";
 import type { Metadata } from "next";
+import { Geist } from "next/font/google";
 import { Toaster } from "sonner";
 import "./globals.css";
-import QueryProvider from "@/components/QueryProviders";
-import { Geist } from "next/font/google";
-import { cn } from "@/lib/utils";
-import { SocketProvider } from "@/components/SocketProvider";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 

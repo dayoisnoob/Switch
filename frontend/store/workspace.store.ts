@@ -1,4 +1,4 @@
-import { Workspace } from "@/services/workspace.service";
+import { Workspace } from "@/hooks/useWorkspace";
 import { create } from "zustand";
 
 interface WorkspaceStore {

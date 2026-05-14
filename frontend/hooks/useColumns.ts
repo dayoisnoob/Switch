@@ -1,12 +1,7 @@
 import { api } from "@/lib/api";
-import { ApiError } from "@/lib/ApiError";
 import { getErrorMessage } from "@/lib/utils";
-import {
-  ColumnService,
-  ColUpdate,
-  CreateCol,
-} from "@/services/columns.service";
 import { useBoardStore } from "@/store/board.store";
+import { BoardColumn } from "@/types/board.types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
@@ -17,11 +12,21 @@ export interface Column {
   cardCount: number;
 }
 
+export interface CreateCol {
+  name: string;
+  mappedStatus: string;
+}
+export interface ColUpdate {
+  name?: string;
+  mappedStatus?: string;
+}
+
 export function useCreateColumn(boardId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: CreateCol) => ColumnService.create(boardId, data),
+    mutationFn: (data: CreateCol): Promise<BoardColumn> =>
+      api.post(`/boards/${boardId}/columns`, data),
 
     onSuccess: (response) => {
       useBoardStore.getState().addColumn(response);
@@ -39,7 +44,7 @@ export function useCreateColumn(boardId: string) {
 export function useUpdateColumn() {
   return useMutation({
     mutationFn: ({ columnId, data }: { columnId: string; data: ColUpdate }) =>
-      ColumnService.update(columnId, data),
+      api.patch(`/columns/${columnId}`, data),
   });
 }
 
@@ -61,7 +66,7 @@ export function useMoveColumn() {
 
   return useMutation({
     mutationFn: ({ columnId, order }: { columnId: string; order: number }) =>
-      ColumnService.updateOrder(columnId, order),
+      api.patch(`/columns/${columnId}/order`, { order }),
 
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["board"] });

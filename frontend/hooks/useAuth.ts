@@ -1,7 +1,6 @@
 import { FormValues } from "@/app/(auth)/register/onboarding/page";
 import { api } from "@/lib/api";
 import { getErrorMessage } from "@/lib/utils";
-import { AuthService } from "@/services/auth.service";
 import { useAuthStore } from "@/store/auth.store";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
@@ -14,6 +13,14 @@ export interface CompleteUserData extends FormValues {
 export interface LoginRequest {
   email: string;
   password: string;
+}
+
+export interface UserProfile {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  avatarUrl: string;
 }
 
 export function useInitialiseReg() {
@@ -149,14 +156,14 @@ export function useMe() {
   return useQuery({
     queryKey: ["me"],
     staleTime: Infinity,
-    queryFn: () => AuthService.getCurrentUser(),
+    queryFn: () => api.get("/users/me"),
   });
 }
 
 export function useTeammates() {
   return useQuery({
     queryKey: ["teammates"],
-    queryFn: () => AuthService.getUserTeamMembers(),
+    queryFn: () => api.get("/users/me/teammates/count"),
     staleTime: 1000 * 60 * 5,
   });
 }
@@ -167,7 +174,7 @@ export const useLogout = () => {
   const clearUser = useAuthStore((s) => s.clearUser);
 
   return async () => {
-    await AuthService.logout();
+    await api.post("/auth/logout");
     clearUser();
     queryClient.clear();
     router.replace("/login");

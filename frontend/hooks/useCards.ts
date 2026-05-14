@@ -1,28 +1,65 @@
+import { api } from "@/lib/api";
 import { getErrorMessage } from "@/lib/utils";
-import {
-  CardService,
-  CardUpdateType,
-  CreateCard,
-  MoveCard,
-} from "@/services/card.service";
+import { useBoardStore } from "@/store/board.store";
+import { BoardAssignee, BoardLabel } from "@/types/board.types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { WorkspaceMembers } from "./useWorkspace";
-import { useBoardStore } from "@/store/board.store";
 
-export const useOpenCards = () => {
-  return useQuery({
-    queryKey: ["open-cards"],
-    queryFn: () => CardService.getOpenCardsCount(),
-    staleTime: 1000 * 60 * 5,
-  });
-};
+export interface CardUpdateType {
+  title?: string;
+  description?: string;
+  priority?: CardPriority;
+  dueDate?: Date | null;
+}
+export interface CreateCard {
+  title: string;
+  description?: string;
+  status: StatusType;
+  priority?: CardPriority;
+  dueDate?: Date;
+  assignees?: string[];
+}
+
+export interface MoveCard {
+  columnId: string;
+  order: number;
+  status: string;
+}
+
+export type StatusType =
+  | "BACKLOG"
+  | "TODO"
+  | "IN_PROGRESS"
+  | "DONE"
+  | "CANCELED";
+
+export type CardPriority = "none" | "low" | "medium" | "high" | "urgent";
+
+export interface CardType {
+  id: string;
+  title: string;
+  description: string;
+  priority: "none" | "low" | "medium" | "high" | "urgent";
+  dueDate: string | null;
+  coverImageUrl: string | null;
+  order: number;
+  createdBy: {
+    firstName: string;
+    lastName: string;
+  };
+  updatedAt: string;
+  createdAt: string;
+  assignees: BoardAssignee[];
+  labels: BoardLabel[];
+}
 
 export function useCreateCard(columnId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: CreateCard) => CardService.create(columnId, data),
+    mutationFn: (data: CreateCard) =>
+      api.post(`/columns/${columnId}/cards`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["column"] });
       queryClient.invalidateQueries({ queryKey: ["board"] });
@@ -40,7 +77,7 @@ export function useMoveCard() {
 
   return useMutation({
     mutationFn: ({ cardId, data }: { cardId: string; data: MoveCard }) =>
-      CardService.moveCard(cardId, data),
+      api.patch(`/cards/${cardId}/move`, data),
 
     onSettled: (_, error, variables) => {
       queryClient.invalidateQueries({ queryKey: ["board"] });
@@ -59,7 +96,7 @@ export function useMoveCard() {
 export function useGetCard(cardId: string) {
   return useQuery({
     queryKey: ["card", cardId],
-    queryFn: async () => CardService.getCardById(cardId),
+    queryFn: async () => api.get(`/cards/${cardId}`),
   });
 }
 
@@ -68,7 +105,7 @@ export function useUpdateCard(cardId: string) {
 
   return useMutation({
     mutationFn: async (data: CardUpdateType) =>
-      CardService.update(cardId, data),
+      api.patch(`/cards/${cardId}`, data),
 
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["card", cardId] });
@@ -93,10 +130,11 @@ export function useToggleAssignee(cardId: string) {
       member: WorkspaceMembers;
       isAssigned: boolean;
     }) => {
+      const userId = member.userId;
       if (isAssigned) {
-        return await CardService.removeUser(cardId, member.userId);
+        return await api.delete(`/cards/${cardId}/assignees/${userId}`);
       } else {
-        return await CardService.assignUser(cardId, member.userId);
+        return await api.post(`/cards/${cardId}/assignees`, { userId });
       }
     },
 
@@ -132,6 +170,36 @@ export function useToggleAssignee(cardId: string) {
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["card", cardId] });
       queryClient.invalidateQueries({ queryKey: ["board"] });
+    },
+  });
+}
+
+export const useOpenCards = () => {
+  return useQuery({
+    queryKey: ["open-cards"],
+    queryFn: () => api.get(`/cards/open/count`),
+    staleTime: 1000 * 60 * 5,
+  });
+};
+
+export function useDeleteCard(cardId: string, columnId: string) {
+  const queryClient = useQueryClient();
+  const deleteCardFromStore = useBoardStore((s) => s.deleteCard);
+
+  return useMutation({
+    mutationFn: () => api.delete(`/cards/${cardId}`),
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey: ["card", cardId] });
+      deleteCardFromStore(cardId, columnId);
+    },
+
+    onError: () => {
+      queryClient.invalidateQueries({ queryKey: ["board"] });
+      toast.error("Failed to delete card");
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["board"] });
+      toast.success("Card Deleted");
     },
   });
 }

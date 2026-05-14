@@ -1,10 +1,10 @@
+import { api } from "@/lib/api";
 import { ApiError } from "@/lib/ApiError";
-import { BoardService } from "@/services/board.service";
-import { LabelService } from "@/services/labels.service";
 import { useBoardStore } from "@/store/board.store";
 import { BoardState } from "@/types/board.types";
 import { useQuery } from "@tanstack/react-query";
 import { RefObject, useEffect } from "react";
+import { useGetLabels } from "./useLabels";
 
 export const useBoard = (projectSlug: string, workspaceSlug: string) => {
   const setBoard = useBoardStore((s) => s.setBoard);
@@ -12,7 +12,8 @@ export const useBoard = (projectSlug: string, workspaceSlug: string) => {
 
   const query = useQuery<BoardState, ApiError>({
     queryKey: ["board", projectSlug],
-    queryFn: () => BoardService.getBoard(workspaceSlug, projectSlug),
+    queryFn: () =>
+      api.get(`/workspaces/${workspaceSlug}/projects/${projectSlug}/board`),
     enabled: !!projectSlug,
     refetchOnWindowFocus: false,
     staleTime: 1000 * 60 * 5,
@@ -24,7 +25,10 @@ export const useBoard = (projectSlug: string, workspaceSlug: string) => {
 
   useEffect(() => {
     if (!workspaceSlug) return;
-    LabelService.list(workspaceSlug).then(setWorkspaceLabels);
+    const { data: labels } = useGetLabels(workspaceSlug);
+
+    if (!labels) return;
+    setWorkspaceLabels(labels);
   }, [setWorkspaceLabels, workspaceSlug]);
 
   return query;

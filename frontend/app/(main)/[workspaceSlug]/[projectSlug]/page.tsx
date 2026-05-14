@@ -14,7 +14,7 @@ import {
 import { useParams, useRouter } from "next/navigation";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { useBoard } from "@/hooks/board";
+import { useBoard } from "@/hooks/useBoard";
 import {
   CollisionDetection,
   DndContext,

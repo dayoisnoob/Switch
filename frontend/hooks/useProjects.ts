@@ -1,6 +1,5 @@
 import { api } from "@/lib/api";
 import { getErrorMessage } from "@/lib/utils";
-import { CreateProject, ProjectService } from "@/services/projects.service";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -22,12 +21,30 @@ export interface Project {
   }[];
 }
 
+export interface ProjectCount {
+  count: number;
+}
+export interface CreateProject {
+  icon: string;
+  name: string;
+  description: string;
+  workspaceSlug?: string;
+  projectId?: string;
+  workspaceId: string;
+}
+
 export function useCreateProject() {
   const router = useRouter();
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (data: CreateProject) => ProjectService.create(data),
+    mutationFn: async (data: CreateProject): Promise<Project> =>
+      api.post(`/workspaces/${data.workspaceSlug}/projects`, {
+        name: data.name,
+        description: data.description,
+        icon: data.icon,
+        workspaceId: data.workspaceId,
+      }),
 
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ["project"] });
@@ -58,7 +75,8 @@ export function useGetProjectBySlug(
 ) {
   return useQuery({
     queryKey: ["project", projectSlug],
-    queryFn: () => ProjectService.getProjectBySlug(workspaceSlug, projectSlug!),
+    queryFn: () =>
+      api.get(`/workspaces/${workspaceSlug}/projects/${projectSlug}`),
     enabled: !!projectSlug,
     staleTime: 1000 * 60 * 5,
   });
@@ -67,7 +85,7 @@ export function useGetProjectBySlug(
 export function useActiveProjectsCount() {
   return useQuery({
     queryKey: ["projects"],
-    queryFn: () => ProjectService.getActiveProjectsCount(),
+    queryFn: () => api.get(`/users/me/projects/count`),
     staleTime: 1000 * 60 * 5,
   });
 }
@@ -82,7 +100,11 @@ export function useUpdateProject() {
     }: {
       projectSlug: string;
       data: CreateProject;
-    }) => ProjectService.updateProject(projectSlug, data),
+    }) =>
+      api.patch(
+        `/workspaces/${data.workspaceSlug}/projects/${projectSlug}`,
+        data,
+      ),
 
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["project"] });
@@ -106,7 +128,7 @@ export function useDeleteProject() {
     }: {
       workspaceSlug: string;
       projectSlug: string;
-    }) => ProjectService.deleteProject(workspaceSlug, projectSlug),
+    }) => api.delete(`/workspaces/${workspaceSlug}/projects/${projectSlug}`),
 
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ["projects"] });

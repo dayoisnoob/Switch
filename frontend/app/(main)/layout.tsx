@@ -31,7 +31,12 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useParams, usePathname, useRouter } from "next/navigation";
+import {
+  useParams,
+  usePathname,
+  useRouter,
+  useSearchParams,
+} from "next/navigation";
 import { ReactNode, useEffect, useState } from "react";
 import {
   LayoutSkeleton,
@@ -64,19 +69,12 @@ const getInitials = (name: string) =>
     .toUpperCase()
     .slice(0, 2);
 
-const getPageLabel = (pathname: string, projectSlug?: string): string => {
-  if (projectSlug) return "Board";
-  if (pathname === "/dashboard") return "Dashboard";
-  if (pathname === "/notifications") return "Notifications";
-  if (pathname.includes("tab=projects")) return "Projects";
-  if (pathname.includes("tab=members")) return "Members";
-  if (pathname.includes("tab=settings")) return "Settings";
-  return "Dashboard";
-};
-
 // ── LAYOUT ──
 export default function MainLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const tab = searchParams.get("tab");
+
   const router = useRouter();
   const params = useParams();
   const workspaceSlug = params?.workspaceSlug as string | undefined;
@@ -201,7 +199,19 @@ export default function MainLayout({ children }: { children: ReactNode }) {
       : []),
   ];
 
-  const pageLabel = getPageLabel(pathname, projectSlug);
+  const getPageLabel = (
+    pathname: string,
+    projectSlug?: string,
+    tab?: string | null,
+  ): string => {
+    if (projectSlug) return "Board";
+    if (tab) return tab.charAt(0).toUpperCase() + tab.slice(1);
+    if (pathname === "/dashboard") return "Dashboard";
+    if (pathname === "/notifications") return "Notifications";
+    return "Dashboard";
+  };
+
+  const pageLabel = getPageLabel(pathname, projectSlug, tab);
 
   return (
     <SocketProvider>
@@ -484,45 +494,40 @@ export default function MainLayout({ children }: { children: ReactNode }) {
             <div className="flex items-center gap-3 ml-auto">
               {projectSlug && onlineUsers.length > 0 && (
                 <div className="flex items-center mr-2 pr-4 border-r border-white/5">
-                  {projectSlug && onlineUsers.length > 0 && (
-                    <div className="flex items-center mr-2 pr-4 border-r border-white/5">
-                      <div className="flex items-center -space-x-2">
-                        {onlineUsers.slice(0, 4).map((u, i) => (
-                          <div
-                            key={u.userId ?? i}
-                            title={`${u.firstName} ${u.lastName}`}
-                            className="w-8 h-8 rounded-full bg-[#1A1A24] border-2 border-[#0A0A0A] flex items-center justify-center relative z-10 hover:z-20 transition-transform hover:scale-110 cursor-default"
-                          >
-                            {u.avatarUrl ? (
-                              <Image
-                                src={u.avatarUrl}
-                                alt={u.firstName ?? "User"}
-                                width={28}
-                                height={28}
-                                className="w-full h-full object-cover rounded-full"
-                                unoptimized
-                                referrerPolicy="no-referrer"
-                              />
-                            ) : (
-                              <span className="text-[10px] font-bold text-white">
-                                {u.firstName?.charAt(0)}
-                                {u.lastName?.charAt(0)}
-                              </span>
-                            )}
-                            <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-[#0A0A0A]" />
-                          </div>
-                        ))}
-                        {onlineUsers.length > 4 && (
-                          <div className="w-8 h-8 rounded-full bg-white/5 border-2 border-[#0A0A0A] flex items-center justify-center text-[10px] font-bold text-white/50">
-                            +{onlineUsers.length - 4}
-                          </div>
+                  <div className="flex items-center -space-x-2">
+                    {onlineUsers.slice(0, 4).map((u, i) => (
+                      <div
+                        key={u.userId ?? i}
+                        title={`${u.firstName} ${u.lastName}`}
+                        className="w-8 h-8 rounded-full bg-[#1A1A24] border-2 border-[#0A0A0A] flex items-center justify-center relative z-10 hover:z-20 transition-transform hover:scale-110 cursor-default"
+                      >
+                        {u.avatarUrl ? (
+                          <Image
+                            src={u.avatarUrl}
+                            alt={u.firstName ?? "User"}
+                            width={28}
+                            height={28}
+                            className="w-full h-full object-cover rounded-full"
+                            unoptimized
+                            referrerPolicy="no-referrer"
+                          />
+                        ) : (
+                          <span className="text-[10px] font-bold text-white">
+                            {u.firstName?.charAt(0)}
+                            {u.lastName?.charAt(0)}
+                          </span>
                         )}
+                        <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-[#0A0A0A]" />
                       </div>
-                    </div>
-                  )}{" "}
+                    ))}
+                    {onlineUsers.length > 4 && (
+                      <div className="w-8 h-8 rounded-full bg-white/5 border-2 border-[#0A0A0A] flex items-center justify-center text-[10px] font-bold text-white/50">
+                        +{onlineUsers.length - 4}
+                      </div>
+                    )}
+                  </div>
                 </div>
-              )}
-
+              )}{" "}
               <button
                 onClick={() => setIsSearchOpen(true)}
                 className="flex items-center gap-2 px-2.5 py-1.5 text-white/40 hover:text-white transition-colors rounded-lg hover:bg-white/5"
@@ -532,7 +537,6 @@ export default function MainLayout({ children }: { children: ReactNode }) {
                   ⌘K
                 </kbd>
               </button>
-
               <Link
                 href="/notifications"
                 className="relative p-2 text-white/40 hover:text-white transition-colors rounded-lg hover:bg-white/5"

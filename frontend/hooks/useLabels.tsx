@@ -1,16 +1,27 @@
+import { api } from "@/lib/api";
 import { getErrorMessage } from "@/lib/utils";
-import { CreateLabelType, LabelService } from "@/services/labels.service";
 import { useBoardStore } from "@/store/board.store";
-import { BoardCard } from "@/types/board.types";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { BoardCard, BoardLabel } from "@/types/board.types";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+
+export interface CreateLabelType {
+  name: string;
+  colour: string;
+  boardId: string;
+}
+export interface DeleteLabel {
+  workspaceSlug: string;
+  labelId: string;
+  boardId: string;
+}
 
 export const useCreateLabel = (workspaceSlug: string) => {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (data: CreateLabelType) => {
-      return await LabelService.create(workspaceSlug, data);
+      return await api.post(`/workspaces/${workspaceSlug}/labels`, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
@@ -26,6 +37,7 @@ export const useCreateLabel = (workspaceSlug: string) => {
       toast.error(getErrorMessage(err) || "Failed to create label"),
   });
 };
+
 export const useDeleteLabel = (workspaceSlug: string) => {
   const queryClient = useQueryClient();
 
@@ -37,7 +49,9 @@ export const useDeleteLabel = (workspaceSlug: string) => {
       labelId: string;
       boardId: string;
     }) => {
-      return await LabelService.deleteLabel(workspaceSlug, labelId, boardId);
+      return await api.delete(
+        `/workspaces/${workspaceSlug}/labels/${labelId}?boardId=${boardId}`,
+      );
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
@@ -65,10 +79,11 @@ export const useToggleLabel = (card: BoardCard) => {
       labelId: string;
       isAttached: boolean;
     }) => {
+      const cardId = card.id;
       if (isAttached) {
-        return await LabelService.removeFromCard(card.id, labelId);
+        return await api.delete(`/cards/${cardId}/labels/${labelId}`);
       } else {
-        return await LabelService.attachToCard(card.id, labelId);
+        return await api.post(`/cards/${cardId}/labels`, { labelId });
       }
     },
 
@@ -110,3 +125,11 @@ export const useToggleLabel = (card: BoardCard) => {
     },
   });
 };
+
+export function useGetLabels(workspaceSlug: string) {
+  return useQuery({
+    queryKey: ["labels"],
+    queryFn: async (): Promise<BoardLabel[]> =>
+      api.get(`/workspaces/${workspaceSlug}/labels`),
+  });
+}

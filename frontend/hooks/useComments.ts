@@ -1,14 +1,27 @@
-import { CardComment, CommentService } from "@/services/comment.service";
+import { api } from "@/lib/api";
 import { useAuthStore } from "@/store/auth.store";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+
+export interface CardComment {
+  id: string;
+  content: string;
+  isEdited: boolean;
+  createdAt: string;
+  author: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    avatarUrl?: string;
+  };
+}
 
 export const useCreateComment = (cardId: string) => {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (content: string) =>
-      CommentService.create(cardId, content),
+      api.post(`/cards/${cardId}/comments`, { content }),
 
     onMutate: async (content) => {
       await queryClient.cancelQueries({ queryKey: ["comments", cardId] });
@@ -43,10 +56,12 @@ export const useCreateComment = (cardId: string) => {
 
     onError: (err, variables, context) => {
       if (context?.previousComments) {
-        queryClient.setQueryData(["card", cardId], context.previousComments);
+        queryClient.setQueryData(
+          ["comments", cardId],
+          context.previousComments,
+        );
       }
       toast.error("Failed to post comment");
-      console.error(err);
     },
 
     onSettled: () => {
@@ -58,7 +73,7 @@ export const useCreateComment = (cardId: string) => {
 export const useGetComments = (cardId: string) => {
   return useQuery({
     queryKey: ["comments", cardId],
-    queryFn: () => CommentService.getByCardId(cardId),
+    queryFn: () => api.get(`/cards/${cardId}/comments`),
   });
 };
 
@@ -72,7 +87,7 @@ export const useEditComment = (cardId: string) => {
     }: {
       commentId: string;
       content: string;
-    }) => CommentService.edit(commentId, content),
+    }) => api.patch(`/comments/${commentId}`, { content }),
 
     onMutate: async ({ commentId, content }) => {
       await queryClient.cancelQueries({ queryKey: ["comments", cardId] });
@@ -118,7 +133,7 @@ export const useDeleteComment = (cardId: string) => {
 
   return useMutation({
     mutationFn: async (commentId: string) =>
-      CommentService.deleteById(commentId),
+      api.delete(`/comments/${commentId}`),
 
     onMutate: async (commentId) => {
       await queryClient.cancelQueries({ queryKey: ["comments", cardId] });
