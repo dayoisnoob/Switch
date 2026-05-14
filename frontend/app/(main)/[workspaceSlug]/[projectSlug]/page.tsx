@@ -66,6 +66,7 @@ import { useWorkspaceStore } from "@/store/workspace.store";
 import { BoardCard, BoardColumn } from "@/types/board.types";
 import { toast } from "sonner";
 import DeleteColumnModal from "@/components/modals/DeleteColumnModal";
+import { KanbanBoardSkeleton } from "@/components/skeletons/BoardPage";
 
 function findColumnInSnapshot(
   id: string,
@@ -129,7 +130,6 @@ export default function KanbanBoardPage() {
 
   const board = useBoardStore((s) => s.board);
   useBoardSocket(board?.id ?? "");
-  const { canManageWorkspace } = useWorkspaceRole(workspaceSlug);
 
   const { mutate: moveCard } = useMoveCard();
   const { mutate: moveColumn } = useMoveColumn();
@@ -407,14 +407,7 @@ export default function KanbanBoardPage() {
 
       <main className="flex-1 min-h-0 overflow-x-auto overflow-y-hidden custom-scrollbar p-6">
         {isBoardLoading ? (
-          <div className="flex gap-6 items-start">
-            {[1, 2, 3].map((i) => (
-              <div
-                key={i}
-                className="w-85 h-105 bg-white/2 border border-white/5 rounded-2xl animate-pulse"
-              />
-            ))}
-          </div>
+          <KanbanBoardSkeleton />
         ) : (
           <DndContext
             sensors={sensors}

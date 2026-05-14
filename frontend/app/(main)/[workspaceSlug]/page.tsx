@@ -2,6 +2,7 @@
 
 import CreateProjectModal from "@/components/modals/CreateProjectModal";
 import DeleteWorkspaceModal from "@/components/modals/DeleteWorkspaceModal";
+import { WorkspaceSkeleton } from "@/components/skeletons/WorkspacePage";
 import EmptyProjectState from "@/components/workspace/EmptyProjects";
 import { MembersTab } from "@/components/workspace/MembersTab";
 import { ProjectsTab } from "@/components/workspace/ProjectsTab";
@@ -55,7 +56,7 @@ export default function WorkspacePage() {
     ...(canManageWorkspace ? [{ id: "Settings" }] : []),
   ];
 
-  if (projectsLoading || membersloading) return <div>Loading...</div>;
+  if (projectsLoading || membersloading) return <WorkspaceSkeleton />;
 
   const handleTabChange = (tabId: string) => {
     const params = new URLSearchParams(searchParams.toString());

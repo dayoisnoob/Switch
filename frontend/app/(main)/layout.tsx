@@ -12,7 +12,7 @@ import {
   useGetWorkspaces,
   useWorkspaceRole,
 } from "@/hooks/useWorkspace";
-import { cn } from "@/lib/utils";
+import { cn, getConsistentColor, getInitials } from "@/lib/utils";
 import { useBoardStore } from "@/store/board.store";
 import { useNotificationStore } from "@/store/notification.store";
 import { useWorkspaceStore } from "@/store/workspace.store";
@@ -41,35 +41,8 @@ import { ReactNode, useEffect, useState } from "react";
 import {
   LayoutSkeleton,
   ProjectsSkeleton,
-} from "@/components/skeletons/main-layout/skeletons";
+} from "@/components/skeletons/LayoutPage";
 
-// ── HELPERS ──
-const PROJECT_COLORS = [
-  "#38bdf8",
-  "#818cf8",
-  "#a855f7",
-  "#fb7185",
-  "#fbbf24",
-  "#34d399",
-];
-
-const getConsistentColor = (id: string) => {
-  let hash = 0;
-  for (let i = 0; i < id.length; i++) {
-    hash = id.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  return PROJECT_COLORS[Math.abs(hash) % PROJECT_COLORS.length];
-};
-
-const getInitials = (name: string) =>
-  name
-    .split(" ")
-    .map((n) => n.charAt(0))
-    .join("")
-    .toUpperCase()
-    .slice(0, 2);
-
-// ── LAYOUT ──
 export default function MainLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();

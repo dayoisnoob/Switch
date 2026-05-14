@@ -84,7 +84,7 @@ export function useGetProjectBySlug(
 
 export function useActiveProjectsCount() {
   return useQuery({
-    queryKey: ["projects"],
+    queryKey: ["projects", "count"],
     queryFn: () => api.get(`/users/me/projects/count`),
     staleTime: 1000 * 60 * 5,
   });
