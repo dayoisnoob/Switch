@@ -32,9 +32,7 @@ export const MembersTab = ({
 
   const { mutate: updateRole } = useUpdateMemberRole(activeWorkspace.slug);
 
-  const { canManageWorkspace, isOwner } = useWorkspaceRole(
-    activeWorkspace.slug,
-  );
+  const { canManageWorkspace, isOwner } = useWorkspaceRole();
 
   const filteredMembers = members?.filter((member) => {
     const searchLower = searchQuery.toLowerCase();

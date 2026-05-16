@@ -81,7 +81,7 @@ export function CardSidebar({
   const { mutate: toggleLabel } = useToggleLabel(card);
   const { mutate: createLabel, isPending: isCreatingLabel } =
     useCreateLabel(workspaceSlug);
-  const { canManageWorkspace } = useWorkspaceRole(workspaceSlug);
+  const { canManageWorkspace } = useWorkspaceRole();
   const { mutate: deleteLabel } = useDeleteLabel(workspaceSlug);
 
   const filteredMembers = workspaceMembers?.filter(

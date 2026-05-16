@@ -507,8 +507,10 @@ const SortableColumn = memo(function SortableColumn({
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [editTitle, setEditTitle] = useState(column.name);
 
+  const activeWorkspace = useWorkspaceStore((s) => s.activeWorkspace);
+
   const menuRef = useRef<HTMLDivElement>(null);
-  const { canManageWorkspace } = useWorkspaceRole(workspaceSlug);
+  const { canManageWorkspace } = useWorkspaceRole();
 
   const {
     setNodeRef,
@@ -604,7 +606,6 @@ const SortableColumn = memo(function SortableColumn({
 
   const dotColor = getColumnColor(column.name);
 
-  const activeWorkspace = useWorkspaceStore((s) => s.activeWorkspace);
   if (!activeWorkspace) return null;
 
   return (

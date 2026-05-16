@@ -9,21 +9,21 @@ import {
 import {
   Download,
   FileText,
+  File as GenericFile,
   Image as ImageIcon,
   Trash2,
   Upload,
-  File as GenericFile,
 } from "lucide-react";
 import { useRef, useState } from "react";
 
-import { useMe } from "@/hooks/useAuth";
-import { BoardCard, CardAttachment } from "@/types/board.types";
 import {
   useDeleteAttachment,
   useUploadAttachment,
 } from "@/hooks/useAttacments";
+import { useMe } from "@/hooks/useAuth";
+import { useWorkspaceStore } from "@/store/workspace.store";
+import { BoardCard, CardAttachment } from "@/types/board.types";
 import { useWorkspaceRole } from "@/hooks/useWorkspace";
-import { useParams } from "next/navigation";
 
 function formatBytes(bytes: number) {
   if (bytes === 0) return "0 Bytes";
@@ -33,7 +33,6 @@ function formatBytes(bytes: number) {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + " " + sizes[i];
 }
 
-// Return a nice icon based on mimetype
 function getFileIcon(mimeType: string) {
   if (mimeType.startsWith("image/"))
     return <ImageIcon size={20} className="text-amber-400" />;
@@ -43,9 +42,6 @@ function getFileIcon(mimeType: string) {
 }
 
 export function CardAttachments({ card }: { card: BoardCard }) {
-  const { workspaceSlug } = useParams() as {
-    workspaceSlug: string;
-  };
   const { data: currentUser } = useMe();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -70,7 +66,7 @@ export function CardAttachments({ card }: { card: BoardCard }) {
     if (file) upload(file);
   };
 
-  const { canManageWorkspace } = useWorkspaceRole(workspaceSlug);
+  const { canManageWorkspace } = useWorkspaceRole();
 
   return (
     <section>

@@ -7,9 +7,9 @@ import {
   useEditComment,
   useGetComments,
 } from "@/hooks/useComments";
-import { useGetMembers } from "@/hooks/useWorkspace";
-import { useWorkspaceRole } from "@/hooks/useWorkspace";
+import { useGetMembers, useWorkspaceRole } from "@/hooks/useWorkspace";
 import { cn } from "@/lib/utils";
+import { useWorkspaceStore } from "@/store/workspace.store";
 import { formatDistanceToNow } from "date-fns";
 import { Pencil, Trash2 } from "lucide-react";
 import Image from "next/image";
@@ -42,7 +42,7 @@ export function CardComments({ cardId }: { cardId: string }) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
 
-  const { canManageWorkspace } = useWorkspaceRole(workspaceSlug);
+  const { canManageWorkspace } = useWorkspaceRole();
 
   const handleSubmit = () => {
     if (!commentValue.trim()) return;

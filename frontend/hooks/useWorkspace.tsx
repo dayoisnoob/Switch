@@ -155,22 +155,14 @@ export function useDeleteWorkspace(workspaceSlug: string) {
   });
 }
 
-export function useWorkspaceRole(workspaceSlug: string) {
-  const { data: currentUser } = useMe();
-  const { data: workspaceMembers } = useGetMembers(workspaceSlug);
+export function useWorkspaceRole() {
+  const activeWorkspace = useWorkspaceStore((s) => s.activeWorkspace);
 
-  const currentMember = workspaceMembers?.find(
-    (m) => m.userId === currentUser?.id,
-  );
+  const isOwner = activeWorkspace?.role === "Owner";
+  const canManageWorkspace =
+    activeWorkspace?.role === "Owner" || activeWorkspace?.role === "Admin";
 
-  const role = currentMember?.role ?? "Member";
-
-  return {
-    role,
-    isOwner: role === "Owner",
-    isAdmin: role === "Admin",
-    canManageWorkspace: ["Owner", "Admin"].includes(role),
-  };
+  return { isOwner, canManageWorkspace };
 }
 
 export function useUpdateMemberRole(workspaceSlug: string) {

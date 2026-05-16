@@ -52,7 +52,7 @@ export function CardDetailModalInner({
 
   const { data: currentUser } = useMe();
   const { data: project } = useGetProjectBySlug(workspaceSlug, projectSlug);
-  const { canManageWorkspace } = useWorkspaceRole(workspaceSlug);
+  const { canManageWorkspace } = useWorkspaceRole();
 
   const { mutate: updateCard } = useUpdateCard(card.id);
   const currentColumn = columns.find((c) =>

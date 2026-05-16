@@ -2,17 +2,11 @@
 
 import CreateProjectModal from "@/components/modals/CreateProjectModal";
 import DeleteWorkspaceModal from "@/components/modals/DeleteWorkspaceModal";
-import { WorkspaceSkeleton } from "@/components/skeletons/WorkspacePage";
-import EmptyProjectState from "@/components/workspace/EmptyProjects";
 import { MembersTab } from "@/components/workspace/MembersTab";
 import { ProjectsTab } from "@/components/workspace/ProjectsTab";
 import { SettingsTab } from "@/components/workspace/SettingsTab";
 import { useWorkspaceProjects } from "@/hooks/useProjects";
-import {
-  useGetMembers,
-  useGetWorkspaces,
-  useWorkspaceRole,
-} from "@/hooks/useWorkspace";
+import { useGetMembers, useWorkspaceRole } from "@/hooks/useWorkspace";
 import { cn } from "@/lib/utils";
 import { useWorkspaceStore } from "@/store/workspace.store";
 import { LayoutGrid, UserPlus } from "lucide-react";
@@ -33,14 +27,10 @@ export default function WorkspacePage() {
   const workspaceSlug = params?.workspaceSlug as string;
   const activeWorkspace = useWorkspaceStore((s) => s.activeWorkspace);
 
-  const isOwner = activeWorkspace?.role === "Owner";
-  const canManageWorkspace = isOwner || activeWorkspace?.role === "Admin";
+  const { canManageWorkspace, isOwner } = useWorkspaceRole();
 
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
-
-  // const { data: workspaces } = useGetWorkspaces();
-  // const activeWorkspace = workspaces?.find((w) => w.slug === workspaceSlug);
 
   const tabParam = searchParams.get("tab") || "projects";
   const activeTab =

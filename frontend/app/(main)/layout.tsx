@@ -1,17 +1,17 @@
 "use client";
 
-import CreateWorkspaceModal from "@/components/modals/CreateWorkspaceModal";
-import WorkspaceSwitcherModal from "@/components/modals/SwitchWorkspaceModal";
 import CreateProjectModal from "@/components/modals/CreateProjectModal";
+import CreateWorkspaceModal from "@/components/modals/CreateWorkspaceModal";
 import GlobalSearchModal from "@/components/modals/GlobalSearchModal";
+import WorkspaceSwitcherModal from "@/components/modals/SwitchWorkspaceModal";
+import {
+  LayoutSkeleton,
+  ProjectsListSkeleton,
+} from "@/components/skeletons/LayoutPage";
 import { SocketProvider } from "@/components/SocketProvider";
 import { useLogout, useMe } from "@/hooks/useAuth";
 import { useWorkspaceProjects } from "@/hooks/useProjects";
-import {
-  useGetMembers,
-  useGetWorkspaces,
-  useWorkspaceRole,
-} from "@/hooks/useWorkspace";
+import { useGetMembers, useGetWorkspaces, useWorkspaceRole } from "@/hooks/useWorkspace";
 import { cn, getConsistentColor, getInitials } from "@/lib/utils";
 import { useBoardStore } from "@/store/board.store";
 import { useNotificationStore } from "@/store/notification.store";
@@ -38,10 +38,6 @@ import {
   useSearchParams,
 } from "next/navigation";
 import { ReactNode, useEffect, useState } from "react";
-import {
-  LayoutSkeleton,
-  ProjectsListSkeleton,
-} from "@/components/skeletons/LayoutPage";
 
 export default function MainLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -76,9 +72,10 @@ export default function MainLayout({ children }: { children: ReactNode }) {
   const { data: projects = [], isLoading: projectsLoading } =
     useWorkspaceProjects(activeWorkspace?.slug);
   const { data: members = [] } = useGetMembers(activeWorkspace?.slug ?? "");
-  const { canManageWorkspace } = useWorkspaceRole(activeWorkspace?.slug ?? "");
-
   const hasWorkspaces = workspaces.length > 0;
+
+    const { canManageWorkspace } = useWorkspaceRole();
+  
 
   useEffect(() => {
     if (!userLoading && !user) window.location.href = "/login";

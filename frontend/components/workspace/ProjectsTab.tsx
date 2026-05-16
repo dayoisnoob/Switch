@@ -39,7 +39,7 @@ export const ProjectsTab = ({
   projectsLoading,
   onOpenProjectModal,
 }: ProjectsTab) => {
-  const { canManageWorkspace, isOwner } = useWorkspaceRole(workspaceSlug);
+  const { canManageWorkspace, isOwner } = useWorkspaceRole();
 
   return (
     <div>
