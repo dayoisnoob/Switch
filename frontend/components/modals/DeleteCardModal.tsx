@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { BoardCard } from "@/types/board.types";
 import { AlertTriangle, ChevronRight, Trash2, X } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 
 interface DeleteCardModalProps {
   isOpen: boolean;
@@ -32,8 +33,8 @@ export function DeleteCardModal({
       setIsDeleting(true);
       await onConfirm();
       onClose();
-    } catch (error) {
-      console.error("Failed to delete card:", error);
+    } catch (error: any) {
+      toast.error("Failed to delete card:", error);
     } finally {
       setIsDeleting(false);
     }

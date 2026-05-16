@@ -131,5 +131,6 @@ export function useGetLabels(workspaceSlug: string) {
     queryKey: ["labels"],
     queryFn: async (): Promise<BoardLabel[]> =>
       api.get(`/workspaces/${workspaceSlug}/labels`),
+    enabled: !!workspaceSlug,
   });
 }

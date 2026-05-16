@@ -13,6 +13,7 @@ import { ChangeEvent, useState } from "react";
 import InviteMemberModal from "../modals/InviteMemberModal";
 import RemoveMemberModal from "../modals/RemoveMemberModal";
 import { MembersSkeleton } from "../skeletons/MembersTab";
+import { useGetPendingInvites } from "@/hooks/useInvitations";
 
 export const MembersTab = ({
   members,
@@ -33,6 +34,9 @@ export const MembersTab = ({
   const { mutate: updateRole } = useUpdateMemberRole(activeWorkspace.slug);
 
   const { canManageWorkspace, isOwner } = useWorkspaceRole();
+
+  const { data: pendingInvites, isLoading: pendingInvitesLoading } =
+    useGetPendingInvites(activeWorkspace.slug);
 
   const filteredMembers = members?.filter((member) => {
     const searchLower = searchQuery.toLowerCase();
@@ -259,6 +263,8 @@ export const MembersTab = ({
         isOpen={inviteModal}
         onClose={() => setInviteModal(false)}
         workspace={activeWorkspace}
+        pendingInvites={pendingInvites ?? []}
+        isLoading={pendingInvitesLoading}
       />
 
       <RemoveMemberModal

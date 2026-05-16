@@ -6,9 +6,8 @@ import { WorkspaceCard } from "@/components/workspace/WorkspaceCard";
 import { useMe, useTeammates } from "@/hooks/useAuth";
 import { useOpenCards } from "@/hooks/useCards";
 import { useActiveProjectsCount } from "@/hooks/useProjects";
-import { useGetWorkspaces } from "@/hooks/useWorkspace";
+import { useGetWorkspaces, Workspace } from "@/hooks/useWorkspace";
 import { cn } from "@/lib/utils";
-import { Workspace } from "@/services/workspace.service";
 import { useWorkspaceStore } from "@/store/workspace.store";
 import {
   ArrowUp,
@@ -19,7 +18,7 @@ import {
   Users,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, useState } from "react";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -31,6 +30,10 @@ export default function DashboardPage() {
   const { data: teammates } = useTeammates();
   const { data: projects, isLoading: countLoading } = useActiveProjectsCount();
   const { data: workspaces = [], isFetched } = useGetWorkspaces();
+
+  const hour = new Date().getHours();
+  const greeting =
+    hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good Evening";
 
   const handleRedirectWorkspace = (ws: Workspace) => {
     setActiveWorkspace(ws);
@@ -88,7 +91,7 @@ export default function DashboardPage() {
             {/* ── HEADER ── */}
             <header className="mb-8">
               <h1 className="text-3xl font-bold text-white mb-2 tracking-tight">
-                Good morning, {user?.firstName || "James"} 👋
+                {greeting}, {user?.firstName || "James"}
               </h1>
               <p className="text-white/40 text-[13px]">
                 Here&apos;s what&apos;s happening across your workspaces.
@@ -149,7 +152,7 @@ export default function DashboardPage() {
                   {/* Premium "Create Workspace" Card */}
                   <button
                     onClick={() => setIsAddWorkspaceOpen(true)}
-                    className="bg-white/1 border border-dashed border-white/10 rounded-xl p-5 hover:border-white/20 hover:bg-white/3 transition-all flex flex-col items-center justify-center h-[200px] group"
+                    className="bg-white/1 border border-dashed border-white/10 rounded-xl p-5 hover:border-white/20 hover:bg-white/3 transition-all flex flex-col items-center justify-center h-50 group"
                   >
                     <div className="w-10 h-10 rounded-full bg-white/3 flex items-center justify-center mb-3 group-hover:bg-[#7C6EF5]/10 group-hover:scale-110 transition-all duration-300">
                       <Plus

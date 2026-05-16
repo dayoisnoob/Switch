@@ -1,4 +1,4 @@
-import { StatusType } from "@/services/card.service";
+import { StatusType } from "@/hooks/useCards";
 
 export interface BoardLabel {
   id: string;
@@ -62,4 +62,11 @@ export interface BoardState {
   id: string;
   projectId: string;
   columns: BoardColumn[];
+}
+
+export interface PresenceUser {
+  userId: string;
+  firstName: string;
+  lastName: string;
+  avatarUrl: string | null;
 }

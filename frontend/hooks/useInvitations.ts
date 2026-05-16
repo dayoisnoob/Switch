@@ -48,15 +48,12 @@ export function useSendInvite(workspaceSlug: string) {
   });
 }
 
-export const useGetPendingInvites = (
-  workspaceSlug?: string,
-  isOpen: boolean = true,
-) => {
+export const useGetPendingInvites = (workspaceSlug: string) => {
   return useQuery({
     queryKey: ["invitations", workspaceSlug],
     queryFn: (): Promise<PendingInvites[]> =>
       api.get(`/workspaces/${workspaceSlug}/invitations/pending`),
-    enabled: !!workspaceSlug && isOpen,
+    enabled: !!workspaceSlug,
     staleTime: 1000 * 60 * 5,
   });
 };

@@ -11,7 +11,11 @@ import {
 import { SocketProvider } from "@/components/SocketProvider";
 import { useLogout, useMe } from "@/hooks/useAuth";
 import { useWorkspaceProjects } from "@/hooks/useProjects";
-import { useGetMembers, useGetWorkspaces, useWorkspaceRole } from "@/hooks/useWorkspace";
+import {
+  useGetMembers,
+  useGetWorkspaces,
+  useWorkspaceRole,
+} from "@/hooks/useWorkspace";
 import { cn, getConsistentColor, getInitials } from "@/lib/utils";
 import { useBoardStore } from "@/store/board.store";
 import { useNotificationStore } from "@/store/notification.store";
@@ -74,8 +78,7 @@ export default function MainLayout({ children }: { children: ReactNode }) {
   const { data: members = [] } = useGetMembers(activeWorkspace?.slug ?? "");
   const hasWorkspaces = workspaces.length > 0;
 
-    const { canManageWorkspace } = useWorkspaceRole();
-  
+  const { canManageWorkspace } = useWorkspaceRole();
 
   useEffect(() => {
     if (!userLoading && !user) window.location.href = "/login";
@@ -396,9 +399,9 @@ export default function MainLayout({ children }: { children: ReactNode }) {
                   </>
                 )}
                 <button
-                  onClick={() => {
+                  onClick={async () => {
                     setIsUserDropdownOpen(false);
-                    logout();
+                    await logout();
                   }}
                   className="w-full flex items-center gap-3 p-2.5 text-[13px] font-medium text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 rounded-lg transition-colors"
                 >

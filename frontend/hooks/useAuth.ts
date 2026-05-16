@@ -23,6 +23,10 @@ export interface UserProfile {
   avatarUrl: string;
 }
 
+export interface TeammatesCountResponse {
+  count: number;
+}
+
 export function useInitialiseReg() {
   const router = useRouter();
 
@@ -163,7 +167,8 @@ export function useMe() {
 export function useTeammates() {
   return useQuery({
     queryKey: ["teammates"],
-    queryFn: () => api.get("/users/me/teammates/count"),
+    queryFn: (): Promise<TeammatesCountResponse> =>
+      api.get("/users/me/teammates/count"),
     staleTime: 1000 * 60 * 5,
   });
 }

@@ -3,7 +3,7 @@ import { ApiError } from "@/lib/ApiError";
 import { useBoardStore } from "@/store/board.store";
 import { BoardState } from "@/types/board.types";
 import { useQuery } from "@tanstack/react-query";
-import { RefObject, useEffect } from "react";
+import { useEffect } from "react";
 import { useGetLabels } from "./useLabels";
 
 export const useBoard = (projectSlug: string, workspaceSlug: string) => {
@@ -25,26 +25,8 @@ export const useBoard = (projectSlug: string, workspaceSlug: string) => {
   }, [query.data, setBoard]);
 
   useEffect(() => {
-    if (labels) setWorkspaceLabels(labels);
-  }, [setWorkspaceLabels, workspaceSlug]);
+    if (labels?.length) setWorkspaceLabels(labels);
+  }, [setWorkspaceLabels, labels, workspaceSlug]);
 
   return query;
 };
-
-export function useClickOutside<T extends HTMLElement>(
-  ref: RefObject<T | null>,
-  handler: (event: MouseEvent | TouchEvent) => void,
-) {
-  useEffect(() => {
-    const listener = (event: MouseEvent | TouchEvent) => {
-      if (!ref.current || ref.current.contains(event.target as Node)) return;
-      handler(event);
-    };
-    document.addEventListener("mousedown", listener);
-    document.addEventListener("touchstart", listener);
-    return () => {
-      document.removeEventListener("mousedown", listener);
-      document.removeEventListener("touchstart", listener);
-    };
-  }, [ref, handler]);
-}

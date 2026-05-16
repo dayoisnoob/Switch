@@ -112,7 +112,6 @@ export function useMoveColumnCards() {
     },
 
     onError: (err: any) => {
-      console.log(err);
       toast.error(getErrorMessage(err) || "Failed to move cards");
     },
   });

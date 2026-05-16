@@ -6,6 +6,7 @@ import {
   BoardLabel,
   BoardAssignee,
   CardAttachment,
+  PresenceUser,
 } from "@/types/board.types";
 
 interface BoardStore {
@@ -406,10 +407,3 @@ export const useBoardStore = create<BoardStore>((set) => ({
 
   setPresence: (users) => set({ presenceUsers: users }),
 }));
-
-type PresenceUser = {
-  userId: string;
-  firstName: string;
-  lastName: string;
-  avatarUrl: string | null;
-};

@@ -1,11 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { X, AlertTriangle, LayoutGrid } from "lucide-react";
-import { Workspace } from "@/services/workspace.service";
+import { useDeleteWorkspace, Workspace } from "@/hooks/useWorkspace";
 import { cn } from "@/lib/utils";
-import { useDeleteWorkspace } from "@/hooks/useWorkspace";
+import { AlertTriangle, LayoutGrid, X } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { Portal } from "../ui/Portal";
 
 interface DeleteWorkspaceModalProps {
@@ -48,7 +47,6 @@ export default function DeleteWorkspaceModal({
 
   const handleDeleteWorkspace = () => {
     if (!isMatch) return;
-    console.log("Nuking workspace:", workspace.slug);
     deleteWorkspace();
     router.push("/dashboard");
   };

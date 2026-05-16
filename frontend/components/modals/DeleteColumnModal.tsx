@@ -82,7 +82,6 @@ export default function DeleteColumnModal({
 
       onClose();
     } catch (error: any) {
-      console.error(error);
       toast.error("Failed to perform this action. Please try again.");
     }
   };

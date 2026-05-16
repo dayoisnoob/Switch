@@ -119,7 +119,6 @@ export const useEditComment = (cardId: string) => {
         );
       }
       toast.error("Failed to edit comment");
-      console.error(err);
     },
 
     onSettled: () => {
@@ -161,7 +160,6 @@ export const useDeleteComment = (cardId: string) => {
         );
       }
       toast.error("Failed to delete comment");
-      console.error(err);
     },
 
     onSettled: () => {

@@ -33,6 +33,10 @@ export interface CreateProject {
   workspaceId: string;
 }
 
+export interface ProjectsCountResponse {
+  count: number;
+}
+
 export function useCreateProject() {
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -85,7 +89,8 @@ export function useGetProjectBySlug(
 export function useActiveProjectsCount() {
   return useQuery({
     queryKey: ["projects", "count"],
-    queryFn: () => api.get(`/users/me/projects/count`),
+    queryFn: (): Promise<ProjectsCountResponse> =>
+      api.get(`/users/me/projects/count`),
     staleTime: 1000 * 60 * 5,
   });
 }

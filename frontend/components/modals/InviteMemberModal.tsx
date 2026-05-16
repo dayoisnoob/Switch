@@ -17,12 +17,16 @@ interface InviteMemberModalProps {
   isOpen: boolean;
   onClose: () => void;
   workspace: Workspace;
+  pendingInvites: PendingInvites[];
+  isLoading: boolean;
 }
 
 export default function InviteMemberModal({
   isOpen,
   onClose,
   workspace,
+  pendingInvites,
+  isLoading,
 }: InviteMemberModalProps) {
   const [email, setEmail] = useState("");
   const [role, setRole] = useState("Member");
@@ -31,10 +35,6 @@ export default function InviteMemberModal({
   const { mutate: sendInvite, isPending } = useSendInvite(workspace!.slug!);
   const { mutate: resend, isPending: resendingInvite } = useResendInvite(
     workspace!.slug,
-  );
-  const { data: pendingInvites, isLoading } = useGetPendingInvites(
-    workspace!.slug,
-    isOpen,
   );
 
   useEffect(() => {

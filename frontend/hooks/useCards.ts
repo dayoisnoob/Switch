@@ -34,6 +34,10 @@ export type StatusType =
   | "DONE"
   | "CANCELED";
 
+export interface OpenCardsResponse {
+  count: number;
+}
+
 export type CardPriority = "none" | "low" | "medium" | "high" | "urgent";
 
 export interface CardType {
@@ -114,7 +118,6 @@ export function useUpdateCard(cardId: string) {
 
     onError: (err) => {
       toast.error(getErrorMessage(err));
-      console.error(err);
     },
   });
 }
@@ -177,7 +180,7 @@ export function useToggleAssignee(cardId: string) {
 export const useOpenCards = () => {
   return useQuery({
     queryKey: ["open-cards"],
-    queryFn: () => api.get(`/cards/open/count`),
+    queryFn: (): Promise<OpenCardsResponse> => api.get(`/cards/open/count`),
     staleTime: 1000 * 60 * 5,
   });
 };

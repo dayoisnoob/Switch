@@ -2,18 +2,7 @@
 import { create } from "zustand";
 import { socket } from "@/lib/socket";
 import { api } from "@/lib/api";
-
-type NotificationStore = {
-  notifications: Notification[];
-  unreadCount: number;
-  isLoading: boolean;
-  fetchNotifs: () => Promise<void>;
-  markRead: (id: string) => Promise<void>;
-  markAllRead: () => Promise<void>;
-  initSocket: () => void;
-};
-
-export interface Notification {
+export interface AppNotification {
   id: string;
   type: "card_assigned" | "comment_added" | "card_due_soon" | "mentioned";
   title: string;
@@ -24,6 +13,16 @@ export interface Notification {
   createdAt: string;
 }
 
+type NotificationStore = {
+  notifications: AppNotification[];
+  unreadCount: number;
+  isLoading: boolean;
+  fetchNotifs: () => Promise<void>;
+  markRead: (id: string) => Promise<void>;
+  markAllRead: () => Promise<void>;
+  initSocket: () => void;
+};
+
 export const useNotificationStore = create<NotificationStore>((set) => ({
   notifications: [],
   unreadCount: 0,
@@ -31,10 +30,13 @@ export const useNotificationStore = create<NotificationStore>((set) => ({
 
   fetchNotifs: async () => {
     set({ isLoading: true });
-    const notifications = (await api.get("/notifications")) as Notification[];
+    const notifications = (await api.get(
+      "/notifications",
+    )) as AppNotification[];
     set({
       notifications,
-      unreadCount: notifications.filter((n: Notification) => !n.isRead).length,
+      unreadCount: notifications.filter((n: AppNotification) => !n.isRead)
+        .length,
       isLoading: false,
     });
   },
@@ -61,7 +63,7 @@ export const useNotificationStore = create<NotificationStore>((set) => ({
     socket.off("notification:new");
     socket.on(
       "notification:new",
-      ({ notification }: { notification: Notification }) => {
+      ({ notification }: { notification: AppNotification }) => {
         set((s) => ({
           notifications: [notification, ...s.notifications],
           unreadCount: s.unreadCount + 1,
