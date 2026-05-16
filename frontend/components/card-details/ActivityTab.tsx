@@ -1,10 +1,10 @@
 "use client";
 
-import { ActivityPage, useGetActivities } from "@/hooks/useActivities";
+import { useGetActivities } from "@/hooks/useActivities";
 import { getActivityConfig, renderActivityText } from "@/lib/activityHelpers";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
-import { useEffect, useState } from "react";
+import { ActivitySkeleton } from "../skeletons/CardActivities";
 
 export function ActivityTab({ cardId }: { cardId: string }) {
   const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } =
@@ -13,11 +13,7 @@ export function ActivityTab({ cardId }: { cardId: string }) {
   const allActivities = data?.pages.flatMap((p) => p.activities) ?? [];
 
   if (isLoading && allActivities.length === 0) {
-    return (
-      <div className="py-8 flex justify-center">
-        <div className="w-5 h-5 border-2 border-[#7C6EF5]/30 border-t-[#7C6EF5] rounded-full animate-spin" />
-      </div>
-    );
+    return <ActivitySkeleton />;
   }
 
   return (

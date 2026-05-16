@@ -51,7 +51,7 @@ export const LayoutSkeleton = () => {
   );
 };
 
-export const ProjectsSkeleton = () => {
+export const ProjectsListSkeleton = () => {
   return (
     <div className="space-y-0.5 animate-pulse">
       {[80, 100, 65].map((w, i) => (

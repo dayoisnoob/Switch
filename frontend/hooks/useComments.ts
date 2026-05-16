@@ -73,7 +73,7 @@ export const useCreateComment = (cardId: string) => {
 export const useGetComments = (cardId: string) => {
   return useQuery({
     queryKey: ["comments", cardId],
-    queryFn: () => api.get(`/cards/${cardId}/comments`),
+    queryFn: (): Promise<CardComment[]> => api.get(`/cards/${cardId}/comments`),
   });
 };
 

@@ -1,7 +1,8 @@
 "use client";
 
+import { Project, useDeleteProject } from "@/hooks/useProjects";
+import { useWorkspaceRole, Workspace } from "@/hooks/useWorkspace";
 import { getConsistentColor } from "@/lib/utils";
-import { Project } from "@/services/projects.service";
 import {
   ChevronDown,
   Edit2,
@@ -14,15 +15,15 @@ import {
   Search,
   Trash2,
 } from "lucide-react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import CreateProjectModal, {
   PROJECT_ICON_MAP,
 } from "../modals/CreateProjectModal";
 import DeleteProjectModal from "../modals/DeleteProjectModal";
-import Image from "next/image";
-import { useDeleteProject } from "@/hooks/useProjects";
-import { useWorkspaceRole, Workspace } from "@/hooks/useWorkspace";
+import { ProjectsSkeleton } from "../skeletons/ProjectsTab";
+import EmptyProjectState from "./EmptyProjects";
 
 interface ProjectsTab {
   workspaceSlug: string;
@@ -34,7 +35,6 @@ interface ProjectsTab {
 
 export const ProjectsTab = ({
   workspaceSlug,
-  workspace,
   projects,
   projectsLoading,
   onOpenProjectModal,
@@ -44,7 +44,6 @@ export const ProjectsTab = ({
   return (
     <div>
       <>
-        {/* SEARCH & FILTERS ROW */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             <div className="relative">
@@ -76,11 +75,8 @@ export const ProjectsTab = ({
           </div>
         </div>
 
-        {/* PROJECT GRID */}
         {projectsLoading ? (
-          <div className="flex justify-center items-center py-24">
-            <div className="animate-spin rounded-full h-8 w-8 border-2 border-white/10 border-t-[#7C6EF5]" />
-          </div>
+          <ProjectsSkeleton />
         ) : projects && projects.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {projects.map((project) => (
@@ -110,20 +106,8 @@ export const ProjectsTab = ({
             )}
           </div>
         ) : (
-          // EMPTY STATE (Fallback if no projects at all)
-          <div className="bg-[#1C1C1E] border border-dashed border-[#333] rounded-xl p-16 flex flex-col items-center text-center">
-            <h4 className="text-lg font-semibold text-white mb-2">
-              No projects found
-            </h4>
-            <p className="text-sm text-[#a1a1a1] mb-6 max-w-sm">
-              Create your first project to start organizing tasks.
-            </p>
-            <button
-              onClick={onOpenProjectModal}
-              className="px-6 h-10 bg-[#3b2d9e] hover:bg-[#4a3bc2] text-white font-semibold rounded-md flex items-center gap-2 transition-all"
-            >
-              <Plus size={16} /> New Project
-            </button>
+          <div className="pt-8">
+            <EmptyProjectState onCreateProject={onOpenProjectModal} />
           </div>
         )}
       </>
@@ -167,16 +151,13 @@ export const ProjectCard = ({
   return (
     <div
       onClick={() => router.push(`/${activeWorkspaceSlug}/${project.slug}`)}
-      className="group/card bg-[#141419] border border-white/4 hover:border-white/10 rounded-[20px] p-5 transition-all duration-300 cursor-pointer flex flex-col min-h-[220px] relative overflow-hidden shadow-sm hover:shadow-md"
+      className="group/card bg-[#141419] border border-white/4 hover:border-white/10 rounded-2xl p-5 transition-all duration-300 cursor-pointer flex flex-col min-h-55 relative overflow-hidden shadow-sm hover:shadow-md"
     >
-      {/* --- HEADER --- */}
       <div className="flex items-start justify-between mb-4">
-        {/* Project Icon (Tinted Background) */}
         <div className="w-11 h-11 rounded-[14px] bg-[#7C6EF5]/10 flex items-center justify-center text-xl shrink-0">
           <Icon className="text-[#7C6EF5]" size={20} />
         </div>
 
-        {/* Status & Actions */}
         <div className="flex items-center gap-2.5 shrink-0">
           <span className="px-2.5 py-1 rounded-md text-[11px] font-bold tracking-wide bg-emerald-500/10 text-emerald-400">
             {project.status || "Active"}

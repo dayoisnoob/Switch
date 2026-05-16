@@ -40,7 +40,7 @@ import {
 import { ReactNode, useEffect, useState } from "react";
 import {
   LayoutSkeleton,
-  ProjectsSkeleton,
+  ProjectsListSkeleton,
 } from "@/components/skeletons/LayoutPage";
 
 export default function MainLayout({ children }: { children: ReactNode }) {
@@ -245,11 +245,7 @@ export default function MainLayout({ children }: { children: ReactNode }) {
                   {hasWorkspaces ? activeWorkspace?.name : "New Workspace"}
                 </span>
                 <span className="text-[10px] font-medium text-[#7C6EF5] mt-0.5">
-                  {hasWorkspaces
-                    ? canManageWorkspace
-                      ? "Admin"
-                      : "Member"
-                    : "Create one to start"}
+                  {activeWorkspace?.role}
                 </span>
               </div>
               {hasWorkspaces && (
@@ -304,7 +300,7 @@ export default function MainLayout({ children }: { children: ReactNode }) {
                   </span>
                 </div>
                 {projectsLoading ? (
-                  <ProjectsSkeleton />
+                  <ProjectsListSkeleton />
                 ) : (
                   <div className="space-y-0.5">
                     {projects.map((p) => {

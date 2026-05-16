@@ -15,6 +15,7 @@ import { Pencil, Trash2 } from "lucide-react";
 import Image from "next/image";
 import { useParams } from "next/navigation";
 import { useState } from "react";
+import { CommentsSkeleton } from "../skeletons/CardComments";
 
 const getAvatarColor = (name: string) => {
   const colors = [
@@ -29,7 +30,7 @@ const getAvatarColor = (name: string) => {
 export function CardComments({ cardId }: { cardId: string }) {
   const params = useParams();
   const workspaceSlug = params.workspaceSlug as string;
-  const { data: currentUser, isLoading: userLoading } = useMe();
+  const { data: currentUser } = useMe();
   const { data: members } = useGetMembers(workspaceSlug);
 
   const [commentValue, setCommentValue] = useState("");
@@ -61,17 +62,12 @@ export function CardComments({ cardId }: { cardId: string }) {
   };
 
   if (isLoading || !members) {
-    return (
-      <div className="py-8 flex justify-center">
-        <div className="w-5 h-5 border-2 border-[#7C6EF5]/30 border-t-[#7C6EF5] rounded-full animate-spin" />
-      </div>
-    );
+    return <CommentsSkeleton />;
   }
   const currentMember = members?.find((m) => m.userId === currentUser?.id);
 
   return (
     <div className="space-y-8 pb-4">
-      {/* ── COMMENTS LIST ── */}
       <div className="space-y-6">
         {comments.length > 0 ? (
           comments.map((comment) => {
@@ -114,9 +110,7 @@ export function CardComments({ cardId }: { cardId: string }) {
                   )}
                 </div>
 
-                {/* Content Area */}
                 <div className="flex-1 min-w-0">
-                  {/* Header Row */}
                   <div className="flex items-center justify-between gap-2 mb-1.5">
                     <div className="flex items-baseline gap-2">
                       <span className="text-[14px] font-bold text-white/90">
@@ -136,7 +130,6 @@ export function CardComments({ cardId }: { cardId: string }) {
                       )}
                     </div>
 
-                    {/* Hover Actions */}
                     {canDelete && !isOptimistic && !isEditing && (
                       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button
@@ -158,7 +151,6 @@ export function CardComments({ cardId }: { cardId: string }) {
                     )}
                   </div>
 
-                  {/* Body Row */}
                   {isEditing ? (
                     <div className="flex flex-col rounded-xl border border-[#7C6EF5]/50 bg-[#13131A] ring-1 ring-[#7C6EF5]/20 overflow-hidden mt-2">
                       <textarea
@@ -170,7 +162,7 @@ export function CardComments({ cardId }: { cardId: string }) {
                           }
                           if (e.key === "Escape") setEditingId(null);
                         }}
-                        className="w-full bg-transparent p-3 text-[13px] text-white/90 placeholder:text-white/30 outline-none resize-none min-h-[70px] custom-scrollbar"
+                        className="w-full bg-transparent p-3 text-[13px] text-white/90 placeholder:text-white/30 outline-none resize-none min-h-17.5 custom-scrollbar"
                         autoFocus
                       />
                       <div className="bg-white/2 border-t border-white/5 p-2 flex justify-between items-center">
@@ -199,7 +191,7 @@ export function CardComments({ cardId }: { cardId: string }) {
                       </div>
                     </div>
                   ) : (
-                    <div className="bg-[#13131A] border border-white/5 rounded-xl rounded-tl-none p-4 text-[13px] text-white/80 leading-relaxed whitespace-pre-wrap break-words">
+                    <div className="bg-[#13131A] border border-white/5 rounded-xl rounded-tl-none p-4 text-[13px] text-white/80 leading-relaxed whitespace-pre-wrap wrap-break-word">
                       {comment.content}
                     </div>
                   )}
@@ -216,7 +208,6 @@ export function CardComments({ cardId }: { cardId: string }) {
         )}
       </div>
 
-      {/* ── CREATE COMMENT ── */}
       <div className="flex gap-4">
         <div className="shrink-0 mt-1">
           {currentMember?.avatarUrl ? (

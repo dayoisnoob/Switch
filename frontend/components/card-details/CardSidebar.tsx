@@ -1,12 +1,23 @@
 "use client";
 
 import {
+  CardPriority,
+  useMoveCard,
+  useToggleAssignee,
+  useUpdateCard,
+} from "@/hooks/useCards";
+import {
+  useCreateLabel,
+  useDeleteLabel,
+  useToggleLabel,
+} from "@/hooks/useLabels";
+import { useGetMembers, useWorkspaceRole } from "@/hooks/useWorkspace";
+import {
   cn,
   formatDate,
   formatDateShort,
   getConsistentColor,
 } from "@/lib/utils";
-import { CardPriority } from "@/services/card.service";
 import { useBoardStore } from "@/store/board.store";
 import { BoardCard, BoardColumn } from "@/types/board.types";
 import {
@@ -15,26 +26,10 @@ import {
   isBefore,
   startOfDay,
 } from "date-fns";
-import {
-  Activity,
-  Check,
-  ChevronRight,
-  Clock,
-  MessageSquare,
-  Plus,
-  Search,
-  Trash2,
-} from "lucide-react";
+import { ChevronRight, Clock, Plus, Search, Trash2 } from "lucide-react";
 import Image from "next/image";
 import { useRef, useState } from "react";
-import { useGetMembers } from "@/hooks/useWorkspace";
-import { useToggleAssignee } from "@/hooks/useCards";
-import { useToggleLabel } from "@/hooks/useLabels";
-import { useCreateLabel, useDeleteLabel } from "@/hooks/useLabels";
-import { useWorkspaceRole } from "@/hooks/useWorkspace";
-import { useMoveCard } from "@/hooks/useCards";
 import { useCardMenus } from "./useCardMenu";
-import { useUpdateCard } from "@/hooks/useCards";
 
 const PRIORITIES = [
   { label: "Urgent", value: "urgent", color: "bg-rose-500" },
@@ -128,7 +123,6 @@ export function CardSidebar({
       onClick={handleContainerClick}
     >
       <div className="space-y-6">
-        {/* Status */}
         <div className="space-y-2 relative">
           <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">
             Status
@@ -181,7 +175,6 @@ export function CardSidebar({
           )}
         </div>
 
-        {/* Priority */}
         <div className="space-y-2 relative">
           <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">
             Priority
@@ -236,7 +229,6 @@ export function CardSidebar({
           )}
         </div>
 
-        {/* Due Date */}
         <div className="space-y-2">
           <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">
             Due Date
@@ -297,7 +289,6 @@ export function CardSidebar({
           </div>
         </div>
 
-        {/* Assignees - Premium Inline List */}
         <div className="space-y-3">
           <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">
             Assignees
@@ -405,7 +396,6 @@ export function CardSidebar({
           </div>
         </div>
 
-        {/* Labels - Premium Inline List */}
         <div className="space-y-3">
           <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">
             Labels
@@ -461,7 +451,7 @@ export function CardSidebar({
             </div>
 
             {/* Label List */}
-            <div className="max-h-[180px] overflow-y-auto custom-scrollbar p-1.5 space-y-0.5">
+            <div className="max-h-45 overflow-y-auto custom-scrollbar p-1.5 space-y-0.5">
               {filteredLabels?.length === 0 && !isCreatingLabelMode ? (
                 <div className="text-center py-6 text-[12px] text-white/40">
                   No labels found
@@ -515,7 +505,7 @@ export function CardSidebar({
                         {/* Premium Animated Toggle Switch */}
                         <div
                           className={cn(
-                            "relative inline-flex h-[18px] w-8 shrink-0 items-center rounded-full transition-colors duration-200 ease-in-out",
+                            "relative inline-flex h-4.5 w-8 shrink-0 items-center rounded-full transition-colors duration-200 ease-in-out",
                             isAttached
                               ? "bg-[#7C6EF5]"
                               : "bg-white/10 group-hover:bg-white/20",
@@ -524,9 +514,7 @@ export function CardSidebar({
                           <span
                             className={cn(
                               "inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow-sm transition duration-200 ease-in-out",
-                              isAttached
-                                ? "translate-x-[16px]"
-                                : "translate-x-[2px]",
+                              isAttached ? "translate-x-4" : "translate-x-0.5",
                             )}
                           />
                         </div>
@@ -536,7 +524,6 @@ export function CardSidebar({
                 })
               )}
 
-              {/* 🛡️ Explicit Create Label Form */}
               {canManageWorkspace &&
                 (isCreatingLabelMode ? (
                   <div className="p-3 border-t border-white/5 space-y-3 bg-[#13131A] mt-1 rounded-b-lg animate-in slide-in-from-top-2 duration-150">
@@ -618,7 +605,6 @@ export function CardSidebar({
 
         <div className="h-px bg-white/5 my-6" />
 
-        {/* Metadata */}
         <div className="space-y-4">
           <div className="space-y-1">
             <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">

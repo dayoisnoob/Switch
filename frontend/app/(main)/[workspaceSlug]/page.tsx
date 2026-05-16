@@ -14,6 +14,7 @@ import {
   useWorkspaceRole,
 } from "@/hooks/useWorkspace";
 import { cn } from "@/lib/utils";
+import { useWorkspaceStore } from "@/store/workspace.store";
 import { LayoutGrid, UserPlus } from "lucide-react";
 import {
   useParams,
@@ -30,20 +31,22 @@ export default function WorkspacePage() {
   const searchParams = useSearchParams();
 
   const workspaceSlug = params?.workspaceSlug as string;
+  const activeWorkspace = useWorkspaceStore((s) => s.activeWorkspace);
 
-  const { canManageWorkspace, isOwner } = useWorkspaceRole(workspaceSlug);
+  const isOwner = activeWorkspace?.role === "Owner";
+  const canManageWorkspace = isOwner || activeWorkspace?.role === "Admin";
 
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
 
-  const { data: workspaces } = useGetWorkspaces();
-  const activeWorkspace = workspaces?.find((w) => w.slug === workspaceSlug);
+  // const { data: workspaces } = useGetWorkspaces();
+  // const activeWorkspace = workspaces?.find((w) => w.slug === workspaceSlug);
 
   const tabParam = searchParams.get("tab") || "projects";
   const activeTab =
     tabParam.charAt(0).toUpperCase() + tabParam.slice(1).toLowerCase();
 
-  const { data: members = [], isLoading: membersloading } =
+  const { data: members = [], isLoading: membersLoading } =
     useGetMembers(workspaceSlug);
   const { data: projects = [], isLoading: projectsLoading } =
     useWorkspaceProjects(activeWorkspace?.slug);
@@ -55,8 +58,6 @@ export default function WorkspacePage() {
     { id: "Members" },
     ...(canManageWorkspace ? [{ id: "Settings" }] : []),
   ];
-
-  if (projectsLoading || membersloading) return <WorkspaceSkeleton />;
 
   const handleTabChange = (tabId: string) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -97,7 +98,6 @@ export default function WorkspacePage() {
         </div>
       </div>
 
-      {/* ── NAVIGATION TABS ── */}
       <div className="flex items-center gap-8 border-b border-[#2a2a2a] mb-6">
         {tabs.map((tab) => {
           const isActive = activeTab === tab.id;
@@ -119,31 +119,24 @@ export default function WorkspacePage() {
         })}
       </div>
 
-      {/* ── TAB CONTENT: PROJECTS ── */}
-      {activeTab === "Projects" &&
-        (projects.length === 0 ? (
-          <div className="pt-8">
-            <EmptyProjectState
-              onCreateProject={() => setIsProjectModalOpen(true)}
-            />
-          </div>
-        ) : (
-          <ProjectsTab
-            workspaceSlug={activeWorkspace.slug}
-            workspace={activeWorkspace}
-            projects={projects}
-            projectsLoading={projectsLoading}
-            onOpenProjectModal={() => setIsProjectModalOpen(true)}
-          />
-        ))}
-
-      {/* ── TAB CONTENT: MEMBERS ── */}
-      {activeTab === "Members" && (
-        <MembersTab members={members} activeWorkspace={activeWorkspace} />
+      {activeTab === "Projects" && (
+        <ProjectsTab
+          workspaceSlug={activeWorkspace.slug}
+          workspace={activeWorkspace}
+          projects={projects}
+          projectsLoading={projectsLoading}
+          onOpenProjectModal={() => setIsProjectModalOpen(true)}
+        />
       )}
 
-      {/* ── TAB CONTENT: SETTINGS ── */}
-      {/* 🛡️ THE FIX: Render settings only if they have permission, and pass down isOwner */}
+      {activeTab === "Members" && (
+        <MembersTab
+          members={members}
+          membersLoading={membersLoading}
+          activeWorkspace={activeWorkspace}
+        />
+      )}
+
       {activeTab === "Settings" && canManageWorkspace && (
         <SettingsTab
           activeWorkspace={activeWorkspace}
@@ -152,7 +145,6 @@ export default function WorkspacePage() {
         />
       )}
 
-      {/* ── MODALS ── */}
       <CreateProjectModal
         isOpen={isProjectModalOpen}
         onClose={() => setIsProjectModalOpen(false)}
