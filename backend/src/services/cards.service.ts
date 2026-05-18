@@ -1,4 +1,4 @@
-import { and, count, desc, eq, inArray, notInArray } from 'drizzle-orm';
+import { and, count, desc, eq, inArray, notInArray, sql } from 'drizzle-orm';
 import { db } from '../config/db';
 import {
   attachmentsTable,
@@ -36,16 +36,14 @@ export class CardsService {
   ) {
     const { title, description, status, priority, dueDate, assignees } = data;
 
-    const [lastCard] = await db
-      .select({ order: cardsTable.order })
-      .from(cardsTable)
-      .where(eq(cardsTable.columnId, columnId))
-      .orderBy(desc(cardsTable.order))
-      .limit(1);
-
-    const newOrder = lastCard ? lastCard.order + 1.0 : 1.0;
-
     const newCard = await db.transaction(async (tx) => {
+      const [card] = await tx
+        .select({
+          newOrder: sql<number>`coalesce(max(${cardsTable.order}), 0)+ 1`,
+        })
+        .from(cardsTable)
+        .where(eq(cardsTable.columnId, columnId));
+
       const [newCard] = await tx
         .insert(cardsTable)
         .values({
@@ -57,7 +55,7 @@ export class CardsService {
           dueDate,
           description,
           createdBy: userId,
-          order: newOrder,
+          order: card?.newOrder ?? 1,
         })
         .returning();
 

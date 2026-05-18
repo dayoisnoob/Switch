@@ -16,26 +16,30 @@ export class ColumnsService {
 
     console.log(name, mappedStatus);
 
-    const [lastColumn] = await db
-      .select({ order: columnsTable.order })
-      .from(columnsTable)
-      .where(eq(columnsTable.boardId, boardId))
-      .orderBy(desc(columnsTable.order))
-      .limit(1);
+    const column = await db.transaction(async (tx) => {
+      const [lastColumn] = await tx
+        .select({
+          newOrder: sql<number>`coalesce(max(${columnsTable.order}), 0)+ 1`,
+        })
+        .from(columnsTable)
+        .where(eq(columnsTable.boardId, boardId))
+        .limit(1);
 
-    const newOrder = lastColumn ? lastColumn.order + 1.0 : 1.0;
-    const [column] = await db
-      .insert(columnsTable)
-      .values({
-        boardId,
-        name,
-        mappedStatus,
-        order: newOrder,
-      })
-      .returning();
+      const [column] = await db
+        .insert(columnsTable)
+        .values({
+          boardId,
+          name,
+          mappedStatus,
+          order: lastColumn?.newOrder ?? 1,
+        })
+        .returning();
 
-    if (!column)
-      throw new ApiError(500, 'Error creating column. Please try again.');
+      if (!column)
+        throw new ApiError(500, 'Error creating column. Please try again.');
+
+      return column;
+    });
 
     emitBoardEvent(boardId, 'column:created', {
       column: column,

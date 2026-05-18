@@ -23,8 +23,8 @@ import type {
 } from '../validations/workspaces.validation';
 
 export class WorkspaceService {
-  private static async checkExistingSlug(slug: string) {
-    const [existingSlug] = await db
+  private static async checkExistingSlug(slug: string, tx: any = db) {
+    const [existingSlug] = await tx
       .select({ slug: workspacesTable.slug })
       .from(workspacesTable)
       .where(eq(workspacesTable.slug, slug))
@@ -40,9 +40,9 @@ export class WorkspaceService {
   static async createWorkspace(userId: string, data: CreateWP) {
     const { name, slug, colour } = data;
 
-    await WorkspaceService.checkExistingSlug(slug);
-
     const { workspace, membership } = await db.transaction(async (tx) => {
+      await WorkspaceService.checkExistingSlug(slug, tx);
+
       const [workspace] = await tx
         .insert(workspacesTable)
         .values({
@@ -177,17 +177,21 @@ export class WorkspaceService {
   }
 
   static async updateWorkspace(workspaceId: string, data: UpdateWP) {
-    if (data.slug) await WorkspaceService.checkExistingSlug(data.slug);
+    const updatedWorkspace = await db.transaction(async (tx) => {
+      if (data.slug) await WorkspaceService.checkExistingSlug(data.slug, tx);
 
-    const [updatedWorkspace] = await db
-      .update(workspacesTable)
-      .set({ name: data.name, slug: data.slug })
-      .where(eq(workspacesTable.id, workspaceId))
-      .returning();
+      const [updatedWorkspace] = await tx
+        .update(workspacesTable)
+        .set({ name: data.name, slug: data.slug })
+        .where(eq(workspacesTable.id, workspaceId))
+        .returning();
 
-    if (!updatedWorkspace) {
-      throw new ApiError(500, 'Error updating workspace. Please try again');
-    }
+      if (!updatedWorkspace) {
+        throw new ApiError(500, 'Error updating workspace. Please try again');
+      }
+
+      return updatedWorkspace;
+    });
 
     return {
       name: updatedWorkspace.name,
