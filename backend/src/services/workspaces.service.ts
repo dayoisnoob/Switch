@@ -492,7 +492,7 @@ export class WorkspaceService {
       )
       .returning();
 
-    if (!updatedInvite) throw new Error('Invitation not found');
+    if (!updatedInvite) throw new ApiError(404, 'Invitation not found');
 
     await queueEmail({
       type: 'invitation',

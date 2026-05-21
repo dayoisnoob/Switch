@@ -163,6 +163,7 @@ export class AuthController {
     await AuthService.deleteUser(req.user.id, req.body.password);
 
     res.clearCookie('__auth.refresh', COOKIE_OPTIONS);
+    res.clearCookie('__auth.access', { ...COOKIE_OPTIONS, httpOnly: false });
     res.json(
       new ApiResponse(200, 'Your account has been deleted successfully.')
     );

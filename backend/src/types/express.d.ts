@@ -54,6 +54,7 @@ export interface AuthenticatedUser {
   lastName: string | null;
   role: 'user' | 'admin';
   isActive: boolean;
+  avatarUrl: string | null;
 }
 
 export interface AuthenticatedRequest extends Request {

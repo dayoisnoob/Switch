@@ -11,11 +11,13 @@ import type { CreateCommentType } from '../validations/comments.validation';
 import { ActivityService } from './activity.service';
 import { emitBoardEvent } from '../socket/emitter';
 import { NotificationService } from './notification.service';
+import type { UserType } from '../types/auth.types';
+import type { AuthenticatedUser } from '../types/express';
 
 export class CommentService {
   static async createComment(
     userId: string,
-    actorName: string,
+    user: AuthenticatedUser,
     projectId: string,
     cardId: string,
     boardId: string,
@@ -33,17 +35,7 @@ export class CommentService {
     if (!comment)
       throw new ApiError(500, 'Error creating comment. Please try again.');
 
-    const [[commentAuthor], assignees, [commentCard]] = await Promise.all([
-      db
-        .select({
-          id: usersTable.id,
-          firstName: usersTable.firstName,
-          lastName: usersTable.lastName,
-          avatarUrl: usersTable.avatarUrl,
-        })
-        .from(usersTable)
-        .where(eq(usersTable.id, userId)),
-
+    const [assignees, [commentCard]] = await Promise.all([
       db
         .select({ userId: cardAssigneesTable.userId })
         .from(cardAssigneesTable)
@@ -82,16 +74,18 @@ export class CommentService {
       );
     }
 
+    const actorName = `${user?.firstName} ${user?.lastName}`.trim();
+
     const formattedComment = {
       id: comment.id,
       content: comment.content,
       isEdited: comment.isEdited,
       createdAt: comment.createdAt,
       author: {
-        id: commentAuthor?.id,
-        firstName: commentAuthor?.firstName,
-        lastName: commentAuthor?.lastName,
-        avatarUrl: commentAuthor?.avatarUrl,
+        id: user?.id,
+        firstName: user?.firstName,
+        lastName: user?.lastName,
+        avatarUrl: user?.avatarUrl,
       },
     };
 
