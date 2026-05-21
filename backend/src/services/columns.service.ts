@@ -14,8 +14,6 @@ export class ColumnsService {
   ) {
     const { name, mappedStatus } = data;
 
-    console.log(name, mappedStatus);
-
     const column = await db.transaction(async (tx) => {
       const [lastColumn] = await tx
         .select({
@@ -172,7 +170,7 @@ export class ColumnsService {
       .returning();
 
     if (deletedCards.length === 0)
-      throw new ApiError(500, 'Error deleting cards, Please try again');
+      return { success: true, message: 'No cards to delete' };
 
     emitBoardEvent(column.boardId, 'cards:deleted', {
       columnId: column.id,

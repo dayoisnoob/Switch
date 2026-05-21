@@ -1,4 +1,4 @@
-import { and, eq, gt } from 'drizzle-orm';
+import { and, eq, gt, isNull } from 'drizzle-orm';
 import { db } from '../config/db';
 
 import { ApiError } from '../utils/api-response';
@@ -368,18 +368,30 @@ export class AuthService {
       throw new ApiError(401, 'Session expired. Please sign in again.');
     }
 
-    const result = await db.transaction(async (tx) => {
-      await tx
-        .update(refreshTokensTable)
-        .set({ rotatedAt: new Date(), isRevoked: true, revokedAt: new Date() })
-        .where(eq(refreshTokensTable.id, storedToken.id));
+    const [rotated] = await db
+      .update(refreshTokensTable)
+      .set({ rotatedAt: new Date(), isRevoked: true, revokedAt: new Date() })
+      .where(
+        and(
+          eq(refreshTokensTable.id, storedToken.id),
+          isNull(refreshTokensTable.rotatedAt)
+        )
+      )
+      .returning();
 
-      return await authTokens(user, storedToken.tokenFamilyId, tx);
-    });
+    if (!rotated) {
+      await AuthService.revokeTokenFamily(storedToken.tokenFamilyId);
+      throw new ApiError(
+        401,
+        'Security violation detected. Please login again.'
+      );
+    }
+
+    const tokens = await authTokens(user, storedToken.tokenFamilyId);
 
     logger.info({ userId: user.id }, 'Token refreshed');
 
-    return result;
+    return tokens;
   }
 
   static async logout(refreshToken: string) {
@@ -668,28 +680,32 @@ export class AuthService {
     purpose: 'email_verification' | 'password_reset',
     firstName?: string
   ) {
-    await db
-      .update(otpTable)
-      .set({ isInvalidated: true })
-      .where(
-        and(
-          eq(otpTable.userId, userId),
-          eq(otpTable.purpose, purpose),
-          eq(otpTable.isInvalidated, false)
-        )
-      );
+    const { otp } = await db.transaction(async (tx) => {
+      await tx
+        .update(otpTable)
+        .set({ isInvalidated: true })
+        .where(
+          and(
+            eq(otpTable.userId, userId),
+            eq(otpTable.purpose, purpose),
+            eq(otpTable.isInvalidated, false)
+          )
+        );
 
-    const { otp, hashedOtp, expiresAt } = generateSecureOtp();
+      const { otp, hashedOtp, expiresAt } = generateSecureOtp();
 
-    await db
-      .insert(otpTable)
-      .values({
-        userId,
-        hashedCode: hashedOtp,
-        purpose,
-        expiresAt,
-      })
-      .returning();
+      await tx
+        .insert(otpTable)
+        .values({
+          userId,
+          hashedCode: hashedOtp,
+          purpose,
+          expiresAt,
+        })
+        .returning();
+
+      return { otp };
+    });
 
     try {
       await queueEmail({

@@ -20,7 +20,10 @@ export const labelsTable = pgTable(
     colour: varchar('colour', { length: 7 }).notNull(),
     createdAt: timestamp('created_at').notNull().defaultNow(),
   },
-  (t) => [index('labels_workspace_id_idx').on(t.workspaceId)]
+  (t) => [
+    index('labels_workspace_id_idx').on(t.workspaceId),
+    uniqueIndex('labels_workspace_name_idx').on(t.workspaceId, t.name),
+  ]
 );
 
 export const cardLabelsTable = pgTable(

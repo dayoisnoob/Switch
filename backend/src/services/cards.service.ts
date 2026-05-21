@@ -160,6 +160,7 @@ export class CardsService {
         createdAt: true,
       },
       with: {
+        creator: { columns: { id: true, firstName: true, lastName: true } },
         assignees: {
           columns: {},
           with: {
@@ -203,10 +204,6 @@ export class CardsService {
       ...card,
       assignees: card.assignees.map((a) => a.user),
       labels: card.labels.map((l) => l.label),
-      createdBy: {
-        firstName: creatorName?.firstName,
-        lastName: creatorName?.lastName,
-      },
     };
   }
 
@@ -295,6 +292,14 @@ export class CardsService {
     projectId: string,
     cardId: string
   ) {
+    const [deletedCard] = await db
+      .delete(cardsTable)
+      .where(eq(cardsTable.id, cardId))
+      .returning();
+
+    if (!deletedCard)
+      throw new ApiError(500, 'Error deleting card. Please try again.');
+
     const attachments = await db
       .select()
       .from(attachmentsTable)
@@ -313,14 +318,6 @@ export class CardsService {
         logger.error(error, 'Failed to delete attachments from Cloudinary');
       }
     }
-
-    const [deletedCard] = await db
-      .delete(cardsTable)
-      .where(eq(cardsTable.id, cardId))
-      .returning();
-
-    if (!deletedCard)
-      throw new ApiError(500, 'Error deleting card. Please try again.');
 
     await ActivityService.log({
       type: 'card_deleted',

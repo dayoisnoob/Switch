@@ -1,6 +1,7 @@
 import type { NextFunction, Request, Response } from 'express';
 import { ApiError } from '../utils/api-response';
 import { logger } from '../config/logger';
+import { DatabaseError } from 'pg';
 
 export const notFoundError = (req: Request, res: Response) => {
   throw new ApiError(404, 'The requested resource was not found');
@@ -12,6 +13,13 @@ export const globalErrorHandler = (
   res: Response,
   next: NextFunction
 ) => {
+  if (err instanceof DatabaseError && err.code === '23505') {
+    return res.status(409).json({
+      success: false,
+      message: 'Resource already exists',
+    });
+  }
+
   const error =
     err instanceof ApiError
       ? err

@@ -21,7 +21,6 @@ export class AttachmentsService {
       return 'raw';
     };
 
-    // 1. Upload to Cloudinary FIRST (Outside the DB transaction)
     const uploaded = await new Promise<{
       secure_url: string;
       public_id: string;
@@ -66,7 +65,6 @@ export class AttachmentsService {
           throw new ApiError(500, 'Error saving attachment. Please try again.');
         }
 
-        // so it executes within this exact transaction!
         await ActivityService.log(
           {
             type: 'attachment_added',
@@ -130,7 +128,7 @@ export class AttachmentsService {
     if (!attachment) throw new ApiError(404, 'Attachment not found.');
 
     const canDelete =
-      attachment.userId === userId || ['owner', 'admin'].includes(role);
+      attachment.userId === userId || ['Owner', 'Admin'].includes(role);
 
     if (!canDelete)
       throw new ApiError(403, 'You cannot delete this attachment.');

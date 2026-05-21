@@ -70,7 +70,7 @@ export class AuthController {
       .cookie('__auth.refresh', tokens.refreshToken, COOKIE_OPTIONS)
       .cookie('__auth.access', tokens.accessToken, {
         ...COOKIE_OPTIONS,
-        httpOnly: true,
+        httpOnly: false,
       })
       .status(201)
       .json(new ApiResponse(201, 'Account created successfully', user));
@@ -100,7 +100,7 @@ export class AuthController {
       .cookie('__auth.refresh', result.refreshToken, COOKIE_OPTIONS)
       .cookie('__auth.access', result.accessToken, {
         ...COOKIE_OPTIONS,
-        httpOnly: true,
+        httpOnly: false,
       })
       .json(new ApiResponse(200, 'Access token successfully refreshed'));
   }
