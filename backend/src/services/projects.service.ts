@@ -12,10 +12,13 @@ import {
 } from '../db';
 import { ApiError } from '../utils/api-response';
 import { slugGen } from '../utils/helpers';
-import type { ProjectInput } from '../validations/projects.validation';
+import type {
+  CreateProjectInput,
+  UpdateProjectInput,
+} from '../validations/projects.validation';
 
 export class ProjectService {
-  static async createProject(userId: string, data: ProjectInput) {
+  static async createProject(userId: string, data: CreateProjectInput) {
     const { name, description, icon, workspaceId } = data;
     const slug = slugGen(name);
 
@@ -177,9 +180,9 @@ export class ProjectService {
   static async updateProject(
     workspaceId: string,
     slug: string,
-    data: ProjectInput
+    data: UpdateProjectInput
   ) {
-    const { name, description, icon, workspaceId: toWorkspaceId } = data;
+    const { name, description, icon } = data;
     const project = await ProjectService.verifyProject(workspaceId, slug);
 
     const [updatedProject] = await db
@@ -188,7 +191,6 @@ export class ProjectService {
         ...(name && { name, slug: slugGen(name) }),
         ...(description && { description }),
         ...(icon && { icon }),
-        ...(workspaceId && { workspaceId: toWorkspaceId }),
       })
       .where(eq(projectsTable.id, project.id))
       .returning();

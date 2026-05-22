@@ -14,9 +14,9 @@ export class WorkspaceController {
 
   static async getWorkspace(req: AuthenticatedRequest, res: Response) {
     const workspaceId = req.workspace?.workspaceId!;
-    const result = await WorkspaceService.getWorkspace(workspaceId);
+    const userId = req.user.id;
 
-    const workspace = { ...result, role: req.workspace?.role };
+    const workspace = await WorkspaceService.getWorkspace(workspaceId, userId);
 
     res.json(
       new ApiResponse(200, 'Workspace successfully retrieved', workspace)

@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { capitalize } from '../utils/helpers';
 
-export const projectInputSchema = z.object({
+export const createProjectSchema = z.object({
   name: z
     .string()
     .min(1, 'Project needs to have a name')
@@ -9,8 +9,14 @@ export const projectInputSchema = z.object({
     .trim()
     .transform(capitalize),
   description: z.string().trim().optional(),
-  icon: z.string().trim(),
+  icon: z.string(),
   workspaceId: z.string().uuid(),
+});
+
+export const updateProjectSchema = z.object({
+  name: z.string().min(1).optional(),
+  description: z.string().optional(),
+  icon: z.string().optional(),
 });
 
 export const createColumnSchema = z.object({
@@ -44,5 +50,6 @@ export const moveCardsSchema = z.object({
   targetColumnId: z.string().uuid(),
 });
 
-export type ProjectInput = z.infer<typeof projectInputSchema>;
+export type CreateProjectInput = z.infer<typeof createProjectSchema>;
+export type UpdateProjectInput = z.infer<typeof updateProjectSchema>;
 export type CreateColumn = z.infer<typeof createColumnSchema>;

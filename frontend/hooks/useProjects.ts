@@ -30,7 +30,7 @@ export interface CreateProject {
   description: string;
   workspaceSlug?: string;
   projectId?: string;
-  workspaceId: string;
+  workspaceId?: string;
 }
 
 export interface ProjectsCountResponse {

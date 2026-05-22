@@ -63,7 +63,10 @@ export const workspaceInvitationsTable = pgTable(
     role: workspaceRoleEnum('role').notNull().default('Member'),
     createdAt: timestamp('created_at').notNull().defaultNow(),
   },
-  (t) => [index('wi_workspace_id_idx').on(t.workspaceId)]
+  (t) => [
+    index('wi_workspace_id_idx').on(t.workspaceId),
+    uniqueIndex('wi_workspace_email_idx').on(t.workspaceId, t.email),
+  ]
 );
 
 export type WorkspaceMember = InferSelectModel<

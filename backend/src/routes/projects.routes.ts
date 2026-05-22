@@ -11,8 +11,11 @@ import {
   requireWorkspaceRole,
 } from '../middleware/workspace.middleware';
 import { asyncHandler } from '../utils/async-handler';
-import { projectInputSchema } from '../validations/projects.validation';
 import { paramsSchema } from '../validations/urlParams.validation';
+import {
+  createProjectSchema,
+  updateProjectSchema,
+} from '../validations/projects.validation';
 
 const router = Router({ mergeParams: true });
 
@@ -20,7 +23,7 @@ router.post(
   '/',
   authenticate,
   validateUrlParams(paramsSchema),
-  validateInput(projectInputSchema),
+  validateInput(createProjectSchema),
   requireWorkspaceMember,
   asyncHandler(ProjectController.createProject)
 );
@@ -45,7 +48,7 @@ router.patch(
   '/:projectSlug',
   authenticate,
   validateUrlParams(paramsSchema),
-  validateInput(projectInputSchema),
+  validateInput(updateProjectSchema),
   requireWorkspaceMember,
   requireWorkspaceRole(['Owner', 'Admin']),
   asyncHandler(ProjectController.updateProject)

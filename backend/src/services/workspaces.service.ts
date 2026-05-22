@@ -88,7 +88,7 @@ export class WorkspaceService {
     return flattenedData;
   }
 
-  static async getWorkspace(workspaceId: string) {
+  static async getWorkspace(workspaceId: string, userId: string) {
     const [workspace] = await db
       .select({
         id: workspacesTable.id,
@@ -103,8 +103,12 @@ export class WorkspaceService {
         workspaceMembershipsTable,
         eq(workspacesTable.id, workspaceMembershipsTable.workspaceId)
       )
-      .where(eq(workspacesTable.id, workspaceId))
-      .limit(1);
+      .where(
+        and(
+          eq(workspacesTable.id, workspaceId),
+          eq(workspaceMembershipsTable.userId, userId)
+        )
+      );
 
     if (!workspace) {
       throw new ApiError(404, 'Workspace not found');
