@@ -1,6 +1,7 @@
 "use client";
 
 import { cn, formatDateShort, getErrorMessage } from "@/lib/utils";
+import { generateKeyBetween } from "fractional-indexing";
 import {
   Activity,
   Clock,
@@ -322,9 +323,9 @@ export default function KanbanBoardPage() {
         const fromIndex = columns.findIndex((c) => c.id === activeId);
         const toIndex = columns.findIndex((c) => c.id === overId);
         const reordered = arrayMove(columns, fromIndex, toIndex);
-        const prevOrder = reordered[toIndex - 1]?.order ?? 0;
-        const nextOrder = reordered[toIndex + 1]?.order ?? prevOrder + 2;
-        const newOrder = (prevOrder + nextOrder) / 2;
+        const prevOrder = reordered[toIndex - 1]?.order ?? null;
+        const nextOrder = reordered[toIndex + 1]?.order ?? null;
+        const newOrder = generateKeyBetween(prevOrder, nextOrder);
 
         setColumns(reordered);
         isMutatingRef.current = true;
@@ -365,10 +366,9 @@ export default function KanbanBoardPage() {
       const updatedCol = reorderedCols.find((c) => c.id === activeCol.id)!;
       const finalIndex = updatedCol.cards.findIndex((c) => c.id === activeId);
 
-      const prevOrder = updatedCol.cards[finalIndex - 1]?.order ?? 0;
-      const nextOrder =
-        updatedCol.cards[finalIndex + 1]?.order ?? prevOrder + 2;
-      const newOrder = (prevOrder + nextOrder) / 2;
+      const prevOrder = updatedCol.cards[finalIndex - 1]?.order ?? null;
+      const nextOrder = updatedCol.cards[finalIndex + 1]?.order ?? null;
+      const newOrder = generateKeyBetween(prevOrder, nextOrder);
 
       setColumns(reorderedCols);
 

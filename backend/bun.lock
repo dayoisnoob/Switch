@@ -16,6 +16,7 @@
         "drizzle-orm": "^0.45.2",
         "express": "^5.2.1",
         "express-rate-limit": "^8.3.2",
+        "fractional-indexing": "^3.2.0",
         "helmet": "^8.1.0",
         "ioredis": "^5.10.1",
         "jsonwebtoken": "^9.0.3",
@@ -467,6 +468,8 @@
     "formidable": ["formidable@3.5.4", "", { "dependencies": { "@paralleldrive/cuid2": "^2.2.2", "dezalgo": "^1.0.4", "once": "^1.4.0" } }, "sha512-YikH+7CUTOtP44ZTnUhR7Ic2UASBPOqmaRkRKxRbywPTe5VxF7RRCck4af9wutiZ/QKM5nME9Bie2fFaPz5Gug=="],
 
     "forwarded": ["forwarded@0.2.0", "", {}, "sha512-buRG0fpBtRHSTCOASe6hD258tEubFoRLb4ZNA6NxMVHNw2gOcwHo9wyablzMzOA5z9xA9L1KNjk/Nt6MT9aYow=="],
+
+    "fractional-indexing": ["fractional-indexing@3.2.0", "", {}, "sha512-PcOxmqwYCW7O2ovKRU8OoQQj2yqTfEB/yeTYk4gPid6dN5ODRfU1hXd9tTVZzax/0NkO7AxpHykvZnT1aYp/BQ=="],
 
     "fresh": ["fresh@2.0.0", "", {}, "sha512-Rx/WycZ60HOaqLKAi6cHRKKI7zxWbJ31MhntmtwMoaTeF7XFH9hhBp8vITaMidfljRQ6eYWCKkaTK+ykVJHP2A=="],
 

@@ -1,11 +1,4 @@
-import {
-  index,
-  pgTable,
-  real,
-  timestamp,
-  uuid,
-  varchar,
-} from 'drizzle-orm/pg-core';
+import { index, pgTable, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
 import { boardsTable } from './boards.schema';
 import { statusEnum } from './enums.schema';
 
@@ -17,7 +10,7 @@ export const columnsTable = pgTable(
       .notNull()
       .references(() => boardsTable.id, { onDelete: 'cascade' }),
     name: varchar('name', { length: 100 }).notNull(),
-    order: real('order').notNull(),
+    order: varchar('order').notNull(),
     mappedStatus: statusEnum('mapped_status').notNull().default('TODO'),
     createdAt: timestamp('created_at').notNull().defaultNow(),
   },

@@ -20,7 +20,7 @@ export interface BoardCard {
   description: string;
   priority: "none" | "low" | "medium" | "high" | "urgent";
   dueDate: string | null;
-  order: number;
+  order: string;
   createdAt: string;
   updatedAt: string;
   creator: CardCreator;
@@ -53,7 +53,7 @@ export interface CardAttachment {
 export interface BoardColumn {
   id: string;
   name: string;
-  order: number;
+  order: string;
   mappedStatus: StatusType;
   cards: BoardCard[];
 }

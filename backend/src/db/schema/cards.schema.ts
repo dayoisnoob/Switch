@@ -1,7 +1,6 @@
 import {
   index,
   pgTable,
-  real,
   text,
   timestamp,
   uniqueIndex,
@@ -29,7 +28,7 @@ export const cardsTable = pgTable(
     priority: priorityEnum('priority').notNull().default('none'),
     dueDate: timestamp('due_date'),
     coverImageUrl: text('cover_image_url'),
-    order: real('order').notNull(),
+    order: varchar('order').notNull(),
     createdBy: uuid('created_by')
       .notNull()
       .references(() => usersTable.id),

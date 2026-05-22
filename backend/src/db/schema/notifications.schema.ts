@@ -26,8 +26,5 @@ export const notificationsTable = pgTable(
     isRead: boolean('is_read').notNull().default(false),
     createdAt: timestamp('created_at').notNull().defaultNow(),
   },
-  (t) => [
-    index('notifications_user_id_idx').on(t.userId),
-    index('notifications_is_read_idx').on(t.isRead),
-  ]
+  (t) => [index('notifications_user_read_idx').on(t.userId, t.isRead)]
 );

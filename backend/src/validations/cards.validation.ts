@@ -27,7 +27,7 @@ export const updateCardSchema = z.object({
 
 export const moveCardSchema = z.object({
   columnId: z.string().uuid('Invalid column ID'),
-  order: z.number(),
+  order: z.string(),
   status: z.enum(['BACKLOG', 'TODO', 'IN_PROGRESS', 'DONE', 'CANCELED']),
 });
 

@@ -8,7 +8,7 @@ import { toast } from "sonner";
 export interface Column {
   id: string;
   name: string;
-  order: number;
+  order: string;
   cardCount: number;
 }
 
@@ -65,7 +65,7 @@ export function useMoveColumn() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ columnId, order }: { columnId: string; order: number }) =>
+    mutationFn: ({ columnId, order }: { columnId: string; order: string }) =>
       api.patch(`/columns/${columnId}/order`, { order }),
 
     onSuccess: () => {

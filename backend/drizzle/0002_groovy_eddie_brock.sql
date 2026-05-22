@@ -1,1 +1,0 @@
-ALTER TYPE "public"."notification_type" ADD VALUE 'card_unassigned' BEFORE 'card_due_soon';

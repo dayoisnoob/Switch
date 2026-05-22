@@ -23,7 +23,7 @@ export interface CreateCard {
 
 export interface MoveCard {
   columnId: string;
-  order: number;
+  order: string;
   status: string;
 }
 

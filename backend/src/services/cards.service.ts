@@ -23,6 +23,7 @@ import { ActivityService } from './activity.service';
 import { NotificationService } from './notification.service';
 import { cloudinary } from '../config/cloudinary';
 import { logger } from '../config/logger';
+import { generateKeyBetween } from 'fractional-indexing';
 
 export class CardsService {
   static async createCard(
@@ -37,12 +38,14 @@ export class CardsService {
     const { title, description, status, priority, dueDate, assignees } = data;
 
     const newCard = await db.transaction(async (tx) => {
-      const [card] = await tx
-        .select({
-          newOrder: sql<number>`coalesce(max(${cardsTable.order}), 0)+ 1`,
-        })
+      const [lastCard] = await tx
+        .select({ order: cardsTable.order })
         .from(cardsTable)
-        .where(eq(cardsTable.columnId, columnId));
+        .where(eq(cardsTable.columnId, columnId))
+        .orderBy(desc(cardsTable.order))
+        .limit(1);
+
+      const newOrder = generateKeyBetween(lastCard?.order ?? null, null);
 
       const [newCard] = await tx
         .insert(cardsTable)
@@ -55,7 +58,7 @@ export class CardsService {
           dueDate,
           description,
           createdBy: userId,
-          order: card?.newOrder ?? 1,
+          order: newOrder,
         })
         .returning();
 

@@ -4,6 +4,7 @@ import { cardsTable, columnsTable } from '../db';
 import { ApiError } from '../utils/api-response';
 import { emitBoardEvent } from '../socket/emitter';
 import type { CreateColumn } from '../validations/projects.validation';
+import { generateKeyBetween } from 'fractional-indexing';
 
 export class ColumnsService {
   static async createColumn(
@@ -16,20 +17,21 @@ export class ColumnsService {
 
     const column = await db.transaction(async (tx) => {
       const [lastColumn] = await tx
-        .select({
-          newOrder: sql<number>`coalesce(max(${columnsTable.order}), 0)+ 1`,
-        })
+        .select({ order: columnsTable.order })
         .from(columnsTable)
         .where(eq(columnsTable.boardId, boardId))
+        .orderBy(desc(columnsTable.order))
         .limit(1);
 
-      const [column] = await db
+      const newOrder = generateKeyBetween(lastColumn?.order ?? null, null);
+
+      const [column] = await tx
         .insert(columnsTable)
         .values({
           boardId,
           name,
           mappedStatus,
-          order: lastColumn?.newOrder ?? 1,
+          order: newOrder,
         })
         .returning();
 
@@ -83,7 +85,7 @@ export class ColumnsService {
     userId: string,
     actorName: string,
     columnId: string,
-    order: number
+    order: string
   ) {
     const [updatedColumn] = await db
       .update(columnsTable)
@@ -200,12 +202,12 @@ export class ColumnsService {
 
     if (!targetColumn) throw new ApiError(404, 'Target column not found.');
 
-    const [result] = await db
-      .select({ maxOrder: sql<number>`coalesce(max(${cardsTable.order}), 0)` })
+    const [lastCard] = await db
+      .select({ order: cardsTable.order })
       .from(cardsTable)
-      .where(eq(cardsTable.columnId, targetColumnId));
-
-    const maxOrder = result?.maxOrder ?? 0;
+      .where(eq(cardsTable.columnId, targetColumnId))
+      .orderBy(desc(cardsTable.order))
+      .limit(1);
 
     const cards = await db
       .select({ id: cardsTable.id, order: cardsTable.order })
@@ -215,15 +217,22 @@ export class ColumnsService {
 
     if (cards.length === 0) throw new ApiError(409, 'No cards to move.');
 
-    await db.transaction(async (tx) => {
-      const updatePromises = cards.map((card, i) => {
-        return tx
-          .update(cardsTable)
-          .set({ columnId: targetColumnId, order: maxOrder + i + 1 })
-          .where(eq(cardsTable.id, card.id));
-      });
+    let prevKey: string | null = lastCard?.order ?? null;
+    const updates = cards.map((card) => {
+      const key = generateKeyBetween(prevKey, null);
+      prevKey = key;
+      return { id: card.id, order: key };
+    });
 
-      await Promise.all(updatePromises);
+    await db.transaction(async (tx) => {
+      await Promise.all(
+        updates.map(({ id, order }) =>
+          tx
+            .update(cardsTable)
+            .set({ columnId: targetColumnId, order })
+            .where(eq(cardsTable.id, id))
+        )
+      );
     });
 
     emitBoardEvent(targetColumn.boardId, 'cards:moved', {

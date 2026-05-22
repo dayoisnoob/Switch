@@ -49,5 +49,6 @@ export const activitiesTable = pgTable(
   (t) => [
     index('activities_card_id_idx').on(t.cardId),
     index('activities_project_id_idx').on(t.projectId),
+    index('activities_user_id_idx').on(t.userId),
   ]
 );
