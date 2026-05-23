@@ -14,7 +14,6 @@ export class ProjectController {
   }
 
   static async getWorkspaceProjects(req: AuthenticatedRequest, res: Response) {
-    console.log('Got to the controller');
     const workspaceId = req.workspace?.workspaceId!;
     const projects = await ProjectService.getWorkspaceProjects(workspaceId);
 

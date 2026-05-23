@@ -9,7 +9,7 @@ export const COOKIE_OPTIONS: CookieOptions = {
   sameSite: isProd ? 'none' : 'lax',
   maxAge: 30 * 24 * 60 * 60 * 1000,
   path: '/',
-  domain: isProd ? '.shopverdant.store' : undefined,
+  domain: isProd ? env.FRONTEND_URL : undefined,
 };
 
 export const RESEND_COOLDOWN_SECONDS = 60;

@@ -16,11 +16,16 @@ import type {
   CreateProjectInput,
   UpdateProjectInput,
 } from '../validations/projects.validation';
+import { generateKeyBetween } from 'fractional-indexing';
 
 export class ProjectService {
   static async createProject(userId: string, data: CreateProjectInput) {
     const { name, description, icon, workspaceId } = data;
     const slug = slugGen(name);
+
+    const order1 = generateKeyBetween(null, null);
+    const order2 = generateKeyBetween(order1, null);
+    const order3 = generateKeyBetween(order2, null);
 
     try {
       const { project, board } = await db.transaction(async (tx) => {
@@ -57,19 +62,19 @@ export class ProjectService {
             {
               boardId: board.id,
               name: 'To Do',
-              order: 1.0,
+              order: order1,
               mappedStatus: 'TODO',
             },
             {
               boardId: board.id,
               name: 'In Progress',
-              order: 2.0,
+              order: order2,
               mappedStatus: 'IN_PROGRESS',
             },
             {
               boardId: board.id,
               name: 'Done',
-              order: 3.0,
+              order: order3,
               mappedStatus: 'DONE',
             },
           ])
@@ -80,9 +85,9 @@ export class ProjectService {
           boardId: board.id,
           title: 'Welcome card',
           status: columns[0]!.mappedStatus,
-          description: 'Welcome to your first card',
+          description: 'Click to set up first card',
           createdBy: userId,
-          order: 1,
+          order: order1,
         });
 
         return { project, board };
@@ -98,7 +103,7 @@ export class ProjectService {
         boardId: board.id,
       };
     } catch (err) {
-      const code = (err as any).cause.code;
+      const code = (err as any)?.cause?.code;
       if (code === '23505')
         throw new ApiError(
           409,
@@ -110,8 +115,6 @@ export class ProjectService {
   }
 
   static async getWorkspaceProjects(workspaceId: string) {
-    console.log('about to fetch:', workspaceId);
-
     const cardsCount = db
       .select({
         projectId: boardsTable.projectId,

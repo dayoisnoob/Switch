@@ -5,7 +5,9 @@ import type { JwtPayload, UserType } from '../types/auth.types';
 import { cryptoHash, randomBytes } from './hash.util';
 import { jwtToken } from './jwt.util';
 
-type DbOrTx = Parameters<Parameters<typeof db.transaction>[0]>[0] | typeof db;
+export type DbOrTx =
+  | Parameters<Parameters<typeof db.transaction>[0]>[0]
+  | typeof db;
 
 export const tempTokens = () => {
   const token = crypto.randomBytes(16).toString('hex');

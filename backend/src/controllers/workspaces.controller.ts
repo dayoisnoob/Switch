@@ -90,7 +90,7 @@ export class WorkspaceController {
   static async sendInvitation(req: AuthenticatedRequest, res: Response) {
     const workspaceId = req.workspace?.workspaceId!;
 
-    const inviterName = req.user.firstName;
+    const inviterName = `${req.user.firstName} ${req.user.lastName}`.trim();
     const workspaceName = req.workspace!.workspaceName;
 
     if (!workspaceName) throw new ApiError(500, 'Workspace context missing');

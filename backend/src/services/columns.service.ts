@@ -225,14 +225,12 @@ export class ColumnsService {
     });
 
     await db.transaction(async (tx) => {
-      await Promise.all(
-        updates.map(({ id, order }) =>
-          tx
-            .update(cardsTable)
-            .set({ columnId: targetColumnId, order })
-            .where(eq(cardsTable.id, id))
-        )
-      );
+      for (const { id, order } of updates) {
+        await tx
+          .update(cardsTable)
+          .set({ columnId: targetColumnId, order })
+          .where(eq(cardsTable.id, id));
+      }
     });
 
     emitBoardEvent(targetColumn.boardId, 'cards:moved', {

@@ -223,8 +223,6 @@ export class CommentService {
       metadata: { id: deletedComment.id },
     });
 
-    console.log('about to emit comment:updated');
-
     emitBoardEvent(boardId, 'comment:deleted', {
       cardId,
       actorId: userId,

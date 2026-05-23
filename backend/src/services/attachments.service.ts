@@ -5,6 +5,8 @@ import { attachmentsTable, boardsTable, cardsTable } from '../db';
 import { emitBoardEvent } from '../socket/emitter';
 import { ApiError } from '../utils/api-response';
 import { ActivityService } from './activity.service';
+import { getResourceType } from '../utils/helpers';
+import { logger } from '../config/logger';
 
 export class AttachmentsService {
   static async uploadAttachment(
@@ -15,12 +17,6 @@ export class AttachmentsService {
     userId: string,
     file: Express.Multer.File
   ) {
-    const getResourceType = (mimetype: string) => {
-      if (mimetype.startsWith('image/')) return 'image';
-      if (mimetype.startsWith('video/')) return 'video';
-      return 'raw';
-    };
-
     const uploaded = await new Promise<{
       secure_url: string;
       public_id: string;
@@ -104,7 +100,7 @@ export class AttachmentsService {
           resource_type: resourceType,
         })
         .catch((err) =>
-          console.error('Failed to cleanup Cloudinary file:', err)
+          logger.error('Failed to cleanup Cloudinary file:', err)
         );
 
       throw error;

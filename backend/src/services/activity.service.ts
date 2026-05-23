@@ -2,6 +2,7 @@ import { db } from '../config/db';
 import { activitiesTable, activityTypeEnum, usersTable } from '../db';
 import { logger } from '../config/logger';
 import { and, desc, eq, lt } from 'drizzle-orm';
+import type { DbOrTx } from '../utils/tokens.util';
 
 interface LogActivityInput {
   type: (typeof activityTypeEnum.enumValues)[number];
@@ -12,7 +13,7 @@ interface LogActivityInput {
 }
 
 export class ActivityService {
-  static async log(input: LogActivityInput, tx: any = db) {
+  static async log(input: LogActivityInput, tx: DbOrTx = db) {
     try {
       await tx.insert(activitiesTable).values(input);
     } catch (err) {

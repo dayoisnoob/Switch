@@ -37,8 +37,6 @@ export const requireWorkspaceMember = asyncHandler(
       workspaceId = workspace.id;
 
       if (req.params.projectSlug) {
-        console.log(req.params.projectSlug);
-        console.log(workspaceId);
         const [project] = await db
           .select({
             id: projectsTable.id,
