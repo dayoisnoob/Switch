@@ -2,11 +2,12 @@ import type { Response } from 'express';
 import { ColumnsService } from '../services/columns.service';
 import type { AuthenticatedRequest } from '../types/express';
 import { ApiResponse } from '../utils/api-response';
+import { getActorName } from '../utils/helpers';
 
 export class ColumnsController {
   static async createColumn(req: AuthenticatedRequest, res: Response) {
     const userId = req.user.id;
-    const actorName = `${req.user?.firstName} ${req.user?.lastName}`.trim();
+    const actorName = getActorName(req.user);
 
     const boardId = req.params.boardId as string;
 
@@ -23,7 +24,7 @@ export class ColumnsController {
 
   static async updateColumnName(req: AuthenticatedRequest, res: Response) {
     const userId = req.user.id;
-    const actorName = `${req.user?.firstName} ${req.user?.lastName}`.trim();
+    const actorName = getActorName(req.user);
     const columnId = req.params.columnId as string;
 
     const { name } = req.body;
@@ -39,7 +40,7 @@ export class ColumnsController {
 
   static async updateColumnOrder(req: AuthenticatedRequest, res: Response) {
     const userId = req.user.id;
-    const actorName = `${req.user?.firstName} ${req.user?.lastName}`.trim();
+    const actorName = getActorName(req.user);
     const columnId = req.params.columnId as string;
 
     const { order } = req.body;
@@ -55,7 +56,7 @@ export class ColumnsController {
 
   static async deleteColumn(req: AuthenticatedRequest, res: Response) {
     const userId = req.user.id;
-    const actorName = `${req.user?.firstName} ${req.user?.lastName}`.trim();
+    const actorName = getActorName(req.user);
     const columnId = req.params.columnId as string;
 
     const column = await ColumnsService.deleteColumn(
@@ -69,7 +70,7 @@ export class ColumnsController {
 
   static async deleteCards(req: AuthenticatedRequest, res: Response) {
     const userId = req.user.id;
-    const actorName = `${req.user?.firstName} ${req.user?.lastName}`.trim();
+    const actorName = getActorName(req.user);
     const columnId = req.params.columnId as string;
 
     const column = await ColumnsService.deleteCards(
@@ -83,7 +84,7 @@ export class ColumnsController {
 
   static async moveAllCards(req: AuthenticatedRequest, res: Response) {
     const userId = req.user.id;
-    const actorName = `${req.user?.firstName} ${req.user?.lastName}`.trim();
+    const actorName = getActorName(req.user);
     const columnId = req.params.columnId as string;
     const targetColumnId = req.body.targetColumnId;
 

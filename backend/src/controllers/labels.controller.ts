@@ -2,11 +2,12 @@ import type { Response } from 'express';
 import { LabelService } from '../services/labels.service';
 import type { AuthenticatedRequest } from '../types/express';
 import { ApiResponse } from '../utils/api-response';
+import { getActorName } from '../utils/helpers';
 
 export class LabelController {
   static async createLabel(req: AuthenticatedRequest, res: Response) {
     const userId = req.user.id;
-    const actorName = `${req.user?.firstName} ${req.user?.lastName}`.trim();
+    const actorName = getActorName(req.user);
     const workspaceId = req.workspace?.workspaceId!;
     const label = await LabelService.createLabel(
       userId,
@@ -44,7 +45,7 @@ export class LabelController {
 
   static async deleteLabel(req: AuthenticatedRequest, res: Response) {
     const userId = req.user.id;
-    const actorName = `${req.user?.firstName} ${req.user?.lastName}`.trim();
+    const actorName = getActorName(req.user);
 
     const labelId = req.params.labelId as string;
     const boardId = req.query.boardId as string;

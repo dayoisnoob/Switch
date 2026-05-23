@@ -1,5 +1,6 @@
 import crypto from 'crypto';
 import { cryptoHash } from './hash.util';
+import type { AuthenticatedUser } from '../types/express';
 
 export const slugGen = (str: string) => {
   const slug = str
@@ -26,3 +27,6 @@ export const getResourceType = (mimeType: string): 'image' | 'raw' => {
 
 export const capitalize = (value: string) =>
   value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
+
+export const getActorName = (user: AuthenticatedUser) =>
+  `${user.firstName} ${user.lastName}`.trim();

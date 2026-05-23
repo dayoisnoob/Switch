@@ -2,10 +2,11 @@ import type { Response } from 'express';
 import { CardsService } from '../services/cards.service';
 import type { AuthenticatedRequest } from '../types/express';
 import { ApiResponse } from '../utils/api-response';
+import { getActorName } from '../utils/helpers';
 
 export class CardsController {
   static async createCard(req: AuthenticatedRequest, res: Response) {
-    const actorName = `${req.user?.firstName} ${req.user?.lastName}`.trim();
+    const actorName = getActorName(req.user);
 
     const userId = req.user.id;
     const boardId = req.resolvedColumn!.boardId;
@@ -43,7 +44,7 @@ export class CardsController {
   }
 
   static async updateCard(req: AuthenticatedRequest, res: Response) {
-    const actorName = `${req.user?.firstName} ${req.user?.lastName}`.trim();
+    const actorName = getActorName(req.user);
 
     const userId = req.user.id;
     const projectId = req.resolvedCard!.projectId;
@@ -61,7 +62,7 @@ export class CardsController {
   }
 
   static async deleteCard(req: AuthenticatedRequest, res: Response) {
-    const actorName = `${req.user?.firstName} ${req.user?.lastName}`.trim();
+    const actorName = getActorName(req.user);
 
     const userId = req.user.id;
     const projectId = req.resolvedCard!.projectId;
@@ -77,7 +78,7 @@ export class CardsController {
   }
 
   static async moveCard(req: AuthenticatedRequest, res: Response) {
-    const actorName = `${req.user?.firstName} ${req.user?.lastName}`.trim();
+    const actorName = getActorName(req.user);
 
     const userId = req.user.id;
     const projectId = req.resolvedCard!.projectId;
@@ -88,7 +89,7 @@ export class CardsController {
   }
 
   static async assignUser(req: AuthenticatedRequest, res: Response) {
-    const actorName = `${req.user?.firstName} ${req.user?.lastName}`.trim();
+    const actorName = getActorName(req.user);
 
     const userId = req.user.id;
     const boardId = req.resolvedCard?.boardId as string;
@@ -108,7 +109,7 @@ export class CardsController {
   }
 
   static async unassignUser(req: AuthenticatedRequest, res: Response) {
-    const actorName = `${req.user?.firstName} ${req.user?.lastName}`.trim();
+    const actorName = getActorName(req.user);
 
     const userId = req.user.id;
     const boardId = req.resolvedCard?.boardId as string;
@@ -129,7 +130,7 @@ export class CardsController {
   }
 
   static async attachLabel(req: AuthenticatedRequest, res: Response) {
-    const actorName = `${req.user?.firstName} ${req.user?.lastName}`.trim();
+    const actorName = getActorName(req.user);
 
     const userId = req.user.id;
     const boardId = req.resolvedCard?.boardId as string;
@@ -149,7 +150,7 @@ export class CardsController {
   }
 
   static async detatchLabel(req: AuthenticatedRequest, res: Response) {
-    const actorName = `${req.user?.firstName} ${req.user?.lastName}`.trim();
+    const actorName = getActorName(req.user);
 
     const cardId = req.params.cardId as string;
     const boardId = req.resolvedCard?.boardId as string;

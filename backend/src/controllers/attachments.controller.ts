@@ -2,10 +2,11 @@ import type { Response } from 'express';
 import { AttachmentsService } from '../services/attachments.service';
 import type { AuthenticatedRequest } from '../types/express';
 import { ApiError, ApiResponse } from '../utils/api-response';
+import { getActorName } from '../utils/helpers';
 
 export class AttachmentsController {
   static async uploadAttachment(req: AuthenticatedRequest, res: Response) {
-    const actorName = `${req.user?.firstName} ${req.user?.lastName}`.trim();
+    const actorName = getActorName(req.user);
 
     const userId = req.user.id;
     const cardId = req.resolvedCard!.id;
@@ -29,7 +30,7 @@ export class AttachmentsController {
   }
 
   static async deleteAttachment(req: AuthenticatedRequest, res: Response) {
-    const actorName = `${req.user?.firstName} ${req.user?.lastName}`.trim();
+    const actorName = getActorName(req.user);
 
     const userId = req.user.id;
     const role = req.workspace?.role!;
