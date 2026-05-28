@@ -6,14 +6,14 @@ import { ArrowRight, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
+import { Suspense } from "react";
 
 interface SignupInitiateRequest {
   email: string;
 }
 
-export default function SignupPage() {
+function SignupContent() {
   const searchParams = useSearchParams();
-
   const inviteToken = searchParams.get("inviteToken");
 
   const { mutate: sendOtp, isPending, isSuccess } = useInitialiseReg();
@@ -34,7 +34,7 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-[#0A0A0A] p-4 font-sans text-white selection:bg-[#7C6EF5]/30">
+    <>
       <div className="flex items-center gap-3 mb-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
         <div className="w-10 h-10 rounded-xl bg-[#7C6EF5] flex items-center justify-center text-white text-lg font-black shadow-lg shadow-[#7C6EF5]/20">
           S
@@ -170,6 +170,22 @@ export default function SignupPage() {
           </Link>
         </p>
       </div>
+    </>
+  );
+}
+
+export default function SignupPage() {
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[#0A0A0A] p-4 font-sans text-white selection:bg-[#7C6EF5]/30">
+      <Suspense
+        fallback={
+          <div className="flex items-center justify-center">
+            <Loader2 className="w-8 h-8 text-[#7C6EF5] animate-spin" />
+          </div>
+        }
+      >
+        <SignupContent />
+      </Suspense>
     </div>
   );
 }

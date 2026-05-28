@@ -3,9 +3,9 @@
 import { useAcceptInvite, useVerifyInvite } from "@/hooks/useInvitations";
 import { ArrowRight, Loader2, MailOpen, AlertCircle } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, Suspense } from "react";
 
-export default function AcceptInvitePage() {
+function AcceptInviteContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
@@ -46,7 +46,7 @@ export default function AcceptInvitePage() {
   if (!token) return null;
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-[#0A0A0A] p-4 font-sans text-white selection:bg-[#7C6EF5]/30">
+    <>
       <div className="flex items-center gap-3 mb-8">
         <div className="w-10 h-10 rounded-xl bg-[#7C6EF5] flex items-center justify-center text-white text-lg font-black shadow-lg shadow-[#7C6EF5]/20">
           S
@@ -138,6 +138,22 @@ export default function AcceptInvitePage() {
           </div>
         </div>
       )}
+    </>
+  );
+}
+
+export default function AcceptInvitePage() {
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[#0A0A0A] p-4 font-sans text-white selection:bg-[#7C6EF5]/30">
+      <Suspense
+        fallback={
+          <div className="flex items-center justify-center">
+            <Loader2 className="w-8 h-8 text-[#7C6EF5] animate-spin" />
+          </div>
+        }
+      >
+        <AcceptInviteContent />
+      </Suspense>
     </div>
   );
 }

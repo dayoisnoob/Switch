@@ -41,9 +41,9 @@ import {
   useRouter,
   useSearchParams,
 } from "next/navigation";
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, useEffect, useState, Suspense } from "react";
 
-export default function MainLayout({ children }: { children: ReactNode }) {
+function MainLayoutContent({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const tab = searchParams.get("tab");
@@ -566,5 +566,13 @@ export default function MainLayout({ children }: { children: ReactNode }) {
         />
       </div>
     </SocketProvider>
+  );
+}
+
+export default function MainLayout({ children }: { children: ReactNode }) {
+  return (
+    <Suspense fallback={<LayoutSkeleton />}>
+      <MainLayoutContent>{children}</MainLayoutContent>
+    </Suspense>
   );
 }

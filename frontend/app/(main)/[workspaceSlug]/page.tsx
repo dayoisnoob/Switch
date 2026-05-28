@@ -16,9 +16,9 @@ import {
   useRouter,
   useSearchParams,
 } from "next/navigation";
-import { useState } from "react";
+import { useState, Suspense } from "react";
 
-export default function WorkspacePage() {
+function WorkspaceContent() {
   const router = useRouter();
   const params = useParams();
   const pathname = usePathname();
@@ -146,5 +146,17 @@ export default function WorkspacePage() {
         memberCount={members?.length || 0}
       />
     </div>
+  );
+}
+
+export default function WorkspacePage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="animate-pulse bg-[#1C1C1E] h-32 rounded-xl mb-8 border border-[#2a2a2a]" />
+      }
+    >
+      <WorkspaceContent />
+    </Suspense>
   );
 }

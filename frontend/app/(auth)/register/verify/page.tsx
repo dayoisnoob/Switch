@@ -4,9 +4,9 @@ import { useResendOtp, useVerifyReg } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 import { Check, ChevronDown, ChevronLeft, Loader2, Mail } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { FormEvent, useEffect, useRef, useState } from "react";
+import { FormEvent, useEffect, useRef, useState, Suspense } from "react";
 
-export default function VerifyPage() {
+function VerifyContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const email = searchParams.get("email");
@@ -113,7 +113,7 @@ export default function VerifyPage() {
   if (!email) return null;
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-[#0A0A0A] p-4 font-sans text-white selection:bg-[#7C6EF5]/30">
+    <>
       <div className="flex items-center gap-3 mb-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
         <div className="w-10 h-10 rounded-xl bg-[#7C6EF5] flex items-center justify-center text-white text-lg font-black shadow-lg shadow-[#7C6EF5]/20">
           S
@@ -248,6 +248,22 @@ export default function VerifyPage() {
           </button>
         </div>
       </div>
+    </>
+  );
+}
+
+export default function VerifyPage() {
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[#0A0A0A] p-4 font-sans text-white selection:bg-[#7C6EF5]/30">
+      <Suspense
+        fallback={
+          <div className="flex items-center justify-center">
+            <Loader2 className="w-8 h-8 text-[#7C6EF5] animate-spin" />
+          </div>
+        }
+      >
+        <VerifyContent />
+      </Suspense>
     </div>
   );
 }
