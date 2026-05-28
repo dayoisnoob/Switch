@@ -5,6 +5,8 @@ import { logger } from './logger';
 export const redis = new Redis(env.REDIS_URL, {
   maxRetriesPerRequest: 3,
   lazyConnect: true,
+  tls: env.NODE_ENV === 'production' ? {} : undefined,
+  keyPrefix: 'switch:',
 });
 
 redis.on('connect', () => logger.info('Redis connected'));

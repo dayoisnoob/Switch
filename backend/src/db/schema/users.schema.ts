@@ -48,4 +48,3 @@ export const usersTable = pgTable(
     uniqueIndex('users_provider_idx').on(t.authProvider, t.providerId),
   ]
 );
-//circle back to unique index on nullable column

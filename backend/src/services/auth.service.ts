@@ -525,12 +525,6 @@ export class AuthService {
         .where(eq(refreshTokensTable.userId, user.id));
     });
 
-    // await queueEmail({
-    //   user: { firstName: user.firstName, email: user.email },
-    //   link: '',
-    //   type: 'changePassword',
-    // });
-
     logger.info(
       { userId: user.id, timestamp: new Date() },
       'Password reset audit:'
@@ -573,12 +567,6 @@ export class AuthService {
         .delete(refreshTokensTable)
         .where(eq(refreshTokensTable.userId, userId));
     });
-
-    // await queueEmail({
-    //   user: { firstName: user.firstName, email: user.email },
-    //   link: '',
-    //   type: 'changePassword',
-    // });
 
     logger.info(
       {

@@ -6,9 +6,14 @@ import { env } from '../config/env';
 import passport from '../config/passport';
 import {
   changePasswordLimiter,
+  forgotPasswordHourlyLimiter,
+  forgotPasswordRecentLimiter,
+  loginEmailLimiter,
+  loginIpLimiter,
   refreshTokenLimiter,
   registerIpLimiter,
   resendVerificationLimiter,
+  resetPasswordLimiter,
 } from '../middleware/rate-limit.middleware';
 import { validateInput } from '../middleware/validation.middleware';
 import { asyncHandler } from '../utils/async-handler';
@@ -30,14 +35,14 @@ const router = Router();
 
 router.get(
   '/google',
-  // registerIpLimiter,
+  registerIpLimiter,
   passport.authenticate('google', {
     session: false,
   })
 );
 router.get(
   '/google/callback',
-  // registerIpLimiter,
+  registerIpLimiter,
   passport.authenticate('google', {
     session: false,
     failureRedirect: `${env.FRONTEND_URL}/login?error=google_failed`,
@@ -48,14 +53,14 @@ router.get(
 
 router.get(
   '/github',
-  // registerIpLimiter,
+  registerIpLimiter,
   passport.authenticate('github', {
     session: false,
   })
 );
 router.get(
   '/github/callback',
-  // registerIpLimiter,
+  registerIpLimiter,
   passport.authenticate('github', {
     session: false,
     failureRedirect: `${env.FRONTEND_URL}/login?error=github_failed`,
@@ -68,28 +73,28 @@ router.get(
 
 router.post(
   '/register/initialise',
-  // registerIpLimiter,
+  registerIpLimiter,
   validateInput(sendOtpSchema),
   asyncHandler(AuthController.init)
 );
 
 router.post(
   '/register/verify-otp',
-  // registerIpLimiter,
+  registerIpLimiter,
   validateInput(verifyOtpSchema),
   asyncHandler(AuthController.verifyOtpForLogin)
 );
 
 router.post(
   '/register/resend-otp',
-  // resendVerificationLimiter,
+  resendVerificationLimiter,
   validateInput(sendOtpSchema),
   asyncHandler(AuthController.init)
 );
 
 router.patch(
   '/register/onboarding',
-  // registerIpLimiter,
+  registerIpLimiter,
   validateInput(completeRegSchema),
   asyncHandler(AuthController.completeReg)
 );
@@ -98,8 +103,8 @@ router.patch(
 
 router.post(
   '/login',
-  // loginIpLimiter,
-  // loginEmailLimiter,
+  loginIpLimiter,
+  loginEmailLimiter,
   validateInput(loginSchema),
   asyncHandler(AuthController.login)
 );
@@ -116,8 +121,8 @@ router.post(
 
 router.post(
   '/forgot-password',
-  // forgotPasswordRecentLimiter,
-  // forgotPasswordHourlyLimiter,
+  forgotPasswordRecentLimiter,
+  forgotPasswordHourlyLimiter,
   validateInput(forgotPasswordSchema),
   asyncHandler(AuthController.forgotPassword)
 );
@@ -131,7 +136,7 @@ router.post(
 
 router.post(
   '/reset-password',
-  // resetPasswordLimiter,
+  resetPasswordLimiter,
   validateInput(resetPasswordSchema),
   asyncHandler(AuthController.resetPassword)
 );

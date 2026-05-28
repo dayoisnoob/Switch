@@ -30,6 +30,7 @@ export type EmailJob =
 
 export const emailQueue = new Queue<EmailJob>('emails', {
   connection: bullMQConnection,
+  prefix: 'switch',
   defaultJobOptions: {
     attempts: 3,
     backoff: {
@@ -53,6 +54,7 @@ export const emailWorker = new Worker<EmailJob>(
   },
   {
     connection: bullMQConnection,
+    prefix: 'switch',
     drainDelay: 300,
     stalledInterval: 60000,
   }

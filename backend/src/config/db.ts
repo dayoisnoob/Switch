@@ -9,11 +9,11 @@ const connectionString =
 
 const pool = new Pool({
   connectionString,
-  max: 20,
+  max: 7,
 });
 
 pool.on('error', (err: unknown) => {
-  logger.error(err, '❌ Unexpected database error:');
+  logger.error(err, 'Unexpected database error:');
   process.exit(1);
 });
 

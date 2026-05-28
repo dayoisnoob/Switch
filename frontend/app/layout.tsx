@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import { Toaster } from "sonner";
 import "./globals.css";
+import { MobileBlocker } from "@/components/ui/MobileBlocker";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -12,9 +13,6 @@ export const metadata: Metadata = {
   description: "Project management for focused teams",
 };
 
-// Providers go here as the app grows — wrap children in order:
-// QueryClient → SocketProvider → NotificationProvider
-// For now it's just the shell. Add providers in this file, not in page components.
 export default function RootLayout({
   children,
 }: {
@@ -27,7 +25,9 @@ export default function RootLayout({
       className={cn("font-sans", geist.variable)}
     >
       <body>
-        <QueryProvider>{children}</QueryProvider>
+        <MobileBlocker>
+          <QueryProvider>{children}</QueryProvider>
+        </MobileBlocker>
         <Toaster richColors />
       </body>
     </html>
