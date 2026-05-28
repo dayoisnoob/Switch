@@ -4,7 +4,6 @@ import { useCreateWorkspace } from "@/hooks/useWorkspace";
 import { getErrorMessage, getInitials, slugify } from "@/lib/utils";
 import { LayoutGrid, Loader2, Plus, X } from "lucide-react";
 import { useState } from "react";
-// 1. Import your new Portal component!
 import { Portal } from "@/components/ui/Portal";
 import { toast } from "sonner";
 
@@ -56,10 +55,8 @@ export default function CreateWorkspaceModal({
     setSelectedColor(AVATAR_COLORS[0]);
   };
 
-  // 2. Simple early return
   if (!isOpen) return null;
 
-  // 3. Wrap the ENTIRE return statement in the Portal
   return (
     <Portal>
       <div className="fixed inset-0 z-9999 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">

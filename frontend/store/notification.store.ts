@@ -1,4 +1,3 @@
-// stores/notification.store.ts
 import { create } from "zustand";
 import { socket } from "@/lib/socket";
 import { api } from "@/lib/api";

@@ -38,9 +38,7 @@ export const SettingsTab = ({
 
   return (
     <div className="max-w-3xl animate-in fade-in duration-300 pb-10">
-      {/* ── GENERAL SETTINGS (Premium UI) ── */}
       <div className="bg-[#13131A] border border-white/5 rounded-2xl p-8 mb-8 shadow-xl relative overflow-hidden">
-        {/* Subtle background glow */}
         <div className="absolute top-0 left-0 right-0 h-1 " />
 
         <div className="mb-8">
@@ -53,7 +51,6 @@ export const SettingsTab = ({
         </div>
 
         <div className="space-y-6">
-          {/* Name Input */}
           <div className="space-y-2">
             <label className="block text-[13px] font-semibold text-white/80">
               Workspace Name
@@ -72,7 +69,6 @@ export const SettingsTab = ({
             </div>
           </div>
 
-          {/* Slug Input */}
           <div className="space-y-2">
             <label className="block text-[13px] font-semibold text-white/80">
               Workspace URL Slug
@@ -87,7 +83,6 @@ export const SettingsTab = ({
                 onChange={(e) => setSlug(e.target.value)}
                 className="w-full h-11 bg-black/40 border border-white/10 rounded-xl pl-10 pr-4 text-[14px] text-white focus:outline-none focus:border-[#7C6EF5]/50 focus:ring-4 focus:ring-[#7C6EF5]/10 transition-all placeholder:text-white/20"
               />
-              {/* Optional domain hint if you want one */}
               <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none">
                 <span className="text-[11px] font-medium text-white/20 bg-white/5 px-2 py-1 rounded-md">
                   app.yoursite.com/{slug || "slug"}
@@ -100,7 +95,6 @@ export const SettingsTab = ({
             </p>
           </div>
 
-          {/* Save Button */}
           <div className="pt-4 flex justify-end border-t border-white/5">
             <button
               onClick={handleUpdate}
@@ -120,10 +114,8 @@ export const SettingsTab = ({
         </div>
       </div>
 
-      {/* ── DANGER ZONE (Visible only to owners) ── */}
       {isOwner && (
         <div className="bg-[#13131A] border border-rose-500/20 rounded-2xl p-8 shadow-xl relative overflow-hidden group">
-          {/* Warning stripe */}
           <div className="absolute top-0 left-0 w-1 h-full bg-rose-500/50" />
           <div className="absolute inset-0  opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
 

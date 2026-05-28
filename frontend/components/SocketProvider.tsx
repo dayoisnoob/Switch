@@ -13,7 +13,6 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
       store.initSocket();
     };
 
-    // 3. Attach the listener
     socket.on("connect", handleConnect);
 
     return () => {

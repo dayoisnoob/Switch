@@ -29,10 +29,9 @@ export default function DeleteWorkspaceModal({
     workspace!.slug,
   );
 
-  // Reset input when modal opens/closes
   useEffect(() => {
     if (!isOpen) {
-      setTimeout(() => setConfirmInput(""), 200); // Clear after fade out
+      setTimeout(() => setConfirmInput(""), 200);
     } else {
       document.body.style.overflow = "hidden";
     }
@@ -54,15 +53,12 @@ export default function DeleteWorkspaceModal({
   return (
     <Portal>
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-0">
-        {/* Backdrop */}
         <div
           className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
           onClick={onClose}
         />
 
-        {/* Modal Container */}
         <div className="relative w-full max-w-125 bg-[#151517] border border-[#2a2a2a] rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-          {/* Close Button */}
           <button
             onClick={onClose}
             disabled={isPending}
@@ -72,12 +68,10 @@ export default function DeleteWorkspaceModal({
           </button>
 
           <div className="p-6">
-            {/* Top Icon */}
             <div className="w-10 h-10 rounded-xl bg-[#3f1c22] text-[#ef4444] flex items-center justify-center mb-5 border border-[#3f1c22]">
               <LayoutGrid size={20} />
             </div>
 
-            {/* Headers */}
             <h2 className="text-xl font-bold text-white mb-1.5 tracking-tight">
               Delete workspace
             </h2>
@@ -86,7 +80,6 @@ export default function DeleteWorkspaceModal({
               and member access.
             </p>
 
-            {/* Workspace Info Card */}
             <div className="bg-[#1C1C1E] border border-[#2a2a2a] rounded-xl p-4 mb-4 flex items-center gap-3">
               <div
                 className={cn(
@@ -106,7 +99,6 @@ export default function DeleteWorkspaceModal({
               </div>
             </div>
 
-            {/* Danger Callout */}
             <div className="bg-[#2a1318]/80 border border-[#7f1d1d]/40 rounded-xl p-4 mb-4 flex gap-3 items-start">
               <AlertTriangle
                 size={16}
@@ -124,7 +116,6 @@ export default function DeleteWorkspaceModal({
               </div>
             </div>
 
-            {/* Confirmation Input Area */}
             <div className="bg-[#1C1C1E] border border-[#2a2a2a] rounded-xl p-4 mb-8">
               <label className="block text-[13px] text-[#8a8a93] mb-3 leading-relaxed">
                 Type{" "}
@@ -144,7 +135,6 @@ export default function DeleteWorkspaceModal({
               />
             </div>
 
-            {/* Footer Actions */}
             <div className="flex items-center justify-end gap-3">
               <button
                 onClick={onClose}

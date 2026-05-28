@@ -86,7 +86,6 @@ export function CardComments({ cardId }: { cardId: string }) {
                   isOptimistic && "opacity-50 pointer-events-none",
                 )}
               >
-                {/* Avatar */}
                 <div className="shrink-0 mt-0.5">
                   {comment.author.avatarUrl ? (
                     <Image

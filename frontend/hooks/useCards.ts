@@ -141,7 +141,6 @@ export function useToggleAssignee(cardId: string) {
       }
     },
 
-    // 1. Fire instantly on click
     onMutate: async ({ member, isAssigned }) => {
       await queryClient.cancelQueries({ queryKey: ["card", cardId] });
 
@@ -156,7 +155,6 @@ export function useToggleAssignee(cardId: string) {
       return { previousIsAttached: isAssigned, member };
     },
 
-    // 2. If the API fails, roll back to the previous snapshot
     onError: (err, variables, context) => {
       const store = useBoardStore.getState();
       if (context) {
@@ -169,7 +167,6 @@ export function useToggleAssignee(cardId: string) {
       toast.error("Failed to update assignee");
     },
 
-    // 3. Always refetch after error or success to ensure perfect server sync
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["card", cardId] });
       queryClient.invalidateQueries({ queryKey: ["board"] });

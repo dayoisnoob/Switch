@@ -15,7 +15,7 @@ import {
   LucideIcon,
 } from "lucide-react";
 import { format } from "date-fns";
-import { CardActivity } from "@/services/activity.service";
+import { CardActivity } from "@/hooks/useActivities";
 
 export const getActivityConfig = (type: string) => {
   const config: Record<

@@ -1,8 +1,8 @@
 "use client";
 
 import { Portal } from "@/components/ui/Portal";
+import { Workspace } from "@/hooks/useWorkspace";
 import { cn } from "@/lib/utils";
-import { Workspace } from "@/services/workspace.service";
 import { Check, Plus, Search } from "lucide-react";
 import { useState } from "react";
 
@@ -25,32 +25,25 @@ export default function WorkspaceSwitcherModal({
 }: WorkspaceSwitcherModalProps) {
   const [searchQuery, setSearchQuery] = useState("");
 
-  // 1. REMOVED the early return from here!
-
-  // Filter workspaces based on search query
   const filteredWorkspaces = workspaces.filter((ws) =>
     ws.name.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
-  // Helper for avatars
   const getInitials = (name: string) => {
     return name.substring(0, 2).toUpperCase();
   };
 
   return (
     <Portal>
-      {/* 2. ADDED the isOpen check wrapping the actual UI inside the Portal */}
       {isOpen && (
         <div
-          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4 animate-in fade-in duration-200"
+          className="fixed inset-0 z-9999 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4 animate-in fade-in duration-200"
           onClick={onClose}
         >
-          {/* Modal Panel - Stop propagation so clicking inside doesn't close it */}
           <div
             onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-[380px] bg-[#0A0A0A] border border-white/8 rounded-2xl shadow-[0_0_40px_rgba(0,0,0,0.8)] relative flex flex-col overflow-hidden animate-in zoom-in-95 duration-200"
+            className="w-full max-w-95 bg-[#0A0A0A] border border-white/8 rounded-2xl shadow-[0_0_40px_rgba(0,0,0,0.8)] relative flex flex-col overflow-hidden animate-in zoom-in-95 duration-200"
           >
-            {/* ── SEARCH AREA ── */}
             <div className="p-4 border-b border-white/5">
               <div className="relative">
                 <Search
@@ -68,7 +61,6 @@ export default function WorkspaceSwitcherModal({
               </div>
             </div>
 
-            {/* ── WORKSPACE LIST ── */}
             <div className="p-2 max-h-[50vh] overflow-y-auto custom-scrollbar">
               <div className="px-3 py-2 text-[10px] font-bold text-white/30 uppercase tracking-widest">
                 Your Workspaces
@@ -97,7 +89,6 @@ export default function WorkspaceSwitcherModal({
                             : "border border-transparent hover:bg-white/4",
                         )}
                       >
-                        {/* Avatar */}
                         <div
                           className="w-10 h-10 shrink-0 rounded-lg flex items-center justify-center text-white font-black text-sm shadow-sm"
                           style={{ backgroundColor: ws.colour || "#7C6EF5" }}
@@ -105,7 +96,6 @@ export default function WorkspaceSwitcherModal({
                           {getInitials(ws.name)}
                         </div>
 
-                        {/* Info */}
                         <div className="flex flex-col flex-1 overflow-hidden">
                           <span className="text-[14px] font-semibold text-white/90 truncate">
                             {ws.name}
@@ -116,7 +106,6 @@ export default function WorkspaceSwitcherModal({
                           </span>
                         </div>
 
-                        {/* Active Checkmark */}
                         {isActive && (
                           <Check
                             size={18}
@@ -130,7 +119,6 @@ export default function WorkspaceSwitcherModal({
               </div>
             </div>
 
-            {/* ── FOOTER: CREATE WORKSPACE ── */}
             <div className="p-2 border-t border-white/5 bg-[#050505]">
               <button
                 onClick={() => {

@@ -30,6 +30,7 @@ import { ChevronRight, Clock, Plus, Search, Trash2 } from "lucide-react";
 import Image from "next/image";
 import { useRef, useState } from "react";
 import { useCardMenus } from "./useCardMenu";
+import { generateKeyBetween } from "fractional-indexing";
 
 const PRIORITIES = [
   { label: "Urgent", value: "urgent", color: "bg-rose-500" },
@@ -95,7 +96,6 @@ export function CardSidebar({
     l.name.toLowerCase().includes(labelSearch.toLowerCase()),
   );
 
-  // close menus on outside click
   const handleContainerClick = (e: React.MouseEvent) => e.stopPropagation();
 
   const currentColumn = columns.find((c) =>
@@ -106,7 +106,6 @@ export function CardSidebar({
       (p) => p.value === (card.priority?.toLowerCase() || "none"),
     ) ?? PRIORITIES[4];
 
-  // due date helpers
   const dueDateObj = card.dueDate ? new Date(card.dueDate) : null;
   const diffDays = dueDateObj
     ? differenceInCalendarDays(dueDateObj, new Date())
@@ -152,12 +151,17 @@ export function CardSidebar({
                   key={col.id}
                   onClick={() => {
                     if (col.id !== currentColumn?.id) {
+                      const lastCard = col.cards[col.cards.length - 1];
+                      const lastCardOrder = lastCard?.order || null;
+
+                      const newOrder = generateKeyBetween(lastCardOrder, null);
+
                       moveCard({
                         cardId: card.id,
                         data: {
                           columnId: col.id,
                           status: col.mappedStatus,
-                          order: 0,
+                          order: newOrder,
                         },
                       });
                     }
@@ -295,7 +299,6 @@ export function CardSidebar({
           </label>
 
           <div className="flex flex-col bg-[#1C1C24] border border-white/5 rounded-xl overflow-hidden shadow-inner">
-            {/* Search Bar */}
             <div className="p-2 border-b border-white/5 bg-[#18181F]">
               <div className="relative">
                 <Search
@@ -312,8 +315,7 @@ export function CardSidebar({
               </div>
             </div>
 
-            {/* Member List */}
-            <div className="max-h-[180px] overflow-y-auto custom-scrollbar p-1.5 space-y-0.5">
+            <div className="max-h-45 overflow-y-auto custom-scrollbar p-1.5 space-y-0.5">
               {membersLoading ? (
                 <div className="flex items-center justify-center py-6">
                   <div className="w-4 h-4 border-2 border-[#7C6EF5]/30 border-t-[#7C6EF5] rounded-full animate-spin" />
@@ -370,10 +372,9 @@ export function CardSidebar({
                         </div>
                       </div>
 
-                      {/* Premium Animated Toggle Switch */}
                       <div
                         className={cn(
-                          "relative inline-flex h-[18px] w-8 shrink-0 items-center rounded-full transition-colors duration-200 ease-in-out",
+                          "relative inline-flex h-4.5 w-8 shrink-0 items-center rounded-full transition-colors duration-200 ease-in-out",
                           isAssigned
                             ? "bg-[#7C6EF5]"
                             : "bg-white/10 group-hover:bg-white/20",
@@ -382,9 +383,7 @@ export function CardSidebar({
                         <span
                           className={cn(
                             "inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow-sm transition duration-200 ease-in-out",
-                            isAssigned
-                              ? "translate-x-[16px]"
-                              : "translate-x-[2px]",
+                            isAssigned ? "translate-x-4" : "translate-x-0.5",
                           )}
                         />
                       </div>
@@ -401,11 +400,9 @@ export function CardSidebar({
             Labels
           </label>
 
-          {/* Active Label Chips */}
           {card.labels && card.labels.length > 0 && (
             <div className="flex flex-wrap gap-1.5 mb-2">
               {card.labels.map((l) => {
-                // 🛡️ THE FIX: Immune to color/colour spelling mismatches in Optimistic Cache
                 const hex = l.colour || "#7C6EF5";
                 const name = l.name || "Label";
                 const id = l.id || "";
@@ -431,9 +428,7 @@ export function CardSidebar({
             </div>
           )}
 
-          {/* Inline Management UI */}
           <div className="flex flex-col bg-[#1C1C24] border border-white/5 rounded-xl overflow-hidden shadow-inner">
-            {/* Search Bar */}
             <div className="p-2 border-b border-white/5 bg-[#18181F]">
               <div className="relative">
                 <Search
@@ -450,7 +445,6 @@ export function CardSidebar({
               </div>
             </div>
 
-            {/* Label List */}
             <div className="max-h-45 overflow-y-auto custom-scrollbar p-1.5 space-y-0.5">
               {filteredLabels?.length === 0 && !isCreatingLabelMode ? (
                 <div className="text-center py-6 text-[12px] text-white/40">
@@ -484,7 +478,6 @@ export function CardSidebar({
                         </span>
                       </div>
 
-                      {/* Right Side Actions Group */}
                       <div className="flex items-center gap-3 shrink-0">
                         {canManageWorkspace && (
                           <button
@@ -502,7 +495,6 @@ export function CardSidebar({
                           </button>
                         )}
 
-                        {/* Premium Animated Toggle Switch */}
                         <div
                           className={cn(
                             "relative inline-flex h-4.5 w-8 shrink-0 items-center rounded-full transition-colors duration-200 ease-in-out",

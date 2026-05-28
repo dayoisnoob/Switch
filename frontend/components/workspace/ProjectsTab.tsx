@@ -193,7 +193,6 @@ export const ProjectCard = ({
         </div>
       </div>
 
-      {/* --- TEXT CONTENT --- */}
       <div className="flex-1 mt-1">
         <h3 className="text-[17px] font-semibold text-white tracking-tight mb-1.5 line-clamp-1">
           {project.name}
@@ -203,7 +202,6 @@ export const ProjectCard = ({
         </p>
       </div>
 
-      {/* --- PROGRESS SECTION --- */}
       <div className="mt-6">
         <div className="h-1.5 w-full bg-white/4 rounded-full overflow-hidden">
           <div
@@ -220,12 +218,9 @@ export const ProjectCard = ({
         </div>
       </div>
 
-      {/* --- DIVIDER --- */}
       <div className="h-px w-full bg-white/4 my-4" />
 
-      {/* --- FOOTER --- */}
       <div className="flex items-center justify-between mt-auto">
-        {/* Left Side: Stats & Priority */}
         <div className="flex items-center gap-4 text-[12px] font-medium text-white/40">
           <div className="flex items-center gap-1.5">
             <Layout size={14} className="text-white/30" />
@@ -233,7 +228,6 @@ export const ProjectCard = ({
           </div>
         </div>
 
-        {/* Right Side: Member Avatars (Mocked to match design) */}
         <div className="flex items-center">
           <div className="flex -space-x-1.5">
             {project.assignees &&
@@ -272,7 +266,6 @@ export const ProjectCard = ({
         </div>
       </div>
 
-      {/* --- MODALS --- */}
       {canManageWorkspace && (
         <>
           <CreateProjectModal

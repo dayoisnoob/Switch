@@ -1,6 +1,6 @@
 "use client";
 
-import { useAcceptInvite, useVerifyInvite } from "@/hooks/useInvitations"; // Adjust path
+import { useAcceptInvite, useVerifyInvite } from "@/hooks/useInvitations";
 import { ArrowRight, Loader2, MailOpen, AlertCircle } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect } from "react";
@@ -47,7 +47,6 @@ export default function AcceptInvitePage() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-[#0A0A0A] p-4 font-sans text-white selection:bg-[#7C6EF5]/30">
-      {/* ── LOGO ── */}
       <div className="flex items-center gap-3 mb-8">
         <div className="w-10 h-10 rounded-xl bg-[#7C6EF5] flex items-center justify-center text-white text-lg font-black shadow-lg shadow-[#7C6EF5]/20">
           S
@@ -57,7 +56,6 @@ export default function AcceptInvitePage() {
         </span>
       </div>
 
-      {/* ── STATE 1: VERIFYING ── */}
       {isVerifying && (
         <div className="flex flex-col items-center animate-in fade-in duration-300">
           <Loader2 size={32} className="animate-spin text-[#7C6EF5] mb-4" />
@@ -67,7 +65,6 @@ export default function AcceptInvitePage() {
         </div>
       )}
 
-      {/* ── STATE 2: ERROR (Expired/Invalid) ── */}
       {isVerifyError && (
         <div className="w-full max-w-105 bg-[#13131A] border border-red-500/20 rounded-2xl p-8 text-center animate-in zoom-in-95 duration-300">
           <AlertCircle size={40} className="text-red-400 mx-auto mb-4" />
@@ -87,7 +84,6 @@ export default function AcceptInvitePage() {
         </div>
       )}
 
-      {/* ── STATE 3: READY TO ACCEPT ── */}
       {!isVerifying && !isVerifyError && inviteDetails && (
         <div className="w-full max-w-105 bg-[#13131A] border border-white/5 rounded-2xl p-8 shadow-2xl animate-in fade-in zoom-in-95 duration-500">
           <div className="flex flex-col items-center text-center mb-8">

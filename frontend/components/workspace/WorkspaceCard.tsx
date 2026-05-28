@@ -13,14 +13,12 @@ export const WorkspaceCard = ({
 }) => {
   return (
     <div
-      // Removed the key from here!
       onClick={handleRedirectWorkspace}
-      // Fixed h-50 to an arbitrary value h-[200px] (or use h-48 / h-52)
       className="bg-[#13131C] border border-[#262626] cursor-pointer rounded-xl p-5 hover:border-[#3f3f46] transition-all group flex flex-col h-50"
     >
       <div className="flex items-start justify-between mb-4">
         <div
-          style={{ backgroundColor: ws?.colour }} // <-- This is now 100% correct!
+          style={{ backgroundColor: ws?.colour }}
           className={cn(
             "w-10 h-10 rounded-lg  flex items-center justify-center text-white font-black text-sm",
           )}

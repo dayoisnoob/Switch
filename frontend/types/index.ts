@@ -1,9 +1,3 @@
-// ─── YOUR JOB ────────────────────────────────────────────────────────────────
-// These types mirror your backend exactly. Fill them in from your Drizzle
-// schema — you already know these shapes better than anyone.
-// Keep them here. Every component imports from this file, never from the API.
-// ─────────────────────────────────────────────────────────────────────────────
-
 export type PriorityEnum = "none" | "low" | "medium" | "high" | "urgent";
 
 export interface Attachment {
@@ -29,7 +23,6 @@ export interface Notification {
   createdAt: string;
 }
 
-// ─── API response wrapper (matches your ApiResponse class) ───────────────────
 export interface ApiResponse<T = unknown> {
   success: boolean;
   statusCode: number;

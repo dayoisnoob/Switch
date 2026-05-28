@@ -1,6 +1,6 @@
 "use client";
 
-import CreateWorkspaceModal from "@/components/modals/CreateWorkspaceModal"; // Make sure this path matches your setup!
+import CreateWorkspaceModal from "@/components/modals/CreateWorkspaceModal";
 import { useLogout } from "@/hooks/useAuth";
 import { LayoutGrid, Plus, UserPlus } from "lucide-react";
 import { useState } from "react";

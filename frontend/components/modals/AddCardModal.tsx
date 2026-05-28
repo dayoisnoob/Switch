@@ -2,11 +2,11 @@
 
 import { cn } from "@/lib/utils";
 import { Portal } from "@/components/ui/Portal";
-import { CreateCard } from "@/services/card.service";
-import { WorkspaceMembers } from "@/services/workspace.service";
 import { ChevronDown, Plus, X } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
+import { CreateCard } from "@/hooks/useCards";
+import { WorkspaceMembers } from "@/hooks/useWorkspace";
 
 export type AddCardFormData = Omit<CreateCard, "status" | "dueDate"> & {
   dueDate: string;
@@ -61,14 +61,13 @@ export default function AddCardModal({
   return (
     <Portal>
       <div
-        className="fixed inset-0 z-[9999] flex items-center justify-center bg-[black]/60 backdrop-blur-sm px-4 animate-in fade-in duration-200"
+        className="fixed inset-0 z-9999 flex items-center justify-center bg-[black]/60 backdrop-blur-sm px-4 animate-in fade-in duration-200"
         onClick={onClose}
       >
         <div
           onClick={(e) => e.stopPropagation()}
-          className="w-full max-w-[500px] bg-[#13131C] border border-white/8 rounded-[20px] shadow-2xl relative flex flex-col overflow-hidden animate-in zoom-in-95 duration-200"
+          className="w-full max-w-125 bg-[#13131C] border border-white/8 rounded-2xl shadow-2xl relative flex flex-col overflow-hidden animate-in zoom-in-95 duration-200"
         >
-          {/* Header - Tighter Padding */}
           <div className="p-5 pb-0 flex items-start justify-between">
             <div className="flex flex-col gap-0.5">
               <div className="w-9 h-9 bg-[#7C6EF5]/10 border border-[#7C6EF5]/20 rounded-lg flex items-center justify-center mb-2">
@@ -92,9 +91,7 @@ export default function AddCardModal({
             </button>
           </div>
 
-          {/* Form Content - Reduced space-y and max-h */}
           <div className="p-5 space-y-4 overflow-y-auto max-h-[60vh] custom-scrollbar">
-            {/* Title */}
             <div className="space-y-1.5">
               <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">
                 Title <span className="text-rose-500">*</span>
@@ -106,11 +103,10 @@ export default function AddCardModal({
                 onChange={(e) =>
                   setFormData({ ...formData, title: e.target.value })
                 }
-                className="w-full bg-white/3 border border-white/8 focus:border-[#7C6EF5]/50 rounded-[10px] px-3.5 py-2.5 text-[13px] text-white placeholder-white/10 outline-none transition-all"
+                className="w-full bg-white/3 border border-white/8 focus:border-[#7C6EF5]/50 rounded-md px-3.5 py-2.5 text-[13px] text-white placeholder-white/10 outline-none transition-all"
               />
             </div>
 
-            {/* Description - Reduced to 2 rows */}
             <div className="space-y-1.5">
               <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">
                 Description
@@ -122,18 +118,16 @@ export default function AddCardModal({
                 onChange={(e) =>
                   setFormData({ ...formData, description: e.target.value })
                 }
-                className="w-full bg-white/3 border border-white/8 focus:border-[#7C6EF5]/50 rounded-[10px] px-3.5 py-2.5 text-[13px] text-white placeholder-white/10 outline-none transition-all resize-none"
+                className="w-full bg-white/3 border border-white/8 focus:border-[#7C6EF5]/50 rounded-md px-3.5 py-2.5 text-[13px] text-white placeholder-white/10 outline-none transition-all resize-none"
               />
             </div>
 
-            {/* Grid: Priority & Due Date */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">
                   Priority
                 </label>
                 <div className="relative">
-                  {/* FIX: Added [color-scheme:dark] and styled options */}
                   <select
                     defaultValue={formData.priority}
                     onChange={(e) =>
@@ -142,7 +136,7 @@ export default function AddCardModal({
                         priority: e.target.value as AddCardFormData["priority"],
                       })
                     }
-                    className="w-full bg-white/3 border border-white/8 rounded-[10px] px-3.5 py-2.5 text-[13px] text-white appearance-none outline-none focus:border-[#7C6EF5]/50 [color-scheme:dark] [&>option]:bg-[#0D0D12]"
+                    className="w-full bg-white/3 border border-white/8 rounded-md px-3.5 py-2.5 text-[13px] text-white appearance-none outline-none focus:border-[#7C6EF5]/50 scheme-dark [&>option]:bg-[#0D0D12]"
                   >
                     <option value="none">None</option>
                     <option value="low">Low</option>
@@ -168,13 +162,12 @@ export default function AddCardModal({
                     onChange={(e) =>
                       setFormData({ ...formData, dueDate: e.target.value })
                     }
-                    className="w-full bg-white/3 border border-white/8 rounded-[10px] px-3.5 py-2.5 text-[13px] text-white outline-none focus:border-[#7C6EF5]/50 [color-scheme:dark]"
+                    className="w-full bg-white/3 border border-white/8 rounded-md px-3.5 py-2.5 text-[13px] text-white outline-none focus:border-[#7C6EF5]/50 scheme-dark"
                   />
                 </div>
               </div>
             </div>
 
-            {/* Assignees */}
             <div className="space-y-2">
               <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">
                 Assignees
@@ -189,7 +182,7 @@ export default function AddCardModal({
                     <div
                       key={member.id}
                       onClick={() => toggleAssignee(member.userId)}
-                      className="flex items-center justify-between p-1.5 rounded-[10px] hover:bg-white/3 cursor-pointer group transition-colors"
+                      className="flex items-center justify-between p-1.5 rounded-md hover:bg-white/3 cursor-pointer group transition-colors"
                     >
                       <div className="flex items-center gap-2.5 min-w-0">
                         {member.avatarUrl ? (
@@ -239,7 +232,6 @@ export default function AddCardModal({
             </div>
           </div>
 
-          {/* Footer - Tighter Padding */}
           <div className="p-4 bg-[#13131C] border-t border-white/5 flex justify-end gap-2.5">
             <button
               onClick={onClose}

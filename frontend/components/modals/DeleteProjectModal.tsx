@@ -1,11 +1,11 @@
 "use client";
 
 import { Portal } from "@/components/ui/Portal";
-import { Project } from "@/services/projects.service";
 import { AlertTriangle, Loader2, Trash2, X } from "lucide-react";
 import { useState } from "react";
 import { PROJECT_ICON_MAP } from "./CreateProjectModal";
 import { cn } from "@/lib/utils";
+import { Project } from "@/hooks/useProjects";
 
 interface DeleteProjectModalProps {
   isOpen: boolean;
@@ -32,7 +32,7 @@ export default function DeleteProjectModal({
   return (
     <Portal>
       <div
-        className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4 animate-in fade-in duration-200"
+        className="fixed inset-0 z-9999 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4 animate-in fade-in duration-200"
         onClick={(e) => {
           e.stopPropagation();
           onClose();
@@ -40,9 +40,8 @@ export default function DeleteProjectModal({
       >
         <div
           onClick={(e) => e.stopPropagation()}
-          className="w-full max-w-[440px] bg-[#0A0A0A] border border-white/8 rounded-2xl shadow-2xl relative flex flex-col overflow-hidden animate-in zoom-in-95 duration-200"
+          className="w-full max-w-110 bg-[#0A0A0A] border border-white/8 rounded-2xl shadow-2xl relative flex flex-col overflow-hidden animate-in zoom-in-95 duration-200"
         >
-          {/* Close Button */}
           <button
             onClick={onClose}
             className="absolute top-4 right-4 text-white/20 hover:text-white transition-colors"
@@ -51,7 +50,6 @@ export default function DeleteProjectModal({
           </button>
 
           <div className="p-6">
-            {/* Header Icon */}
             <div className="w-10 h-10 bg-rose-500/10 border border-rose-500/20 rounded-xl flex items-center justify-center mb-4 shadow-sm">
               <Trash2 size={18} className="text-rose-500" />
             </div>
@@ -65,7 +63,6 @@ export default function DeleteProjectModal({
               </p>
             </div>
 
-            {/* Project Preview Card */}
             <div className="bg-white/3 border border-white/5 rounded-xl p-4 flex items-center gap-4 mb-4">
               <div className="w-10 h-10 rounded-lg bg-[#111115] flex items-center justify-center text-xl">
                 <Icon size={20} className="text-white/70" />
@@ -81,7 +78,6 @@ export default function DeleteProjectModal({
               </div>
             </div>
 
-            {/* Warning Box */}
             <div className="bg-rose-500/5 border border-rose-500/10 rounded-xl p-4 flex gap-3 mb-6">
               <AlertTriangle
                 size={18}
@@ -98,7 +94,6 @@ export default function DeleteProjectModal({
               </div>
             </div>
 
-            {/* Confirmation Input */}
             <div className="space-y-3">
               <p className="text-[12px] text-white/40">
                 Type{" "}
@@ -118,7 +113,6 @@ export default function DeleteProjectModal({
             </div>
           </div>
 
-          {/* Footer Actions */}
           <div className="px-6 py-4 bg-[#050505] border-t border-white/5 flex justify-end gap-3">
             <button
               onClick={onClose}

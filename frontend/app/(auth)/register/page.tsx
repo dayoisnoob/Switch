@@ -35,7 +35,6 @@ export default function SignupPage() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-[#0A0A0A] p-4 font-sans text-white selection:bg-[#7C6EF5]/30">
-      {/* ── LOGO & BRANDING ── */}
       <div className="flex items-center gap-3 mb-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
         <div className="w-10 h-10 rounded-xl bg-[#7C6EF5] flex items-center justify-center text-white text-lg font-black shadow-lg shadow-[#7C6EF5]/20">
           S
@@ -45,11 +44,8 @@ export default function SignupPage() {
         </span>
       </div>
 
-      {/* ── MAIN CARD ── */}
       <div className="w-full max-w-105 bg-[#13131A] border border-white/5 rounded-2xl p-8 shadow-2xl animate-in fade-in zoom-in-95 duration-500 ">
-        {/* ── STEPPER ── */}
         <div className="flex items-center justify-between mb-8">
-          {/* Step 1: Active */}
           <div className="flex items-center gap-2">
             <div className="w-6 h-6 rounded-full bg-[#7C6EF5] flex items-center justify-center text-[11px] font-bold text-white shadow-sm">
               1
@@ -59,7 +55,6 @@ export default function SignupPage() {
 
           <div className="flex-1 h-px bg-white/10 mx-3"></div>
 
-          {/* Step 2: Inactive */}
           <div className="flex items-center gap-2 opacity-40">
             <div className="w-6 h-6 rounded-full border border-white/20 flex items-center justify-center text-[11px] font-bold text-white">
               2
@@ -69,7 +64,6 @@ export default function SignupPage() {
 
           <div className="flex-1 h-px bg-white/10 mx-3"></div>
 
-          {/* Step 3: Inactive */}
           <div className="flex items-center gap-2 opacity-40">
             <div className="w-6 h-6 rounded-full border border-white/20 flex items-center justify-center text-[11px] font-bold text-white">
               3
@@ -78,7 +72,6 @@ export default function SignupPage() {
           </div>
         </div>
 
-        {/* Header */}
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-white/90 tracking-tight mb-2">
             Create your account
@@ -88,7 +81,6 @@ export default function SignupPage() {
           </p>
         </div>
 
-        {/* SSO Buttons */}
         <div className="space-y-3 mb-6">
           <button
             onClick={() => handleSocialAuth("google")}
@@ -107,7 +99,6 @@ export default function SignupPage() {
           </button>
         </div>
 
-        {/* Divider */}
         <div className="flex items-center gap-3 mb-6">
           <div className="flex-1 h-px bg-white/5"></div>
           <span className="text-[12px] font-medium text-white/30 tracking-wide">
@@ -116,7 +107,6 @@ export default function SignupPage() {
           <div className="flex-1 h-px bg-white/5"></div>
         </div>
 
-        {/* Form */}
         <form className="space-y-4" onSubmit={handleSubmit(handleSignup)}>
           <div className="space-y-1.5">
             <label className="text-[13px] font-medium text-white/60 pl-1 flex items-center gap-1">
@@ -169,7 +159,6 @@ export default function SignupPage() {
         </form>
       </div>
 
-      {/* ── FOOTER ── */}
       <div className="mt-8 animate-in fade-in duration-500">
         <p className="text-[13px] text-white/40">
           Already have an account?{" "}

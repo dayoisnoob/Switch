@@ -26,7 +26,6 @@ export default function VerifyPage() {
 
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
-  // ── TIMER LOGIC ──
   useEffect(() => {
     if (timer > 0) {
       const interval = setInterval(() => setTimer((t) => t - 1), 1000);
@@ -115,7 +114,6 @@ export default function VerifyPage() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-[#0A0A0A] p-4 font-sans text-white selection:bg-[#7C6EF5]/30">
-      {/* ── LOGO & BRANDING ── */}
       <div className="flex items-center gap-3 mb-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
         <div className="w-10 h-10 rounded-xl bg-[#7C6EF5] flex items-center justify-center text-white text-lg font-black shadow-lg shadow-[#7C6EF5]/20">
           S
@@ -125,11 +123,8 @@ export default function VerifyPage() {
         </span>
       </div>
 
-      {/* ── MAIN CARD ── */}
       <div className="w-full max-w-105 bg-[#13131A] border border-white/5 rounded-2xl p-8 shadow-2xl animate-in fade-in zoom-in-95 duration-500">
-        {/* ── STEPPER ── */}
         <div className="flex items-center justify-between mb-8">
-          {/* Step 1: Success */}
           <div className="flex items-center gap-2">
             <div className="w-6 h-6 rounded-full bg-[#00D287] flex items-center justify-center shadow-sm">
               <Check size={14} strokeWidth={3} className="text-[#13131A]" />
@@ -139,7 +134,6 @@ export default function VerifyPage() {
 
           <div className="flex-1 h-px bg-[#00D287]/30 mx-3"></div>
 
-          {/* Step 2: Active */}
           <div className="flex items-center gap-2">
             <div className="w-6 h-6 rounded-full bg-[#7C6EF5] flex items-center justify-center text-[11px] font-bold text-white shadow-sm">
               2
@@ -149,7 +143,6 @@ export default function VerifyPage() {
 
           <div className="flex-1 h-px bg-white/10 mx-3"></div>
 
-          {/* Step 3: Inactive */}
           <div className="flex items-center gap-2 opacity-40">
             <div className="w-6 h-6 rounded-full border border-white/20 flex items-center justify-center text-[11px] font-bold text-white">
               3
@@ -158,7 +151,6 @@ export default function VerifyPage() {
           </div>
         </div>
 
-        {/* ── HEADER & INFO BOX ── */}
         <h1 className="text-2xl font-bold text-white/90 tracking-tight mb-6">
           Check your inbox
         </h1>
@@ -175,7 +167,6 @@ export default function VerifyPage() {
           </div>
         </div>
 
-        {/* ── OTP FORM ── */}
         <form onSubmit={handleVerify} className="flex flex-col items-center">
           <div className="w-full flex justify-between gap-2 mb-3">
             {code.map((digit, index) => (
@@ -231,7 +222,6 @@ export default function VerifyPage() {
           </button>
         </form>
 
-        {/* ── FOOTER ACTIONS ── */}
         <div className="mt-8 flex flex-col items-center gap-5">
           <p className="text-[13px] text-white/40">
             Didn't get it?{" "}

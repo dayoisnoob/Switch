@@ -251,7 +251,6 @@ export default function NotificationsPage() {
                             </div>
                           </div>
 
-                          {/* Content Area */}
                           <div className="flex-1 min-w-0 pr-12">
                             <div className="text-[13px] leading-relaxed text-white/60">
                               <span

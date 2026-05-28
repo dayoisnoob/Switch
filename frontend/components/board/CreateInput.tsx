@@ -2,13 +2,14 @@
 
 import { useState, useRef, useEffect, KeyboardEvent } from "react";
 import { Plus, Loader2 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, getErrorMessage } from "@/lib/utils";
+import { toast } from "sonner";
 
 interface CreateInputProps {
   onSubmit: (value: string) => Promise<void>;
   placeholder?: string;
   buttonText: string;
-  isColumn?: boolean; // Changes styling slightly if it's for a whole column
+  isColumn?: boolean;
 }
 
 export function CreateInput({
@@ -22,7 +23,6 @@ export function CreateInput({
   const [loading, setLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Auto-focus when entering edit mode
   useEffect(() => {
     if (isEditing) {
       inputRef.current?.focus();
@@ -40,10 +40,9 @@ export function CreateInput({
     try {
       await onSubmit(trimmed);
       setValue("");
-      // Don't close if it's a card—let them type the next one immediately!
       if (isColumn) setIsEditing(false);
     } catch (err) {
-      console.error("Failed to create", err);
+      toast.error(getErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -71,7 +70,6 @@ export function CreateInput({
           onChange={(e) => setValue(e.target.value)}
           onKeyDown={handleKeyDown}
           onBlur={() => {
-            // Only close on blur if empty, otherwise let them click the button
             if (!value.trim()) setIsEditing(false);
           }}
           disabled={loading}

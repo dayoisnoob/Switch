@@ -58,7 +58,6 @@ export default function WorkspacePage() {
 
   return (
     <div className="max-w-300 mx-auto w-full animate-in fade-in duration-500">
-      {/* ── HEADER CARD ── */}
       <div className="bg-[#1C1C1E] border border-[#2a2a2a] rounded-xl p-5 mb-8 flex items-center justify-between shadow-sm">
         <div className="flex items-center gap-4">
           <div

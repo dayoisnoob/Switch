@@ -7,8 +7,8 @@ export default function ProjectLayout({
 }) {
   return (
     <>
-      {children} {/* This renders your KanbanBoardPage */}
-      {modal} {/* This renders the intercepted modal */}
+      {children}
+      {modal}
     </>
   );
 }

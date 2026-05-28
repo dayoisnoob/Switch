@@ -66,7 +66,6 @@ export function DeleteCardModal({
           className="w-full max-w-120 bg-[#111119] border border-white/5 rounded-2xl shadow-2xl flex flex-col p-6 animate-in zoom-in-95 duration-200 relative"
           onClick={(e) => e.stopPropagation()}
         >
-          {/* Close Button */}
           <button
             onClick={onClose}
             disabled={isDeleting}
@@ -75,12 +74,10 @@ export function DeleteCardModal({
             <X size={18} />
           </button>
 
-          {/* Header Icon */}
           <div className="w-12 h-12 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-500 mb-5 shrink-0">
             <Trash2 size={20} strokeWidth={2.5} />
           </div>
 
-          {/* Titles */}
           <h2 className="text-xl font-bold text-white/90 tracking-tight mb-1.5">
             Delete card
           </h2>
@@ -88,7 +85,6 @@ export function DeleteCardModal({
             This card and all its data will be permanently removed.
           </p>
 
-          {/* Card Preview Box */}
           <div className="bg-white/2 border border-white/5 rounded-xl p-4 mb-4">
             <h3 className="text-[14px] font-semibold text-white/90 mb-2 truncate">
               {card.title}
@@ -111,7 +107,6 @@ export function DeleteCardModal({
             </div>
           </div>
 
-          {/* Warning Box */}
           <div className="bg-rose-500/5 border border-rose-500/10 rounded-xl p-4 mb-6 flex items-start gap-3">
             <AlertTriangle
               size={16}
@@ -123,7 +118,6 @@ export function DeleteCardModal({
             </p>
           </div>
 
-          {/* Action Buttons */}
           <div className="flex items-center justify-end gap-3 mt-auto">
             <button
               onClick={onClose}

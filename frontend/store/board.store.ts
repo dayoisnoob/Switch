@@ -33,7 +33,7 @@ interface BoardStore {
   addColumn: (column: BoardColumn) => void;
   updateColumn: (columnId: string, name: string) => void;
   deleteColumn: (columnId: string) => void;
-  moveColumn: (columnId: string, newOrder: number) => void;
+  moveColumn: (columnId: string, newOrder: string) => void;
   deleteCards: (columnId: string) => void;
   moveAllCards: (fromColumnId: string, toColumnId: string) => void;
 
@@ -66,7 +66,9 @@ export const useBoardStore = create<BoardStore>((set) => ({
     set({
       board: {
         ...board,
-        columns: [...board.columns].sort((a, b) => a.order - b.order),
+        columns: [...board.columns].sort((a, b) =>
+          a.order.localeCompare(b.order),
+        ),
       },
     }),
 
@@ -174,7 +176,7 @@ export const useBoardStore = create<BoardStore>((set) => ({
         col.id === columnId ? { ...col, order: newOrder } : col,
       );
 
-      updatedColumns.sort((a, b) => a.order - b.order);
+      updatedColumns.sort((a, b) => a.order.localeCompare(b.order));
 
       return { board: { ...state.board, columns: updatedColumns } };
     }),

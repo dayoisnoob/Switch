@@ -1,6 +1,6 @@
 "use client";
 
-import { Portal } from "@/components/ui/Portal"; // Adjust path as needed
+import { Portal } from "@/components/ui/Portal";
 import {
   useClearColumncards,
   useDeleteColumn,
@@ -49,7 +49,6 @@ export default function DeleteColumnModal({
     }
   }, [availableColumns, targetColumnId]);
 
-  // Lock body scroll
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden";
@@ -99,7 +98,6 @@ export default function DeleteColumnModal({
           </button>
 
           <div className="p-6">
-            {/* Header Icon */}
             <div className="w-10 h-10 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 flex items-center justify-center mb-5">
               <PanelRightClose size={20} />
             </div>
@@ -111,7 +109,6 @@ export default function DeleteColumnModal({
               Choose what happens to the cards in this column before deleting.
             </p>
 
-            {/* Current Column Info Card */}
             <div className="flex items-center gap-3 p-3.5 rounded-xl border border-white/5 bg-white/2 mb-6">
               <div className="flex flex-col">
                 <span className="text-[13px] font-semibold text-white/90">
@@ -129,7 +126,6 @@ export default function DeleteColumnModal({
                 What should happen to the cards?
               </label>
 
-              {/* Option 1: Move Cards */}
               <button
                 type="button"
                 onClick={() => setAction("move")}
@@ -160,7 +156,6 @@ export default function DeleteColumnModal({
                 </div>
               </button>
 
-              {/* Option 2: Delete Cards */}
               <button
                 type="button"
                 onClick={() => setAction("delete")}
@@ -198,7 +193,6 @@ export default function DeleteColumnModal({
               </button>
             </div>
 
-            {/* Move To Dropdown (Conditional) */}
             {action === "move" && availableColumns.length > 0 && (
               <div className="space-y-2 mb-2 animate-in fade-in slide-in-from-top-2 duration-200">
                 <label className="text-[12px] font-bold text-white/40">
@@ -235,7 +229,6 @@ export default function DeleteColumnModal({
               </div>
             )}
 
-            {/* Footer Actions */}
             <div className="mt-8 flex items-center justify-end gap-3">
               <button
                 onClick={onClose}

@@ -14,9 +14,8 @@ import {
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { getConsistentColor } from "@/lib/utils"; // Assuming you have this helper!
+import { getConsistentColor } from "@/lib/utils";
 
-// Types
 interface Project {
   id: string;
   name: string;
@@ -141,7 +140,6 @@ export default function GlobalSearchModal({
       />
 
       <div className="relative w-full max-w-lg bg-[#13131A] border border-white/10 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-        {/* Search Input */}
         <div className="flex items-center px-4 border-b border-white/5">
           <Search size={18} className="text-[#7C6EF5] mr-3 shrink-0" />
           <input
@@ -157,7 +155,6 @@ export default function GlobalSearchModal({
           </kbd>
         </div>
 
-        {/* Results */}
         <div className="p-2 max-h-[60vh] overflow-y-auto custom-scrollbar">
           {normalizedQuery === "" ? (
             <div className="py-2">
@@ -176,7 +173,6 @@ export default function GlobalSearchModal({
             </div>
           ) : hasResults ? (
             <div className="py-2 space-y-4">
-              {/* Projects */}
               {filteredProjects.length > 0 && (
                 <div>
                   <div className="px-3 pb-2 text-[10px] font-bold text-white/30 uppercase tracking-widest">
@@ -206,7 +202,6 @@ export default function GlobalSearchModal({
                 </div>
               )}
 
-              {/* 🌟 Members (NEW) */}
               {filteredMembers.length > 0 && (
                 <div>
                   <div className="px-3 pb-2 text-[10px] font-bold text-white/30 uppercase tracking-widest">
@@ -263,7 +258,6 @@ export default function GlobalSearchModal({
                 </div>
               )}
 
-              {/* 🌟 Commands/Actions (NEW) */}
               {filteredActions.length > 0 && (
                 <div>
                   <div className="px-3 pb-2 text-[10px] font-bold text-white/30 uppercase tracking-widest">

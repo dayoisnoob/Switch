@@ -50,7 +50,6 @@ export default function RemoveMemberModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-0">
-      {/* Backdrop */}
       <div
         className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
         onClick={onClose}
@@ -66,12 +65,10 @@ export default function RemoveMemberModal({
         </button>
 
         <div className="p-6">
-          {/* Top Icon */}
           <div className="w-10 h-10 rounded-xl bg-[#3f1c22] text-[#ef4444] flex items-center justify-center mb-5 border border-[#3f1c22]">
             <UserMinus size={20} />
           </div>
 
-          {/* Headers */}
           <h2 className="text-xl font-bold text-white mb-1.5 tracking-tight">
             Remove member
           </h2>
@@ -79,7 +76,6 @@ export default function RemoveMemberModal({
             Are you sure you want to remove this member from the workspace?
           </p>
 
-          {/* Member Info Card */}
           <div className="bg-[#1C1C1E] border border-[#2a2a2a] rounded-xl p-4 mb-4 flex items-center gap-3">
             {member.avatarUrl ? (
               <div className="w-10 h-10 rounded-full overflow-hidden shrink-0 border border-[#2a2a2a]">
@@ -113,7 +109,6 @@ export default function RemoveMemberModal({
             </div>
           </div>
 
-          {/* Danger Callout */}
           <div className="bg-[#2a1318]/80 border border-[#7f1d1d]/40 rounded-xl p-4 flex gap-3 items-start">
             <AlertTriangle
               size={16}
@@ -131,7 +126,6 @@ export default function RemoveMemberModal({
             </div>
           </div>
 
-          {/* Footer Actions */}
           <div className="mt-8 flex items-center justify-end gap-3">
             <button
               onClick={onClose}

@@ -9,19 +9,17 @@ interface OtpInputProps {
   length?: number;
 }
 
-// 4-box OTP input — auto-advances on input, auto-retreats on backspace
 export function OtpInput({ value, onChange, length = 6 }: OtpInputProps) {
   const inputs = useRef<(HTMLInputElement | null)[]>([]);
 
   const handleChange = (index: number, char: string) => {
-    if (!/^\d*$/.test(char)) return; // digits only
+    if (!/^\d*$/.test(char)) return; 
 
     const next = value.split("");
-    next[index] = char.slice(-1); // take last char in case of paste of a single digit
+    next[index] = char.slice(-1); 
     const updated = next.join("").slice(0, length);
     onChange(updated);
 
-    // Advance focus to next box
     if (char && index < length - 1) {
       inputs.current[index + 1]?.focus();
     }
@@ -29,7 +27,6 @@ export function OtpInput({ value, onChange, length = 6 }: OtpInputProps) {
 
   const handleKeyDown = (index: number, e: React.KeyboardEvent) => {
     if (e.key === "Backspace" && !value[index] && index > 0) {
-      // Move back on backspace when current box is empty
       inputs.current[index - 1]?.focus();
     }
   };
@@ -41,7 +38,6 @@ export function OtpInput({ value, onChange, length = 6 }: OtpInputProps) {
       .replace(/\D/g, "")
       .slice(0, length);
     onChange(pasted);
-    // Focus the box after the last pasted digit
     inputs.current[Math.min(pasted.length, length - 1)]?.focus();
   };
 

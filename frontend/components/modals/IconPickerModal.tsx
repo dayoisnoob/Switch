@@ -6,7 +6,6 @@ import { PROJECT_ICON_MAP } from "./CreateProjectModal";
 import { Loader2 } from "lucide-react";
 import { memo } from "react";
 
-// Define an interface to replace 'any'
 interface IconPickerModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -28,7 +27,7 @@ export const IconPickerModal = memo(
     return (
       <Portal>
         <div
-          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm px-4"
+          className="fixed inset-0 z-9999 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4"
           onClick={onClose}
         >
           <div
@@ -70,5 +69,4 @@ export const IconPickerModal = memo(
   },
 );
 
-// This line clears the "Component definition is missing display name" error
 IconPickerModal.displayName = "IconPickerModal";

@@ -56,24 +56,3 @@ api.interceptors.response.use(
     }
   },
 );
-
-// Server-side fetch helper (for SSR / Server Components)
-// Uses native fetch with cookie forwarding — axios doesn't work in Server Components.
-// YOUR JOB: Pass the cookie header from the incoming request.
-export async function serverFetch<T>(
-  path: string,
-  cookieHeader: string,
-): Promise<T> {
-  const res = await fetch(`${process.env.API_URL}${path}`, {
-    headers: { Cookie: cookieHeader },
-    cache: "no-store", // always fresh for authenticated data
-  });
-
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({}));
-    throw new Error(body.message ?? `Request failed: ${res.status}`);
-  }
-
-  const body: ApiResponse<T> = await res.json();
-  return body.data as T;
-}

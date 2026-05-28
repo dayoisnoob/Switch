@@ -75,7 +75,6 @@ export function CardAttachments({ card }: { card: BoardCard }) {
           Attachments
         </div>
 
-        {/* Hidden File Input */}
         <input
           type="file"
           ref={fileInputRef}
@@ -107,7 +106,6 @@ export function CardAttachments({ card }: { card: BoardCard }) {
         </button>
       </div>
 
-      {/* Actual File List */}
       <div className="space-y-2">
         {card.attachments?.map((file: CardAttachment) => {
           if (!file) return null;
@@ -164,7 +162,6 @@ export function CardAttachments({ card }: { card: BoardCard }) {
         })}
       </div>
 
-      {/* Drag & Drop Zone */}
       <div
         onDragOver={(e) => {
           e.preventDefault();

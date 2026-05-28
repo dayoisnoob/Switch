@@ -73,7 +73,6 @@ export default function CreateColumnModal({
 
   if (!isOpen) return null;
 
-  // Grab the currently active option so we can style the feedback snippet at the bottom
   const activeOption = STATUS_OPTIONS.find(
     (opt) => opt.value === mappedStatus,
   )!;
@@ -84,12 +83,10 @@ export default function CreateColumnModal({
         className="fixed inset-0 z-50 flex items-center justify-center bg-[#000000]/80 backdrop-blur-sm px-4 animate-in fade-in duration-200"
         onClick={onClose}
       >
-        {/* Modal Container */}
         <div
           className="w-full max-w-lg bg-surface border border-md rounded-xl shadow-soft relative flex flex-col animate-in zoom-in-95 duration-200"
           onClick={(e) => e.stopPropagation()}
         >
-          {/* Close Button */}
           <button
             onClick={onClose}
             className="absolute top-5 right-5 text-muted hover:text-primary transition-colors p-1 focus-ring rounded-sm"
@@ -97,7 +94,6 @@ export default function CreateColumnModal({
             <X size={18} strokeWidth={1.5} />
           </button>
 
-          {/* Modal Header */}
           <div className="pt-6 px-6 pb-2 flex flex-col items-start">
             <div className="w-10 h-10 rounded-lg flex items-center justify-center mb-4 bg-accent-dim text-accent border border-md">
               <Columns size={18} strokeWidth={1.5} />
@@ -109,9 +105,7 @@ export default function CreateColumnModal({
             </p>
           </div>
 
-          {/* Modal Body */}
           <div className="p-6 space-y-6">
-            {/* Column Name Input */}
             <div className="flex flex-col gap-1.5">
               <label className="text-sm font-semibold text-primary flex gap-1">
                 Column name <span className="text-[#9436f6]">*</span>
@@ -128,7 +122,6 @@ export default function CreateColumnModal({
               </span>
             </div>
 
-            {/* Status Mapping Picker */}
             <div className="flex flex-col gap-1.5">
               <label className="text-sm font-semibold text-primary flex gap-1">
                 Status <span className="text-[#9436f6]">*</span>
@@ -159,7 +152,6 @@ export default function CreateColumnModal({
                           : {}
                       }
                     >
-                      {/* Colored Status Dot */}
                       <div
                         className="w-2.5 h-2.5 rounded-full mt-1.5 shrink-0"
                         style={{ backgroundColor: opt.colorHex }}
@@ -188,7 +180,6 @@ export default function CreateColumnModal({
                         </div>
                       </div>
 
-                      {/* Active Checkmark */}
                       {isActive && (
                         <Check
                           size={16}
@@ -204,7 +195,6 @@ export default function CreateColumnModal({
             </div>
           </div>
 
-          {/* Modal Footer */}
           <div className="px-6 py-4 flex justify-end gap-3 bg-surface border-t border-md rounded-b-xl">
             <button
               onClick={onClose}

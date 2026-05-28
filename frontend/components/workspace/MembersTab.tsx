@@ -117,7 +117,6 @@ export const MembersTab = ({
         <MembersSkeleton />
       ) : (
         <div className="bg-[#13131A] border border-white/5 rounded-xl overflow-hidden shadow-xl">
-          {/* Table Header */}
           <div className="grid grid-cols-[2.5fr_1fr_1fr_auto] gap-4 px-6 py-3.5 border-b border-white/5 bg-white/2 text-[10px] font-bold text-white/40 uppercase tracking-widest">
             <div>Member</div>
             <div>Joined</div>
@@ -125,7 +124,6 @@ export const MembersTab = ({
             <div className="w-8"></div>
           </div>
 
-          {/* Table Body */}
           <div className="flex flex-col">
             {filteredMembers && filteredMembers.length > 0 ? (
               [...filteredMembers]
@@ -147,7 +145,6 @@ export const MembersTab = ({
                       key={member.id || index}
                       className="group grid grid-cols-[2.5fr_1fr_1fr_auto] gap-4 px-6 py-4 items-center border-b border-white/5 last:border-b-0 hover:bg-white/2 transition-colors"
                     >
-                      {/* User Info */}
                       <div className="flex items-center gap-3.5 min-w-0">
                         {member.avatarUrl ? (
                           <Image
@@ -181,12 +178,10 @@ export const MembersTab = ({
                         </div>
                       </div>
 
-                      {/* Joined Date */}
                       <div className="text-[13px] text-white/50 font-medium">
                         {joinedDate}
                       </div>
 
-                      {/* Role Control */}
                       <div>
                         {role === "Owner" ? (
                           <span className="inline-flex items-center px-2.5 py-1 rounded-md bg-[#7C6EF5]/10 border border-[#7C6EF5]/20 text-[#7C6EF5] text-[11px] font-bold tracking-wide">
@@ -226,7 +221,6 @@ export const MembersTab = ({
                         )}
                       </div>
 
-                      {/* Action Button */}
                       <div className="w-8 flex justify-end opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                         {role !== "Owner" && canManageWorkspace && (
                           <button

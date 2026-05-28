@@ -81,14 +81,11 @@ export default function DashboardPage() {
     <>
       <div className="max-w-6xl mx-auto w-full animate-in fade-in duration-500">
         {workspaces.length === 0 ? (
-          // ── EMPTY STATE (Hides everything else) ──
           <EmptyWorkspaceState
             onCreateWorkspace={() => setIsAddWorkspaceOpen(true)}
           />
         ) : (
-          // ── POPULATED STATE ──
           <>
-            {/* ── HEADER ── */}
             <header className="mb-8">
               <h1 className="text-3xl font-bold text-white mb-2 tracking-tight">
                 {greeting}, {user?.firstName || "James"}
@@ -98,7 +95,6 @@ export default function DashboardPage() {
               </p>
             </header>
 
-            {/* ── GLOBAL STATS ── */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
               <StatCard
                 icon={<LayoutGrid size={16} className="text-[#7C6EF5]" />}
@@ -128,9 +124,7 @@ export default function DashboardPage() {
               />
             </div>
 
-            {/* ── MAIN CONTENT SPLIT ── */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              {/* LEFT SIDE: Workspaces */}
               <div className="lg:col-span-2">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-[13px] font-bold text-white/90 uppercase tracking-wider">
@@ -149,7 +143,6 @@ export default function DashboardPage() {
                     />
                   ))}
 
-                  {/* Premium "Create Workspace" Card */}
                   <button
                     onClick={() => setIsAddWorkspaceOpen(true)}
                     className="bg-white/1 border border-dashed border-white/10 rounded-xl p-5 hover:border-white/20 hover:bg-white/3 transition-all flex flex-col items-center justify-center h-50 group"
@@ -170,7 +163,6 @@ export default function DashboardPage() {
           </>
         )}
       </div>
-      {/* Modal sits outside the conditional so it can be opened from anywhere */}
       <CreateWorkspaceModal
         isOpen={isAddWorkspaceOpen}
         onClose={() => setIsAddWorkspaceOpen(false)}
@@ -179,7 +171,6 @@ export default function DashboardPage() {
   );
 }
 
-// Fixed Interface
 interface StatCardProps {
   icon: ReactNode;
   iconBg: string;
@@ -189,7 +180,6 @@ interface StatCardProps {
   trend?: number;
 }
 
-// Helper Component for the Global Stats Row
 function StatCard({
   icon,
   iconBg,

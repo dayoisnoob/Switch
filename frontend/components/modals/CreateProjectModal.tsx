@@ -1,9 +1,12 @@
 "use client";
 import { Portal } from "@/components/ui/Portal";
 
-import { useCreateProject, useUpdateProject } from "@/hooks/useProjects";
+import {
+  Project,
+  useCreateProject,
+  useUpdateProject,
+} from "@/hooks/useProjects";
 import { useGetWorkspaces } from "@/hooks/useWorkspace";
-import { Project } from "@/services/projects.service";
 import { useWorkspaceStore } from "@/store/workspace.store";
 import {
   AlignLeft,
@@ -162,7 +165,6 @@ export default function CreateProjectModal({
           handleCloseModal();
         }}
       >
-        {/* Modal Container */}
         <div
           className="relative flex w-112.5 max-w-lg flex-col rounded-xl border border-md bg-surface shadow-soft animate-in zoom-in-95 duration-200"
           onClick={(e) => e.stopPropagation()}
@@ -175,7 +177,6 @@ export default function CreateProjectModal({
           </button>
 
           <div className="p-6">
-            {/* Header */}
             <div className="mb-6 flex flex-col items-start">
               <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg border border-md bg-accent-dim text-accent">
                 <AlignLeft size={18} strokeWidth={1.5} />
@@ -194,9 +195,7 @@ export default function CreateProjectModal({
             </div>
 
             <div className="space-y-5">
-              {/* Row: Icon Picker & Name */}
               <div className="flex items-start gap-4">
-                {/* Icon Picker */}
                 <div className="relative" ref={iconPickerRef}>
                   <div className="mb-1.5 flex gap-1 text-sm font-semibold text-primary">
                     Icon
@@ -249,7 +248,6 @@ export default function CreateProjectModal({
                   )}
                 </div>
 
-                {/* Name */}
                 <div className="flex-1">
                   <div className="mb-1.5 flex gap-1 text-sm font-semibold text-primary">
                     Project name
@@ -266,7 +264,6 @@ export default function CreateProjectModal({
                 </div>
               </div>
 
-              {/* Description */}
               <div>
                 <div className="mb-1.5 flex gap-1 text-sm font-semibold text-primary">
                   Description
@@ -283,7 +280,6 @@ export default function CreateProjectModal({
             </div>
           </div>
 
-          {/* Footer */}
           <div className="flex justify-end gap-3 border-t border-md bg-surface px-6 py-4 rounded-b-xl">
             <button
               onClick={handleCloseModal}

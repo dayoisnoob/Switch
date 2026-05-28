@@ -1,4 +1,4 @@
-import { UserProfile } from "@/services/auth.service";
+import { UserProfile } from "@/hooks/useAuth";
 import { create } from "zustand";
 
 interface AuthStore {

@@ -3,8 +3,6 @@ import { twMerge } from "tailwind-merge";
 import { formatDistanceToNow, format } from "date-fns";
 import { toast } from "sonner";
 
-// The standard Tailwind class utility — use this everywhere
-// cn('px-4', isActive && 'bg-accent', className)
 export const cn = (...inputs: ClassValue[]) => twMerge(clsx(inputs));
 
 // "2 hours ago", "3 days ago"
@@ -26,7 +24,6 @@ export const initials = (firstName: string, lastName?: string | null) =>
   `${firstName[0]}${lastName?.[0] ?? ""}`.toUpperCase();
 
 // Fractional index: midpoint between two order values
-// Used when calculating where to drop a card between two others
 export const midpoint = (a: number, b: number) => (a + b) / 2;
 
 // Priority → display config
@@ -92,7 +89,6 @@ export const LABEL_COLORS = [
   },
 ];
 
-// utils.ts or labels.ts
 const SEMANTIC_LABEL_COLORS: Record<string, string> = {
   bug: "#FF7070",
   error: "#FF7070",
@@ -114,13 +110,11 @@ export const pickLabelColor = (
   name: string,
   existingColors: string[],
 ): string => {
-  // Check semantic match first
   const semantic = SEMANTIC_LABEL_COLORS[name.toLowerCase().trim()];
   if (semantic && !existingColors.includes(semantic)) return semantic;
 
-  // Fall back to first color not already used
   const available = LABEL_COLORS.filter((c) => !existingColors.includes(c.hex));
-  const pool = available.length > 0 ? available : LABEL_COLORS; // reset if all used
+  const pool = available.length > 0 ? available : LABEL_COLORS;
 
   return pool[Math.floor(Math.random() * pool.length)].hex;
 };

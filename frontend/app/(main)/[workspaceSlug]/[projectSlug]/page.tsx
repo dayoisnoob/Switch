@@ -45,7 +45,7 @@ import { CSS } from "@dnd-kit/utilities";
 
 import AddCardModal, {
   AddCardFormData,
-} from "@/components/modals/AddCardModal"; // Make sure this path is correct
+} from "@/components/modals/AddCardModal";
 import CreateColumnModal from "@/components/modals/CreateColumnModal";
 import { formatAvatarUrls } from "@/components/workspace/WorkspaceCard";
 import { useBoardSocket } from "@/hooks/useBoardSocket";
@@ -614,7 +614,6 @@ const SortableColumn = memo(function SortableColumn({
       style={style}
       className="flex max-h-[min(680px,calc(100dvh-180px))] min-h-33 flex-col w-85 shrink-0 bg-[#111119] border border-white/5 rounded-2xl overflow-hidden shadow-sm"
     >
-      {/* COLUMN HEADER (Stays pinned to top) */}
       <div
         {...attributes}
         {...listeners}
@@ -649,8 +648,6 @@ const SortableColumn = memo(function SortableColumn({
         </div>
 
         <div className="flex items-center gap-2">
-          {/* UPDATED PREMIUM CONTEXT MENU */}
-
           <div className="relative shrink-0" ref={menuRef}>
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -741,7 +738,6 @@ const SortableColumn = memo(function SortableColumn({
         )}
       </div>
 
-      {/* COLUMN FOOTER / NEW ADD CARD BUTTON (Stays pinned to bottom) */}
       <div className="p-3 border-t border-white/4 shrink-0">
         <button
           onPointerDown={(e) => e.stopPropagation()}
