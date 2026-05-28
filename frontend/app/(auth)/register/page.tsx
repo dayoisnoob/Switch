@@ -34,8 +34,6 @@ function SignupContent() {
   const handleSocialAuth = (provider: "google" | "github") => {
     setIsLoading(true);
     window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/auth/${provider}`;
-
-    setIsLoading(false);
   };
 
   return (
