@@ -16,7 +16,7 @@ function SignupContent() {
   const searchParams = useSearchParams();
   const inviteToken = searchParams.get("inviteToken");
 
-  const [isLoading, setIsLoading] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   const { mutate: sendOtp, isPending, isSuccess } = useInitialiseReg();
 
@@ -32,7 +32,7 @@ function SignupContent() {
   };
 
   const handleSocialAuth = (provider: "google" | "github") => {
-    setIsLoading(true);
+    setIsRedirecting(true);
     window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/auth/${provider}`;
   };
 
@@ -87,7 +87,7 @@ function SignupContent() {
         <div className="space-y-3 mb-6">
           <button
             onClick={() => handleSocialAuth("google")}
-            disabled={isLoading}
+            disabled={isRedirecting || isPending || isSuccess}
             className="w-full h-11 flex items-center justify-center gap-3 bg-white/5 hover:bg-white/10 border border-white/5 rounded-xl text-[14px] font-medium text-white/80 transition-all group"
           >
             <GoogleIcon />
@@ -96,7 +96,7 @@ function SignupContent() {
 
           <button
             onClick={() => handleSocialAuth("github")}
-            disabled={isLoading}
+            disabled={isRedirecting || isPending || isSuccess}
             className="w-full h-11 flex items-center justify-center gap-3 bg-white/5 hover:bg-white/10 border border-white/5 rounded-xl text-[14px] font-medium text-white/80 transition-all group"
           >
             <GithubIcon />
