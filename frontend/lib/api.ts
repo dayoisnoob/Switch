@@ -1,6 +1,6 @@
-import { ApiResponse } from "@/types";
 import axios, { isAxiosError } from "axios";
 import { ApiError } from "./ApiError";
+import { toast } from "sonner";
 
 export const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
@@ -21,17 +21,21 @@ api.interceptors.response.use(
     const originalRequest = error.config;
     const isAuthRoute = originalRequest?.url?.startsWith("/auth/");
 
-    // pass non-401s and auth route errors straight through
     if (!isAxiosError(error) || error.response?.status !== 401 || isAuthRoute) {
       const data = error.response?.data;
       const message =
         data?.errors?.[0]?.message ?? data?.message ?? "Something went wrong";
+
+      if (error.response?.status === 429) {
+        toast.error(message);
+        return Promise.reject(new ApiError(message, 429));
+      }
+
       return Promise.reject(
         new ApiError(message, error.response?.status ?? 500),
       );
     }
 
-    // queue concurrent requests while refresh is in flight
     if (isRefreshing) {
       return new Promise<void>((resolve, reject) => {
         failedQueue.push({ resolve, reject });
