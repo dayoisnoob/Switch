@@ -1,9 +1,6 @@
 import type { NextFunction, Request, Response } from 'express';
-import { COOKIE_OPTIONS } from '../constants.ts';
-import { AuthService } from '../services/auth.service.ts';
 import { ApiError } from '../utils/api-response.js';
 import { jwtVerify } from '../utils/jwt.util.js';
-import type { AuthenticatedRequest } from '../types/express';
 
 export const authenticate = async (
   req: Request,

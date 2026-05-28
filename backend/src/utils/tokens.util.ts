@@ -24,8 +24,8 @@ export const authTokens = async (
 ) => {
   const jwtPayload: JwtPayload = {
     id: userData.id,
-    firstName: userData.firstName,
-    lastName: userData.lastName,
+    firstName: userData.firstName ?? '',
+    lastName: userData.lastName ?? '',
     email: userData.email,
     isActive: userData.isActive,
     role: userData.role,

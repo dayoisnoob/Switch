@@ -10,8 +10,8 @@ export type OAuthProfileInput = {
 export interface JwtPayload {
   id: string;
   email?: string;
-  firstName?: string | null;
-  lastName?: string | null;
+  firstName?: string;
+  lastName?: string;
   isActive?: boolean;
   role?: 'user' | 'admin';
   purpose?: string;
