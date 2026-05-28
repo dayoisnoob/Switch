@@ -1,7 +1,6 @@
 "use client";
 
-import { useLogin } from "@/hooks/useAuth";
-import { LoginRequest } from "@/services/auth.service";
+import { LoginRequest, useLogin } from "@/hooks/useAuth";
 import { ChevronLeft, Eye, EyeOff, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
