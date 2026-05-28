@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="244" height="68" viewBox="0 0 244 68">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+  </defs>
+
+  <!-- icon mark -->
+  <rect x="0" y="0" width="68" height="68" rx="15" fill="#7C6EF5"/>
+  <path d="M 12,15 L 32,34" stroke="white" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+  <path d="M 12,49 L 32,34" stroke="white" stroke-width="2.5" stroke-linecap="round" fill="none" opacity="0.5"/>
+  <path d="M 34,34 L 54,34" stroke="white" stroke-width="2.5" stroke-linecap="round" fill="none" marker-end="url(#arr)"/>
+  <circle cx="33" cy="34" r="3.5" fill="white"/>
+
+  <!-- wordmark -->
+  <text x="84" y="46" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="32" font-weight="500" letter-spacing="-0.8" fill="#0E0E14">switch</text>
+</svg>

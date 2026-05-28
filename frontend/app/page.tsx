@@ -1,6 +1,7 @@
 "use client";
 
 import { ArrowRight, LayoutGrid } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 
 export default function MarketingPage() {
@@ -10,12 +11,13 @@ export default function MarketingPage() {
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-[#7C6EF5] flex items-center justify-center text-white text-sm font-black shadow-[0_0_15px_rgba(124,110,245,0.4)]">
-                S
-              </div>
-              <span className="font-bold text-xl tracking-tight text-white/90">
-                Switch
-              </span>
+              <Image
+                src="/logo.svg"
+                alt="Switch Logo"
+                width={32}
+                height={32}
+                priority
+              />
             </div>
 
             <div className="flex items-center gap-6">
