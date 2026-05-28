@@ -1,5 +1,6 @@
 import { type Request } from 'express';
 import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
+import { ApiResponse } from '../utils/api-response';
 
 interface createLimiterInterface {
   keyGenerator: (req: Request) => string | undefined;
@@ -22,11 +23,15 @@ const createLimiter = ({
       return key ?? ipKeyGenerator(req.ip ?? '127.0.0.1');
     },
     handler: (req, res) => {
-      res.status(429).json({
-        statusCode: 429,
-        message: message || 'Too many requests. Try again later.',
-        data: null,
-      });
+      res
+        .status(429)
+        .json(
+          new ApiResponse(
+            429,
+            'Too many requests. Please slow down and try again.',
+            null
+          )
+        );
     },
     standardHeaders: true,
     legacyHeaders: false,
