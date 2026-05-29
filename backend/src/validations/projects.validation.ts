@@ -43,7 +43,7 @@ export const updateColumnSchema = z.object({
 });
 
 export const columnOrderSchema = z.object({
-  order: z.number(),
+  order: z.string(),
 });
 
 export const moveCardsSchema = z.object({
