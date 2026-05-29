@@ -10,12 +10,28 @@ export function useUploadAttachment(cardId: string) {
 
   return useMutation({
     mutationFn: async (file: File): Promise<CardAttachment> => {
+      const sig = await api.get(`/cards/${cardId}/attachments/signature`);
+
       const formData = new FormData();
       formData.append("file", file);
+      formData.append("signature", sig.signature);
+      formData.append("timestamp", sig.timestamp);
+      formData.append("folder", sig.folder);
+      formData.append("api_key", sig.apiKey);
 
-      return api.post(`/cards/${cardId}/attachments`, formData, {
-        // headers: { "Content-Type": "multipart/form-data" },
-        timeout: 30000,
+      const cloudinaryRes = await fetch(
+        `https://api.cloudinary.com/v1_1/${sig.cloudName}/auto/upload`,
+        { method: "POST", body: formData },
+      );
+      const uploaded = await cloudinaryRes.json();
+
+      return api.post(`/cards/${cardId}/attachments`, {
+        fileUrl: uploaded.secure_url,
+        publicId: uploaded.public_id,
+        fileName: file.name,
+        fileSize: uploaded.bytes,
+        mimeType: file.type,
+        resourceType: uploaded.resource_type,
       });
     },
     onSuccess: (newAttachment) => {
