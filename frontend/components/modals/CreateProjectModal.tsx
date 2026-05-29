@@ -6,18 +6,17 @@ import {
   useCreateProject,
   useUpdateProject,
 } from "@/hooks/useProjects";
-import { useGetWorkspaces } from "@/hooks/useWorkspace";
 import { useWorkspaceStore } from "@/store/workspace.store";
 import {
   AlignLeft,
   BarChart3,
   Briefcase,
   Check,
-  ChevronDown,
   Code2,
   Database,
   FileText,
   Layers3,
+  Loader2,
   Megaphone,
   Palette,
   PenTool,
@@ -25,7 +24,7 @@ import {
   Rocket,
   Settings,
   Smartphone,
-  X,
+  X, // Added Loader2
   type LucideIcon,
 } from "lucide-react";
 import { useRef, useState } from "react";
@@ -103,6 +102,7 @@ export default function CreateProjectModal({
     useUpdateProject();
 
   const isEditMode = !!project;
+  const isPending = creatingProject || updatingProject;
 
   const activeWorkspace = useWorkspaceStore((s) => s.activeWorkspace);
 
@@ -183,7 +183,7 @@ export default function CreateProjectModal({
               </div>
 
               <h1 className="heading-md mb-1.5 text-primary">
-                {project ? "EditProject" : "New Project"}
+                {project ? "Edit Project" : "New Project"}
               </h1>
 
               {!project && (
@@ -290,16 +290,25 @@ export default function CreateProjectModal({
 
             <button
               onClick={handleSubmit}
-              disabled={!name.trim() || creatingProject || updatingProject}
-              className="btn-primary flex h-9 items-center gap-2 px-4 text-sm font-semibold focus-ring disabled:cursor-not-allowed disabled:opacity-50"
+              disabled={!name.trim() || isPending}
+              className="btn-primary flex h-9 min-w-36 justify-center items-center gap-2 px-4 text-sm font-semibold focus-ring disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {project ? (
-                <Check size={14} strokeWidth={2} />
+              {isPending ? (
+                <>
+                  <Loader2 size={14} strokeWidth={2} className="animate-spin" />
+                  {project ? "Saving..." : "Creating..."}
+                </>
+              ) : project ? (
+                <>
+                  <Check size={14} strokeWidth={2} />
+                  Save changes
+                </>
               ) : (
-                <Plus size={14} strokeWidth={2} />
+                <>
+                  <Plus size={14} strokeWidth={2} />
+                  Create project
+                </>
               )}
-
-              {project ? "Save changes" : "Create project"}
             </button>
           </div>
         </div>
