@@ -46,7 +46,8 @@ app.use(
 
 if (env.NODE_ENV !== 'development') {
   app.use((req, res, next) => {
-    if (req.path.startsWith('/api/v1/auth')) return next();
+    if (req.path.startsWith('/api/v1/auth') || req.path.includes('register'))
+      return next();
     globalLimiter(req, res, next);
   });
 }
