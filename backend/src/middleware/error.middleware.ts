@@ -1,5 +1,5 @@
 import type { NextFunction, Request, Response } from 'express';
-import { ApiError } from '../utils/api-response';
+import { ApiError, ApiResponse } from '../utils/api-response';
 import { logger } from '../config/logger';
 import { DatabaseError } from 'pg';
 
@@ -14,19 +14,15 @@ export const globalErrorHandler = (
   next: NextFunction
 ) => {
   if (err instanceof DatabaseError && err.code === '23505') {
-    return res.status(409).json({
-      success: false,
-      message: 'Resource already exists',
-    });
+    return res
+      .status(409)
+      .json(new ApiResponse(409, 'Resource already exists', null));
   }
 
   const error =
     err instanceof ApiError
       ? err
-      : new ApiError(
-          err.statusCode || 500,
-          err.message || 'Internal server error'
-        );
+      : new ApiError(500, 'Something went wrong. Please try again.');
 
   logger.error({
     statusCode: error.statusCode,
@@ -36,11 +32,9 @@ export const globalErrorHandler = (
     stack: !error.isOperational ? error.stack : undefined,
   });
 
-  const response: any = {
+  const response = {
     success: false,
-    message: error.isOperational
-      ? error.message
-      : 'Something went wrong. Please try again.',
+    message: error.message,
     errors: error.errors,
   };
 
