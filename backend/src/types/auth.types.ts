@@ -5,6 +5,7 @@ export type OAuthProfileInput = {
   avatarUrl: string | null;
   authProvider: 'google' | 'github';
   providerId: string;
+  inviteToken?: string;
 };
 
 export interface JwtPayload {

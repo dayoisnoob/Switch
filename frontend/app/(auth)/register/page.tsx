@@ -33,7 +33,8 @@ function SignupContent() {
 
   const handleSocialAuth = (provider: "google" | "github") => {
     setIsRedirecting(true);
-    window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/auth/${provider}`;
+    const state = inviteToken ? `inviteToken=${inviteToken}` : "";
+    window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/auth/${provider}${state ? `?state=${encodeURIComponent(state)}` : ""}`;
   };
 
   return (

@@ -8,7 +8,7 @@ import type { AuthenticatedRequest } from '../types/express';
 
 export class AuthController {
   static async OAuthCallback(req: Request, res: Response) {
-    const userProfile = req.user;
+    const userProfile = req.user as OAuthProfileInput;
 
     if (!userProfile) {
       return res.redirect(`${env.FRONTEND_URL}/login?error=oauth_failed`);
@@ -18,13 +18,17 @@ export class AuthController {
       userProfile as OAuthProfileInput
     );
 
+    const redirectUrl = userProfile.inviteToken
+      ? `${env.FRONTEND_URL}/invite/${userProfile.inviteToken}`
+      : `${env.FRONTEND_URL}/getting-you-started`;
+
     return res
       .cookie('__auth.refresh', refreshToken, COOKIE_OPTIONS)
       .cookie('__auth.access', accessToken, {
         ...COOKIE_OPTIONS,
         httpOnly: false,
       })
-      .redirect(`${env.FRONTEND_URL}/getting-you-started`);
+      .redirect(redirectUrl);
   }
 
   static OAuthError(

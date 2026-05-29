@@ -20,6 +20,9 @@ server.listen(PORT, () => {
   registerCleanupJobs();
 });
 
+server.keepAliveTimeout = 120 * 1000;
+server.headersTimeout = 125 * 1000;
+
 const shutdown = async (signal: string) => {
   logger.info(`${signal} received, shutting down gracefully`);
   await emailWorker.close();
