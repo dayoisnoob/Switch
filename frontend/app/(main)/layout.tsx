@@ -25,6 +25,7 @@ import {
   ChevronDown,
   ChevronRight,
   LayoutGrid,
+  Loader2,
   LogOut,
   Package,
   Plus,
@@ -131,11 +132,22 @@ function MainLayoutContent({ children }: { children: ReactNode }) {
   }, [workspaces, workspaceSlug, activeWorkspace, setActiveWorkspace, router]);
 
   if (userLoading || workspacesLoading) {
-    return <LayoutSkeleton />;
+    if (workspaces.length > 0) {
+      return <LayoutSkeleton />;
+    }
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-[#0A0A0A]">
+        <Loader2 className="w-8 h-8 text-[#7C6EF5] animate-spin" />
+      </div>
+    );
   }
 
   if (!hasWorkspaces) {
-    return <LayoutSkeleton />;
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-[#0A0A0A]">
+        <Loader2 className="w-8 h-8 text-[#7C6EF5] animate-spin" />
+      </div>
+    );
   }
 
   const mainNavItems = [
