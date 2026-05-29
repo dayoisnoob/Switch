@@ -21,9 +21,8 @@ import {
   useUploadAttachment,
 } from "@/hooks/useAttacments";
 import { useMe } from "@/hooks/useAuth";
-import { useWorkspaceStore } from "@/store/workspace.store";
-import { BoardCard, CardAttachment } from "@/types/board.types";
 import { useWorkspaceRole } from "@/hooks/useWorkspace";
+import { BoardCard, CardAttachment } from "@/types/board.types";
 
 function formatBytes(bytes: number) {
   if (bytes === 0) return "0 Bytes";
@@ -45,6 +44,8 @@ export function CardAttachments({ card }: { card: BoardCard }) {
   const { data: currentUser } = useMe();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
+
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const { mutate: upload, isPending: isUploading } = useUploadAttachment(
     card.id,
@@ -112,6 +113,8 @@ export function CardAttachments({ card }: { card: BoardCard }) {
           const canDelete =
             file.userId === currentUser?.id || canManageWorkspace;
 
+          const isThisFileDeleting = isDeleting && deletingId === file.id;
+
           return (
             <div
               key={file.id}
@@ -145,12 +148,15 @@ export function CardAttachments({ card }: { card: BoardCard }) {
                 </button>
                 {canDelete && (
                   <button
-                    onClick={() => remove(file.id)}
+                    onClick={() => {
+                      setDeletingId(file.id);
+                      remove(file.id);
+                    }}
                     disabled={isDeleting}
-                    className="p-1.5 text-white/40 hover:text-rose-400 hover:bg-rose-500/10 rounded-md transition-colors"
+                    className="p-1.5 text-white/40 hover:text-rose-400 hover:bg-rose-500/10 rounded-md transition-colors disabled:opacity-50"
                   >
-                    {isDeleting ? (
-                      <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    {isThisFileDeleting ? (
+                      <div className="w-3 h-3 border-2 border-white/30 border-t-rose-400 rounded-full animate-spin" />
                     ) : (
                       <Trash2 size={14} />
                     )}

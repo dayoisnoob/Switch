@@ -14,7 +14,8 @@ export function useUploadAttachment(cardId: string) {
       formData.append("file", file);
 
       return api.post(`/cards/${cardId}/attachments`, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
+        // headers: { "Content-Type": "multipart/form-data" },
+        timeout: 30000,
       });
     },
     onSuccess: (newAttachment) => {
@@ -37,11 +38,11 @@ export function useDeleteAttachment(cardId: string) {
     },
     onSuccess: (_, attachmentId) => {
       useBoardStore.getState().removeAttachmentFromCard(cardId, attachmentId);
-      queryClient.invalidateQueries({ queryKey: ["cards"] });
+      queryClient.invalidateQueries({ queryKey: ["card", cardId] });
       toast.success("Attachment deleted");
     },
     onError: () => {
-      queryClient.invalidateQueries({ queryKey: ["cards"] });
+      queryClient.invalidateQueries({ queryKey: ["card", cardId] });
       toast.error("Failed to delete attachment");
     },
   });

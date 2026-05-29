@@ -28,10 +28,13 @@ export class AttachmentsService {
           resource_type: getResourceType(file.mimetype),
         },
         (error, result) => {
-          if (error || !result)
+          if (error || !result) {
+            logger.error({ error }, 'CLOUDINARY UPLOAD ERROR:');
+
             return reject(
               new ApiError(500, 'Upload failed. Please try again.')
             );
+          }
           resolve(result);
         }
       );
