@@ -5,17 +5,27 @@ import { CardAttachment } from "@/types/board.types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
+interface UploadSignature {
+  signature: string;
+  timestamp: number;
+  folder: string;
+  cloudName: string;
+  apiKey: string;
+}
+
 export function useUploadAttachment(cardId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (file: File): Promise<CardAttachment> => {
-      const sig = await api.get(`/cards/${cardId}/attachments/signature`);
+      const sig = (await api.get(
+        `/cards/${cardId}/attachments/signature`,
+      )) as unknown as UploadSignature;
 
       const formData = new FormData();
       formData.append("file", file);
       formData.append("signature", sig.signature);
-      formData.append("timestamp", sig.timestamp);
+      formData.append("timestamp", String(sig.timestamp));
       formData.append("folder", sig.folder);
       formData.append("api_key", sig.apiKey);
 
