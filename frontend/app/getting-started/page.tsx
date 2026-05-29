@@ -47,7 +47,7 @@ export default function GettingStartedPage() {
         </button>
       </header>
 
-      <main className="flex-1 w-full max-w-140 flex flex-col items-center justify-center p-8 animate-in fade-in zoom-in-95 duration-500 delay-150">
+      <main className="flex-1 w-full max-w-140 flex flex-col items-center justify-center p-8 animate-in fade-in zoom-in-95 duration-500">
         <div className="flex flex-col items-center text-center mb-8">
           <div className="relative mb-8">
             <div className="w-16 h-16 rounded-3xl bg-[#13131A] border border-white/5 flex items-center justify-center relative z-10 shadow-2xl">
