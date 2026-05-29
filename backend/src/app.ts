@@ -45,7 +45,10 @@ app.use(
 );
 
 if (env.NODE_ENV !== 'development') {
-  app.use(globalLimiter);
+  app.use((req, res, next) => {
+    if (req.path.startsWith('/api/v1/auth')) return next();
+    globalLimiter(req, res, next);
+  });
 }
 
 app.use(cookieParser());
