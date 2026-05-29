@@ -35,14 +35,15 @@ const router = Router();
 
 router.get(
   '/google',
-  registerIpLimiter,
+  // registerIpLimiter,
   passport.authenticate('google', {
     session: false,
   })
 );
+
 router.get(
   '/google/callback',
-  registerIpLimiter,
+  // registerIpLimiter,
   passport.authenticate('google', {
     session: false,
     failureRedirect: `${env.FRONTEND_URL}/login?error=google_failed`,
