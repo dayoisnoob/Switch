@@ -11,6 +11,7 @@ export default function EmptyProjectState({
 }: EmptyProjectStateProps) {
   return (
     <div className="flex flex-col items-center justify-center w-full min-h-[60vh] px-4 animate-in fade-in zoom-in-95 duration-500">
+      {/* inline style */}
       <style
         dangerouslySetInnerHTML={{
           __html: `
