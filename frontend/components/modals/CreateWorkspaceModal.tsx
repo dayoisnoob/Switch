@@ -1,11 +1,10 @@
 "use client";
 
+import { Portal } from "@/components/ui/Portal";
 import { useCreateWorkspace } from "@/hooks/useWorkspace";
-import { getErrorMessage, getInitials, slugify } from "@/lib/utils";
+import { getInitials, slugify } from "@/lib/utils";
 import { LayoutGrid, Loader2, Plus, X } from "lucide-react";
 import { useState } from "react";
-import { Portal } from "@/components/ui/Portal";
-import { toast } from "sonner";
 
 const AVATAR_COLORS = [
   "#F472B6",

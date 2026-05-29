@@ -2,12 +2,31 @@
 
 import CreateWorkspaceModal from "@/components/modals/CreateWorkspaceModal";
 import { useLogout } from "@/hooks/useAuth";
-import { LayoutGrid, Plus, UserPlus } from "lucide-react";
-import { useState } from "react";
+import { useGetWorkspaces } from "@/hooks/useWorkspace";
+import { LayoutGrid, Loader2, Plus, UserPlus } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 export default function GettingStartedPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const logout = useLogout();
+  const router = useRouter();
+
+  const { data: workspaces = [], isLoading } = useGetWorkspaces();
+
+  useEffect(() => {
+    if (!isLoading && workspaces.length > 0) {
+      router.replace("/dashboard");
+    }
+  }, [workspaces.length, isLoading, router]);
+
+  if (isLoading || workspaces.length > 0) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#0E0E14]">
+        <Loader2 size={32} className="animate-spin text-[#7C6EF5]" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col items-center bg-[#0E0E14] font-sans text-white selection:bg-[#7C6EF5]/30">
