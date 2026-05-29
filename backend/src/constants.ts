@@ -9,7 +9,7 @@ export const COOKIE_OPTIONS: CookieOptions = {
   sameSite: isProd ? 'none' : 'lax',
   maxAge: 30 * 24 * 60 * 60 * 1000,
   path: '/',
-  domain: isProd ? env.FRONTEND_URL : undefined,
+  domain: undefined,
 };
 
 export const RESEND_COOLDOWN_SECONDS = 60;
