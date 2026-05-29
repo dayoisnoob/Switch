@@ -43,74 +43,41 @@ export const ProjectsTab = ({
 
   return (
     <div>
-      <>
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <div className="relative">
-              <Search
-                size={16}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-[#a1a1a1]"
-              />
-              <input
-                type="text"
-                placeholder="Search projects..."
-                className="h-9 w-64 bg-[#1C1C1E] border border-[#2a2a2a] rounded-md pl-9 pr-4 text-sm text-white placeholder:text-[#a1a1a1] focus:outline-none focus:border-[#7C6EF5] transition-colors"
-              />
-            </div>
-            <button className="h-9 px-3 bg-[#1C1C1E] border border-[#2a2a2a] rounded-md text-sm font-semibold text-[#a1a1a1] hover:text-white transition-colors flex items-center gap-2">
-              <Filter size={14} /> Filter
-            </button>
-            <button className="h-9 px-3 bg-[#1C1C1E] border border-[#2a2a2a] rounded-md text-sm font-semibold text-[#a1a1a1] hover:text-white transition-colors flex items-center gap-2">
-              Status <ChevronDown size={14} />
-            </button>
-          </div>
+      {projectsLoading ? (
+        <ProjectsSkeleton />
+      ) : projects && projects.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {projects.map((project) => (
+            <ProjectCard
+              key={project.id}
+              project={project}
+              isOwner={isOwner}
+              canManageWorkspace={canManageWorkspace}
+              activeWorkspaceSlug={workspaceSlug}
+              colorHash={getConsistentColor(project.id)}
+            />
+          ))}
 
-          <div className="flex items-center gap-1 bg-[#1C1C1E] border border-[#2a2a2a] rounded-md p-1">
-            <button className="w-7 h-7 rounded flex items-center justify-center bg-[#252529] text-white shadow-sm">
-              <LayoutGrid size={14} />
+          {canManageWorkspace && (
+            <button
+              onClick={onOpenProjectModal}
+              className="bg-transparent border border-dashed border-[#333] rounded-xl p-6 hover:border-[#7C6EF5] hover:bg-[#7C6EF5]/5 transition-all flex flex-col items-center justify-center min-h-55 group"
+            >
+              <Plus
+                size={24}
+                className="text-[#a1a1a1] group-hover:text-[#7C6EF5] mb-2 transition-colors"
+              />
+              <span className="text-sm font-semibold text-[#a1a1a1] group-hover:text-white transition-colors">
+                Create Project
+              </span>
             </button>
-            <button className="w-7 h-7 rounded flex items-center justify-center text-[#a1a1a1] hover:text-white transition-colors">
-              <List size={14} />
-            </button>
-          </div>
+          )}
         </div>
-
-        {projectsLoading ? (
-          <ProjectsSkeleton />
-        ) : projects && projects.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {projects.map((project) => (
-              <ProjectCard
-                key={project.id}
-                project={project}
-                isOwner={isOwner}
-                canManageWorkspace={canManageWorkspace}
-                activeWorkspaceSlug={workspaceSlug}
-                colorHash={getConsistentColor(project.id)}
-              />
-            ))}
-
-            {canManageWorkspace && (
-              <button
-                onClick={onOpenProjectModal}
-                className="bg-transparent border border-dashed border-[#333] rounded-xl p-6 hover:border-[#7C6EF5] hover:bg-[#7C6EF5]/5 transition-all flex flex-col items-center justify-center min-h-55 group"
-              >
-                <Plus
-                  size={24}
-                  className="text-[#a1a1a1] group-hover:text-[#7C6EF5] mb-2 transition-colors"
-                />
-                <span className="text-sm font-semibold text-[#a1a1a1] group-hover:text-white transition-colors">
-                  Create Project
-                </span>
-              </button>
-            )}
-          </div>
-        ) : (
-          <div className="pt-8">
-            <EmptyProjectState onCreateProject={onOpenProjectModal} />
-          </div>
-        )}
-      </>
+      ) : (
+        <div className="pt-8">
+          <EmptyProjectState onCreateProject={onOpenProjectModal} />
+        </div>
+      )}
     </div>
   );
 };
