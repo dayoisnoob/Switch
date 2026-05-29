@@ -13,7 +13,7 @@ export default function GettingStartedPage() {
     <div className="min-h-screen flex flex-col items-center bg-[#0E0E14] font-sans text-white selection:bg-[#7C6EF5]/30">
       <header className="w-full h-14 border-b border-white/5 flex items-center justify-between px-8 bg-[#0A0A0A]/80 backdrop-blur-md">
         <div className="flex items-center gap-3">
-          <div className="w-6 h-6 rounded-md bg-[#7C6EF5] flex items-center justify-center text-white text-[11px] font-black shadow-[0_0_10px_rgba(124,110,245,0.4)]">
+          <div className="w-6 h-6 rounded-md bg-[#7C6EF5]/80 flex items-center justify-center text-white text-[11px] font-black shadow-[0_0_10px_rgba(124,110,245,0.4)]">
             S
           </div>
           <span className="text-[15px] font-bold text-white tracking-tight">
