@@ -33,6 +33,8 @@ export function CardComments({ cardId }: { cardId: string }) {
   const { data: currentUser } = useMe();
   const { data: members } = useGetMembers(workspaceSlug);
 
+  const activeWorkspace = useWorkspaceStore((s) => s.activeWorkspace);
+
   const [commentValue, setCommentValue] = useState("");
   const { data: comments = [], isLoading } = useGetComments(cardId);
   const { mutate: createComment, isPending } = useCreateComment(cardId);
@@ -75,8 +77,22 @@ export function CardComments({ cardId }: { cardId: string }) {
               `${comment.author.firstName?.[0] || ""}${comment.author.lastName?.[0] || ""}`.toUpperCase();
             const isOptimistic = comment.id.startsWith("temp-");
             const isEditing = editingId === comment.id;
+
+            const isAuthor = currentUser?.id === comment.author.id;
+            const authorMember = members?.find(
+              (m) => m.userId === comment.author.id,
+            );
+            const isAuthorOwner =
+              authorMember?.role?.toLowerCase() === "owner" ||
+              activeWorkspace?.ownerId === comment.author.id;
+
+            const canEdit = isAuthor;
+
             const canDelete =
-              currentUser?.id === comment.author.id || canManageWorkspace;
+              isAuthor || (canManageWorkspace && !isAuthorOwner);
+
+            const showActions =
+              (canEdit || canDelete) && !isOptimistic && !isEditing;
 
             return (
               <div
@@ -129,23 +145,29 @@ export function CardComments({ cardId }: { cardId: string }) {
                       )}
                     </div>
 
-                    {canDelete && !isOptimistic && !isEditing && (
+                    {showActions && (
                       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button
-                          onClick={() => {
-                            setEditingId(comment.id);
-                            setEditValue(comment.content);
-                          }}
-                          className="p-1.5 text-white/30 hover:text-white hover:bg-white/10 rounded-md transition-all"
-                        >
-                          <Pencil size={13} />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteComment(comment.id)}
-                          className="p-1.5 text-white/30 hover:text-rose-400 hover:bg-rose-500/10 rounded-md transition-all"
-                        >
-                          <Trash2 size={13} />
-                        </button>
+                        {canEdit && (
+                          <button
+                            onClick={() => {
+                              setEditingId(comment.id);
+                              setEditValue(comment.content);
+                            }}
+                            className="p-1.5 text-white/30 hover:text-white hover:bg-white/10 rounded-md transition-all"
+                            title="Edit comment"
+                          >
+                            <Pencil size={13} />
+                          </button>
+                        )}
+                        {canDelete && (
+                          <button
+                            onClick={() => handleDeleteComment(comment.id)}
+                            className="p-1.5 text-white/30 hover:text-rose-400 hover:bg-rose-500/10 rounded-md transition-all"
+                            title="Delete comment"
+                          >
+                            <Trash2 size={13} />
+                          </button>
+                        )}
                       </div>
                     )}
                   </div>
