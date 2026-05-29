@@ -5,8 +5,6 @@ import { attachmentsTable, boardsTable, cardsTable } from '../db';
 import { emitBoardEvent } from '../socket/emitter';
 import { ApiError } from '../utils/api-response';
 import { ActivityService } from './activity.service';
-import { getResourceType } from '../utils/helpers';
-import { logger } from '../config/logger';
 
 export class AttachmentsService {
   static async uploadAttachment(
@@ -15,99 +13,67 @@ export class AttachmentsService {
     projectId: string,
     cardId: string,
     userId: string,
-    file: Express.Multer.File
+    file: {
+      fileUrl: string;
+      publicId: string;
+      fileName: string;
+      fileSize: number;
+      mimeType: string;
+      resourceType: string;
+    }
   ) {
-    const uploaded = await new Promise<{
-      secure_url: string;
-      public_id: string;
-      bytes: number;
-    }>((resolve, reject) => {
-      const stream = cloudinary.uploader.upload_stream(
-        {
-          folder: 'switch/attachments',
-          resource_type: getResourceType(file.mimetype),
-        },
-        (error, result) => {
-          if (error || !result) {
-            logger.error({ error }, 'CLOUDINARY UPLOAD ERROR:');
+    const attachment = await db.transaction(async (tx) => {
+      const [inserted] = await tx
+        .insert(attachmentsTable)
+        .values({
+          cardId,
+          userId,
+          fileName: file.fileName,
+          fileUrl: file.fileUrl,
+          resourceType: file.resourceType,
+          publicId: file.publicId,
+          fileSize: file.fileSize,
+          mimeType: file.mimeType,
+        })
+        .returning();
 
-            return reject(
-              new ApiError(500, 'Upload failed. Please try again.')
-            );
-          }
-          resolve(result);
-        }
+      if (!inserted) {
+        throw new ApiError(500, 'Error saving attachment. Please try again.');
+      }
+
+      await ActivityService.log(
+        {
+          type: 'attachment_added',
+          userId,
+          projectId,
+          cardId,
+          metadata: { name: inserted.fileName },
+        },
+        tx
       );
 
-      stream.end(file.buffer);
+      return inserted;
     });
 
-    const resourceType = getResourceType(file.mimetype);
+    const { title } = await AttachmentsService.getCardAndBoardDetails(cardId);
 
-    try {
-      const attachment = await db.transaction(async (tx) => {
-        const [inserted] = await tx
-          .insert(attachmentsTable)
-          .values({
-            cardId,
-            userId,
-            fileName: file.originalname,
-            fileUrl: uploaded.secure_url,
-            resourceType,
-            publicId: uploaded.public_id,
-            fileSize: uploaded.bytes,
-            mimeType: file.mimetype,
-          })
-          .returning();
+    emitBoardEvent(boardId, 'attachment:uploaded', {
+      cardId,
+      attachment,
+      actorId: userId,
+      actorName,
+      cardTitle: title,
+    });
 
-        if (!inserted) {
-          throw new ApiError(500, 'Error saving attachment. Please try again.');
-        }
-
-        await ActivityService.log(
-          {
-            type: 'attachment_added',
-            userId,
-            projectId,
-            cardId,
-            metadata: { name: inserted.fileName },
-          },
-          tx
-        );
-
-        return inserted;
-      });
-
-      const { title } = await AttachmentsService.getCardAndBoardDetails(cardId);
-
-      emitBoardEvent(boardId, 'attachment:uploaded', {
-        cardId,
-        attachment,
-        actorId: userId,
-        actorName,
-        cardTitle: title,
-      });
-
-      return {
-        id: attachment.id,
-        fileName: attachment.fileName,
-        fileUrl: attachment.fileUrl,
-        fileSize: attachment.fileSize,
-        mimeType: attachment.mimeType,
-        userId: attachment.userId,
-        createdAt: attachment.createdAt,
-      };
-    } catch (error) {
-      await cloudinary.uploader
-        .destroy(uploaded.public_id, {
-          resource_type: resourceType,
-        })
-        .catch((err) =>
-          logger.error('Failed to cleanup Cloudinary file:', err)
-        );
-
-      throw error;
-    }
+    return {
+      id: attachment.id,
+      fileName: attachment.fileName,
+      fileUrl: attachment.fileUrl,
+      fileSize: attachment.fileSize,
+      mimeType: attachment.mimeType,
+      userId: attachment.userId,
+      createdAt: attachment.createdAt,
+    };
   }
 
   static async deleteAttachment(

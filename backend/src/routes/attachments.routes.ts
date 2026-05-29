@@ -9,11 +9,24 @@ import { paramsSchema } from '../validations/urlParams.validation';
 
 const router = Router({ mergeParams: true });
 
+router.get(
+  '/signature',
+  authenticate,
+  asyncHandler(AttachmentsController.getSignature)
+);
+
+// router.post(
+//   '/',
+//   authenticate,
+//   upload.single('file'),
+//   multerErrorHandler,
+//   requireWorkspaceMember,
+//   asyncHandler(AttachmentsController.uploadAttachment)
+// );
+
 router.post(
   '/',
   authenticate,
-  upload.single('file'),
-  multerErrorHandler,
   requireWorkspaceMember,
   asyncHandler(AttachmentsController.uploadAttachment)
 );
