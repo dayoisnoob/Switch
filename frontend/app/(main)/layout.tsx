@@ -89,7 +89,7 @@ function MainLayoutContent({ children }: { children: ReactNode }) {
     if (userLoading || !user) return;
 
     if (!workspacesLoading && !isFetching && workspaces.length === 0) {
-      router.replace("/getting-started");
+      router.replace("/getting-you-started");
     }
   }, [
     user,

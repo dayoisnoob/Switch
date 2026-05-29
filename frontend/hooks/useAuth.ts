@@ -90,7 +90,7 @@ export function useCompleteReg() {
     mutationFn: (data: CompleteUserData) =>
       api.patch("/auth/register/onboarding", data),
     onSuccess: () => {
-      router.push("/getting-started");
+      router.push("/getting-you-started");
     },
 
     onError: (err) => {

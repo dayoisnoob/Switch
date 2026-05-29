@@ -59,11 +59,11 @@ function RegisterContent() {
               router.push(`/${workspaceSlug || "dashboard"}`);
             },
             onError: () => {
-              router.push("/getting-started");
+              router.push("/getting-you-started");
             },
           });
         } else {
-          router.push("/getting-started");
+          router.push("/getting-you-started");
         }
       },
     });

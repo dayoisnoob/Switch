@@ -24,7 +24,7 @@ export class AuthController {
         ...COOKIE_OPTIONS,
         httpOnly: false,
       })
-      .redirect(`${env.FRONTEND_URL}/getting-started`);
+      .redirect(`${env.FRONTEND_URL}/getting-you-started`);
   }
 
   static OAuthError(
