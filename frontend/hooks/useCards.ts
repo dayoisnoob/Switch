@@ -143,6 +143,7 @@ export function useToggleAssignee(cardId: string) {
 
     onMutate: async ({ member, isAssigned }) => {
       await queryClient.cancelQueries({ queryKey: ["card", cardId] });
+      await queryClient.invalidateQueries({ queryKey: ["card", cardId] });
 
       const store = useBoardStore.getState();
 
@@ -164,7 +165,7 @@ export function useToggleAssignee(cardId: string) {
           store.removeUserFromCard(cardId, context.member.userId);
         }
       }
-      toast.error("Failed to update assignee");
+      toast.error(getErrorMessage(err) ?? "Failed to update assignee");
     },
 
     onSettled: () => {

@@ -589,6 +589,7 @@ const SortableColumn = memo(function SortableColumn({
     setIsAddModalOpen(false);
   };
 
+
   const handleDeleteColumn = async () => {
     setIsMenuOpen(false);
 

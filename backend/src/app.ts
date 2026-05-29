@@ -13,20 +13,19 @@ import {
   globalErrorHandler,
   notFoundError,
 } from './middleware/error.middleware.ts';
-import { globalLimiter } from './middleware/rate-limit.middleware.ts';
-import authRouter from './routes/auth.routes.ts';
-import cardsRouter from './routes/cards.routes.ts';
-import workspacesRouter from './routes/workspaces.routes.ts';
-import invitationsRouter from './routes/invitations.routes.ts';
-import projectsRouter from './routes/projects.routes.ts';
-import boardsRouter from './routes/boards.routes.ts';
-import columnsRouter from './routes/columns.routes.ts';
-import labelsRouter from './routes/labels.routes.ts';
-import commentsRouter from './routes/comments.routes.ts';
-import attachmentsRouter from './routes/attachments.routes.ts';
-import notificationsRouter from './routes/notifications.routes.ts';
 import activityRouter from './routes/activity.routes.ts';
+import attachmentsRouter from './routes/attachments.routes.ts';
+import authRouter from './routes/auth.routes.ts';
+import boardsRouter from './routes/boards.routes.ts';
+import cardsRouter from './routes/cards.routes.ts';
+import columnsRouter from './routes/columns.routes.ts';
+import commentsRouter from './routes/comments.routes.ts';
+import invitationsRouter from './routes/invitations.routes.ts';
+import labelsRouter from './routes/labels.routes.ts';
+import notificationsRouter from './routes/notifications.routes.ts';
+import projectsRouter from './routes/projects.routes.ts';
 import userRouter from './routes/user.routes.ts';
+import workspacesRouter from './routes/workspaces.routes.ts';
 
 const swaggerDocument = JSON.parse(
   readFileSync(join(process.cwd(), 'swagger-output.json'), 'utf8')
@@ -43,14 +42,6 @@ app.use(
     allowedHeaders: ['Content-Type', 'Authorization'],
   })
 );
-
-if (env.NODE_ENV !== 'development') {
-  app.use((req, res, next) => {
-    if (req.path.startsWith('/api/v1/auth') || req.path.includes('register'))
-      return next();
-    globalLimiter(req, res, next);
-  });
-}
 
 app.use(cookieParser());
 app.use(express.json());
