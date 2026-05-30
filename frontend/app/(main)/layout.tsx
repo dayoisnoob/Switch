@@ -204,9 +204,13 @@ function MainLayoutContent({ children }: { children: ReactNode }) {
         <aside className="w-65 shrink-0 bg-[#13131A] border-r border-white/5 flex flex-col z-20">
           <div className="p-4">
             <div className="flex items-center gap-3 mb-6 px-1">
-              <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-sm font-black shadow-[0_0_15px_rgba(124,110,245,0.4)]">
-                S
-              </div>
+              <Image
+                src="/logo.svg"
+                alt="Switch Logo"
+                width={32}
+                height={32}
+                priority
+              />
               <span className="text-xl font-bold text-white tracking-tight">
                 Switch
               </span>
