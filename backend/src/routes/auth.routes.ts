@@ -4,6 +4,7 @@ import { authenticate } from '../middleware/auth.middleware';
 
 import { env } from '../config/env';
 import passport from '../config/passport';
+import { isProd } from '../constants';
 import {
   changePasswordLimiter,
   forgotPasswordHourlyLimiter,
@@ -32,18 +33,23 @@ import {
 const router = Router();
 
 // OAuth
+router.get('/google', (req, res, next) => {
+  const state = req.query.state as string | undefined;
 
-router.get(
-  '/google',
-  // registerIpLimiter,
-  passport.authenticate('google', {
-    session: false,
-  })
-);
+  if (state) {
+    res.cookie('oauth_invite_state', state, {
+      httpOnly: true,
+      secure: isProd,
+      sameSite: isProd ? 'none' : 'lax',
+      maxAge: 10 * 60 * 1000,
+    });
+  }
+
+  passport.authenticate('google', { session: false })(req, res, next);
+});
 
 router.get(
   '/google/callback',
-  // registerIpLimiter,
   passport.authenticate('google', {
     session: false,
     failureRedirect: `${env.FRONTEND_URL}/login?error=google_failed`,
@@ -52,16 +58,23 @@ router.get(
   AuthController.OAuthError
 );
 
-router.get(
-  '/github',
-  registerIpLimiter,
-  passport.authenticate('github', {
-    session: false,
-  })
-);
+router.get('/github', (req, res, next) => {
+  const state = req.query.state as string | undefined;
+
+  if (state) {
+    res.cookie('oauth_invite_state', state, {
+      httpOnly: true,
+      secure: isProd,
+      sameSite: isProd ? 'none' : 'lax',
+      maxAge: 10 * 60 * 1000,
+    });
+  }
+
+  passport.authenticate('github', { session: false })(req, res, next);
+});
+
 router.get(
   '/github/callback',
-  registerIpLimiter,
   passport.authenticate('github', {
     session: false,
     failureRedirect: `${env.FRONTEND_URL}/login?error=github_failed`,

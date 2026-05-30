@@ -2,9 +2,9 @@ import type { NextFunction, Request, Response } from 'express';
 import { env } from '../config/env';
 import { COOKIE_OPTIONS } from '../constants';
 import { AuthService } from '../services/auth.service';
-import { ApiError, ApiResponse } from '../utils/api-response';
 import type { OAuthProfileInput } from '../types/auth.types';
 import type { AuthenticatedRequest } from '../types/express';
+import { ApiError, ApiResponse } from '../utils/api-response';
 
 export class AuthController {
   static async OAuthCallback(req: Request, res: Response) {
@@ -14,12 +14,18 @@ export class AuthController {
       return res.redirect(`${env.FRONTEND_URL}/login?error=oauth_failed`);
     }
 
+    const rawState = req.cookies['oauth_invite_state'] as string | undefined;
+    const stateParams = rawState ? new URLSearchParams(rawState) : null;
+    const inviteToken = stateParams?.get('inviteToken');
+
+    res.clearCookie('oauth_invite_state');
+
     const { accessToken, refreshToken } = await AuthService.OAuthSignIn(
       userProfile as OAuthProfileInput
     );
 
-    const redirectUrl = userProfile.inviteToken
-      ? `${env.FRONTEND_URL}/invite/accept?token=${userProfile.inviteToken}`
+    const redirectUrl = inviteToken
+      ? `${env.FRONTEND_URL}/invite/accept?token=${inviteToken}`
       : `${env.FRONTEND_URL}/getting-you-started`;
 
     return res
