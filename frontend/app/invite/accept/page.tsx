@@ -1,5 +1,6 @@
 "use client";
 
+import { useMe } from "@/hooks/useAuth";
 import { useAcceptInvite, useVerifyInvite } from "@/hooks/useInvitations";
 import { ArrowRight, Loader2, MailOpen, AlertCircle } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -9,6 +10,7 @@ function AcceptInviteContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
+  const { data: currentUser } = useMe();
 
   const {
     data: inviteDetails,
@@ -18,6 +20,26 @@ function AcceptInviteContent() {
   } = useVerifyInvite(token);
 
   const { mutate: acceptInvite, isPending: isAccepting } = useAcceptInvite();
+
+  useEffect(() => {
+    if (!token || !inviteDetails || !currentUser || isAccepting) return;
+
+    acceptInvite(token, {
+      onSuccess: (data) => {
+        if (data?.requiresRegistration) {
+          router.push(
+            `/register?email=${encodeURIComponent(inviteDetails.email)}&inviteToken=${token}`,
+          );
+        } else if (data?.requiresLogin) {
+          router.push(
+            `/login?returnUrl=${encodeURIComponent(`/invite/accept?token=${token}`)}`,
+          );
+        } else {
+          router.push(`/${inviteDetails.workspaceSlug || "dashboard"}`);
+        }
+      },
+    });
+  }, [currentUser, inviteDetails, token]);
 
   useEffect(() => {
     if (!token) router.replace("/dashboard");

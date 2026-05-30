@@ -19,7 +19,7 @@ export class AuthController {
     );
 
     const redirectUrl = userProfile.inviteToken
-      ? `${env.FRONTEND_URL}/invite/${userProfile.inviteToken}`
+      ? `${env.FRONTEND_URL}/invite/accept?token=${userProfile.inviteToken}`
       : `${env.FRONTEND_URL}/getting-you-started`;
 
     return res
