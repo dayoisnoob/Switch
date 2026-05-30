@@ -143,10 +143,8 @@ export function useToggleAssignee(cardId: string) {
 
     onMutate: async ({ member, isAssigned }) => {
       await queryClient.cancelQueries({ queryKey: ["card", cardId] });
-      await queryClient.invalidateQueries({ queryKey: ["card", cardId] });
 
       const store = useBoardStore.getState();
-
       if (isAssigned) {
         store.removeUserFromCard(cardId, member.userId);
       } else {
