@@ -1,7 +1,6 @@
 import { Router } from 'express';
 import { AttachmentsController } from '../controllers/attachments.controller';
 import { authenticate } from '../middleware/auth.middleware';
-import { multerErrorHandler, upload } from '../middleware/upload.middleware';
 import { validateUrlParams } from '../middleware/validation.middleware';
 import { requireWorkspaceMember } from '../middleware/workspace.middleware';
 import { asyncHandler } from '../utils/async-handler';
