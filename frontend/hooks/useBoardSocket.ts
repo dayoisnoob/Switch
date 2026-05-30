@@ -148,6 +148,10 @@ export function useBoardSocket(boardId: string) {
       ({ cardId, assignee, actorId, actorName, cardTitle }) => {
         if (actorId !== currentUser?.id) {
           useBoardStore.getState().assignUserToCard(cardId, assignee);
+
+          queryClient.invalidateQueries({ queryKey: ["card", cardId] });
+          queryClient.invalidateQueries({ queryKey: ["board"] });
+
           const actor = actorName || "A teammate";
           const assigneeName = `${assignee.firstName} ${assignee.lastName}`;
           toast.success(`${actor} assigned ${assigneeName} to "${cardTitle}"`);
@@ -160,6 +164,10 @@ export function useBoardSocket(boardId: string) {
       ({ cardId, assigneeId, assigneeName, actorId, actorName, cardTitle }) => {
         if (actorId !== currentUser?.id) {
           useBoardStore.getState().removeUserFromCard(cardId, assigneeId);
+
+          queryClient.invalidateQueries({ queryKey: ["card", cardId] });
+          queryClient.invalidateQueries({ queryKey: ["board"] });
+
           const actor = actorName || "A teammate";
           toast.info(`${actor} removed ${assigneeName} from "${cardTitle}"`);
         }
@@ -255,7 +263,7 @@ export function useBoardSocket(boardId: string) {
       }
     });
 
-    // --- COMMENTS ---
+    // --- ATTACHMENTS ---
     socket.on("attachment:uploaded", (p) => {
       if (p.actorId !== currentUser?.id) {
         useBoardStore.getState().addAttachmentToCard(p.cardId, p.attachment);
