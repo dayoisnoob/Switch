@@ -56,7 +56,7 @@ export default function MarketingPage() {
 
         <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
           <Link
-            href="/register"
+            href="/dashboard"
             className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 text-[14px] font-bold rounded-xl text-white bg-[#7C6EF5] hover:bg-[#6B5ED4] transition-all shadow-lg shadow-[#7C6EF5]/20 active:scale-[0.98] group"
           >
             Start building for free

@@ -9,6 +9,7 @@ import {
   ProjectsListSkeleton,
 } from "@/components/skeletons/LayoutPage";
 import { SocketProvider } from "@/components/SocketProvider";
+import { FullScreenLoader } from "@/components/ui/FullScreenLoader";
 import { useLogout, useMe } from "@/hooks/useAuth";
 import { useWorkspaceProjects } from "@/hooks/useProjects";
 import {
@@ -135,19 +136,11 @@ function MainLayoutContent({ children }: { children: ReactNode }) {
     if (workspaces.length > 0) {
       return <LayoutSkeleton />;
     }
-    return (
-      <div className="flex h-screen w-full items-center justify-center bg-[#0A0A0A]">
-        <Loader2 className="w-8 h-8 text-[#7C6EF5] animate-spin" />
-      </div>
-    );
+    return <FullScreenLoader />;
   }
 
   if (!hasWorkspaces) {
-    return (
-      <div className="flex h-screen w-full items-center justify-center bg-[#0A0A0A]">
-        <Loader2 className="w-8 h-8 text-[#7C6EF5] animate-spin" />
-      </div>
-    );
+    return <FullScreenLoader />;
   }
 
   const mainNavItems = [
