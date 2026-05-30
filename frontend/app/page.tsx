@@ -14,8 +14,8 @@ export default function MarketingPage() {
               <Image
                 src="/logo.svg"
                 alt="Switch Logo"
-                width={120}
-                height={120}
+                width={32}
+                height={32}
                 priority
               />
             </div>
