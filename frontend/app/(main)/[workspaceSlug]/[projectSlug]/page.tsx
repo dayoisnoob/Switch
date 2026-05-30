@@ -589,7 +589,6 @@ const SortableColumn = memo(function SortableColumn({
     setIsAddModalOpen(false);
   };
 
-
   const handleDeleteColumn = async () => {
     setIsMenuOpen(false);
 
@@ -725,15 +724,24 @@ const SortableColumn = memo(function SortableColumn({
             strategy={verticalListSortingStrategy}
           >
             <div className="flex flex-col gap-3 p-3 pb-4">
-              {column.cards?.map((card) => (
-                <SortableCard
-                  key={card.id}
-                  card={card}
-                  onClick={() =>
-                    router.push(`/${workspaceSlug}/${projectSlug}/c/${card.id}`)
-                  }
-                />
-              ))}
+              {column.cards?.map((card) => {
+                const isDoneColumn =
+                  column.mappedStatus?.toLowerCase() === "done" ||
+                  column.name.toLowerCase().includes("done");
+
+                return (
+                  <SortableCard
+                    key={card.id}
+                    card={card}
+                    isDone={isDoneColumn}
+                    onClick={() =>
+                      router.push(
+                        `/${workspaceSlug}/${projectSlug}/c/${card.id}`,
+                      )
+                    }
+                  />
+                );
+              })}
             </div>
           </SortableContext>
         )}
@@ -803,9 +811,11 @@ function ColumnContent({
 
 const SortableCard = memo(function SortableCard({
   card,
+  isDone,
   onClick,
 }: {
   card: BoardCard;
+  isDone?: boolean;
   onClick: () => void;
 }) {
   const {
@@ -832,7 +842,12 @@ const SortableCard = memo(function SortableCard({
       {...listeners}
       className="outline-none touch-none"
     >
-      <CardContent card={card} isDragging={isDragging} onClick={onClick} />
+      <CardContent
+        card={card}
+        isDragging={isDragging}
+        isDone={isDone}
+        onClick={onClick}
+      />
     </div>
   );
 });
@@ -840,10 +855,12 @@ const SortableCard = memo(function SortableCard({
 const CardContent = memo(function CardContent({
   card,
   isDragging,
+  isDone,
   onClick,
 }: {
   card: BoardCard;
   isDragging?: boolean;
+  isDone?: boolean;
   onClick?: () => void;
 }) {
   const pStyles = getPriorityStyles(card.priority);
@@ -856,9 +873,17 @@ const CardContent = memo(function CardContent({
         isDragging
           ? "border-[#7C6EF5]/50 shadow-[0_0_30px_rgba(124,110,245,0.15)] scale-[1.02] bg-[#1F1F2E]"
           : "border-white/4 hover:border-white/10 shadow-sm",
+        isDone && !isDragging && "opacity-50 hover:opacity-80",
       )}
     >
-      <p className="text-[14px] font-semibold text-white/90 leading-snug group-hover:text-white transition-colors mb-3">
+      <p
+        className={cn(
+          "text-[14px] font-semibold leading-snug transition-colors mb-3",
+          isDone
+            ? "line-through text-white/40 group-hover:text-white/60"
+            : "text-white/90 group-hover:text-white",
+        )}
+      >
         {card.title}
       </p>
 
