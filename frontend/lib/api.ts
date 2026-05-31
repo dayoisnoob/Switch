@@ -1,4 +1,4 @@
-import axios, { isAxiosError } from "axios";
+import axios, { AxiosError } from "axios";
 import { ApiError } from "./ApiError";
 import { toast } from "sonner";
 
@@ -8,40 +8,37 @@ export const api = axios.create({
 });
 
 let isRefreshing = false;
-let failedQueue: { resolve: () => void; reject: (err: Error) => void }[] = [];
+let refreshQueue: Array<(err: Error | null) => void> = [];
 
 const processQueue = (error: Error | null) => {
-  failedQueue.forEach((p) => (error ? p.reject(error) : p.resolve()));
-  failedQueue = [];
+  refreshQueue.forEach((callback) => callback(error));
+  refreshQueue = [];
 };
 
 api.interceptors.response.use(
   (response) => response.data?.data ?? response.data,
-  async (error) => {
+  async (error: AxiosError<any>) => {
     const originalRequest = error.config;
+    const status = error.response?.status ?? 500;
+    const data = error.response?.data;
+    const message =
+      data?.errors?.[0]?.message ?? data?.message ?? "Something went wrong";
     const isAuthRoute = originalRequest?.url?.startsWith("/auth/");
+    const isMeRoute = originalRequest?.url?.includes("/users/me");
 
-    if (!isAxiosError(error) || error.response?.status !== 401 || isAuthRoute) {
-      const data = error.response?.data;
-      const message =
-        data?.errors?.[0]?.message ?? data?.message ?? "Something went wrong";
+    // Handle rate limits with a toast
+    if (status === 429) toast.error(message);
 
-      if (error.response?.status === 429) {
-        toast.error(message);
-        return Promise.reject(new ApiError(message, 429));
-      }
-
-      return Promise.reject(
-        new ApiError(message, error.response?.status ?? 500),
-      );
+    if (status !== 401 || isAuthRoute || isMeRoute || !originalRequest) {
+      return Promise.reject(new ApiError(message, status));
     }
+
+    // 401 Token Refresh Logic
 
     if (isRefreshing) {
       return new Promise<void>((resolve, reject) => {
-        failedQueue.push({ resolve, reject });
-      })
-        .then(() => api(originalRequest))
-        .catch(Promise.reject);
+        refreshQueue.push((err) => (err ? reject(err) : resolve()));
+      }).then(() => api(originalRequest));
     }
 
     isRefreshing = true;
