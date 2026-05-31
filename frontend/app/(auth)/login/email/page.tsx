@@ -1,14 +1,18 @@
 "use client";
 
-import { LoginRequest, useLogin } from "@/hooks/useAuth";
+import { FullScreenLoader } from "@/components/ui/FullScreenLoader";
+import { LoginRequest, useLogin, useMe } from "@/hooks/useAuth";
 import { ChevronLeft, Eye, EyeOff, Loader2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 
 export default function LoginEmailPage() {
   const [showPassword, setShowPassword] = useState(false);
+  const { data: user, isLoading: isUserLoading } = useMe();
+  const router = useRouter();
 
   const { mutate: login, isPending, isSuccess } = useLogin();
 
@@ -18,9 +22,19 @@ export default function LoginEmailPage() {
     formState: { errors },
   } = useForm<LoginRequest>();
 
+  useEffect(() => {
+    if (user) {
+      router.replace("/dashboard");
+    }
+  }, [user, router]);
+
   const handleLogin = (data: LoginRequest) => {
     login(data);
   };
+
+  if (isUserLoading || user) {
+    return <FullScreenLoader />;
+  }
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-[#0A0A0A] p-4 font-sans text-white selection:bg-[#7C6EF5]/30">

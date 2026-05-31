@@ -1,11 +1,28 @@
 "use client";
 
 import { GithubIcon, GoogleIcon } from "@/components/auth/auth-components";
+import { FullScreenLoader } from "@/components/ui/FullScreenLoader";
+import { useMe } from "@/hooks/useAuth";
 import { Mail } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 export default function LoginPage() {
+  const { data: user, isLoading } = useMe();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (user) {
+      router.replace("/dashboard");
+    }
+  }, [user, router]);
+
+  if (isLoading || user) {
+    return <FullScreenLoader />;
+  }
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-[#0A0A0A] p-4 font-sans text-white selection:bg-[#7C6EF5]/30">
       <div className="flex items-center gap-3 mb-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
