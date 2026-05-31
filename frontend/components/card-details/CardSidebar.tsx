@@ -400,34 +400,6 @@ export function CardSidebar({
             Labels
           </label>
 
-          {card.labels && card.labels.length > 0 && (
-            <div className="flex flex-wrap gap-1.5 mb-2">
-              {card.labels.map((l) => {
-                const hex = l.colour || "#7C6EF5";
-                const name = l.name || "Label";
-                const id = l.id || "";
-
-                return (
-                  <div
-                    key={id}
-                    className="px-2.5 py-1 rounded-md text-[11px] font-semibold border flex items-center gap-1.5"
-                    style={{
-                      color: hex,
-                      backgroundColor: `${hex}1A`,
-                      borderColor: `${hex}33`,
-                    }}
-                  >
-                    <div
-                      className="w-1.5 h-1.5 rounded-full"
-                      style={{ backgroundColor: hex }}
-                    />
-                    {name}
-                  </div>
-                );
-              })}
-            </div>
-          )}
-
           <div className="flex flex-col bg-[#1C1C24] border border-white/5 rounded-xl overflow-hidden shadow-inner">
             <div className="p-2 border-b border-white/5 bg-[#18181F]">
               <div className="relative">

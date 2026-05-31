@@ -142,26 +142,17 @@ export function useToggleAssignee(cardId: string) {
     onMutate: async ({ member, isAssigned }) => {
       await queryClient.cancelQueries({ queryKey: ["card", cardId] });
       const previousCard = queryClient.getQueryData(["card", cardId]);
-      queryClient.setQueryData(["card", cardId], (oldCard: any) => {
-        if (!oldCard) return oldCard;
-        const newAssignees = isAssigned
-          ? oldCard.assignees.filter(
-              (a: any) => a.id !== member.userId && a.id !== member.userId,
-            )
-          : [
-              ...(oldCard.assignees || []),
-              { ...member, userId: member.userId },
-            ];
-        return {
-          ...oldCard,
-          assignees: newAssignees,
-        };
-      });
+
       const store = useBoardStore.getState();
       if (isAssigned) {
         store.removeUserFromCard(cardId, member.userId);
       } else {
-        if (member) store.assignUserToCard(cardId, member);
+        store.assignUserToCard(cardId, {
+          id: member.userId,
+          firstName: member.firstName,
+          lastName: member.lastName,
+          avatarUrl: member.avatarUrl ?? null,
+        });
       }
       return { previousCard, previousIsAttached: isAssigned, member };
     },

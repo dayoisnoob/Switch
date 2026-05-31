@@ -302,7 +302,7 @@ export const useBoardStore = create<BoardStore>((set) => ({
               if (card.id !== cardId) return card;
 
               const alreadyAssigned = card.assignees.some(
-                (a) => a.userId === assignee.userId,
+                (a) => a.id === assignee.userId,
               );
 
               if (alreadyAssigned) return card;
@@ -329,9 +329,7 @@ export const useBoardStore = create<BoardStore>((set) => ({
               card.id === cardId
                 ? {
                     ...card,
-                    assignees: card.assignees.filter(
-                      (a) => a.userId !== userId,
-                    ),
+                    assignees: card.assignees.filter((a) => a.id !== userId),
                   }
                 : card,
             ),
