@@ -1,10 +1,13 @@
 "use client";
 
+import { useMe } from "@/hooks/useAuth";
 import { ArrowRight, LayoutGrid } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
 export default function MarketingPage() {
+  const { data: user, isLoading } = useMe();
+
   return (
     <div className="min-h-screen bg-[#0A0A0A] text-white selection:bg-[#7C6EF5]/30 font-sans flex flex-col">
       <nav className="border-b border-white/5 bg-[#0A0A0A]/80 backdrop-blur-md sticky top-0 z-50">
@@ -18,21 +21,37 @@ export default function MarketingPage() {
                 height={32}
                 priority
               />
+              <span className="text-xl font-bold text-white tracking-tight">
+                Switch
+              </span>
             </div>
 
             <div className="flex items-center gap-6">
-              <Link
-                href="/login"
-                className="text-[13px] font-medium text-white/60 hover:text-white transition-colors"
-              >
-                Sign in
-              </Link>
-              <Link
-                href="/register"
-                className="text-[13px] font-semibold bg-[#7C6EF5] text-white px-4 py-2 rounded-lg hover:bg-[#6B5ED4] transition-all shadow-lg shadow-[#7C6EF5]/20 active:scale-[0.98]"
-              >
-                Get Started
-              </Link>
+              {isLoading ? (
+                <div className="w-28 h-9 bg-white/5 rounded-lg animate-pulse" />
+              ) : user ? (
+                <Link
+                  href="/dashboard"
+                  className="text-[13px] font-semibold bg-[#7C6EF5] text-white px-4 py-2 rounded-lg hover:bg-[#6B5ED4] transition-all shadow-lg shadow-[#7C6EF5]/20 active:scale-[0.98]"
+                >
+                  Go to Dashboard
+                </Link>
+              ) : (
+                <>
+                  <Link
+                    href="/login"
+                    className="text-[13px] font-medium text-white/60 hover:text-white transition-colors"
+                  >
+                    Sign in
+                  </Link>
+                  <Link
+                    href="/register"
+                    className="text-[13px] font-semibold bg-[#7C6EF5] text-white px-4 py-2 rounded-lg hover:bg-[#6B5ED4] transition-all shadow-lg shadow-[#7C6EF5]/20 active:scale-[0.98]"
+                  >
+                    Get Started
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -54,24 +73,44 @@ export default function MarketingPage() {
           Keep it simple, keep it moving.
         </p>
 
-        <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
-          <Link
-            href="/dashboard"
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 text-[14px] font-bold rounded-xl text-white bg-[#7C6EF5] hover:bg-[#6B5ED4] transition-all shadow-lg shadow-[#7C6EF5]/20 active:scale-[0.98] group"
-          >
-            Start building for free
-            <ArrowRight
-              size={16}
-              className="transition-transform group-hover:translate-x-1"
-            />
-          </Link>
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full sm:w-auto">
+          {isLoading ? (
+            <>
+              <div className="w-full sm:w-55 h-14 bg-white/5 rounded-xl animate-pulse" />
+              <div className="w-full sm:w-47.5 h-14 bg-white/5 rounded-xl animate-pulse" />
+            </>
+          ) : user ? (
+            <Link
+              href="/dashboard"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 text-[14px] font-bold rounded-xl text-white bg-[#7C6EF5] hover:bg-[#6B5ED4] transition-all shadow-lg shadow-[#7C6EF5]/20 active:scale-[0.98] group"
+            >
+              Open Dashboard
+              <ArrowRight
+                size={16}
+                className="transition-transform group-hover:translate-x-1"
+              />
+            </Link>
+          ) : (
+            <>
+              <Link
+                href="/register"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 text-[14px] font-bold rounded-xl text-white bg-[#7C6EF5] hover:bg-[#6B5ED4] transition-all shadow-lg shadow-[#7C6EF5]/20 active:scale-[0.98] group"
+              >
+                Start building for free
+                <ArrowRight
+                  size={16}
+                  className="transition-transform group-hover:translate-x-1"
+                />
+              </Link>
 
-          <Link
-            href="/login"
-            className="w-full sm:w-auto inline-flex items-center justify-center px-8 py-4 text-[14px] font-bold rounded-xl text-white/70 bg-[#13131A] border border-white/5 hover:bg-white/5 hover:text-white transition-all active:scale-[0.98]"
-          >
-            Sign in to workspace
-          </Link>
+              <Link
+                href="/login"
+                className="w-full sm:w-auto inline-flex items-center justify-center px-8 py-4 text-[14px] font-bold rounded-xl text-white/70 bg-[#13131A] border border-white/5 hover:bg-white/5 hover:text-white transition-all active:scale-[0.98]"
+              >
+                Sign in to workspace
+              </Link>
+            </>
+          )}
         </div>
       </main>
 
