@@ -129,4 +129,12 @@ router.post(
   asyncHandler(WorkspaceController.resendInvitation)
 );
 
+router.delete(
+  '/:workspaceSlug/leave',
+  authenticate,
+  validateUrlParams(paramsSchema),
+  requireWorkspaceMember,
+  asyncHandler(WorkspaceController.leaveWorkspace)
+);
+
 export default router;

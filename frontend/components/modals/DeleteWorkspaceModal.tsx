@@ -2,7 +2,7 @@
 
 import { useDeleteWorkspace, Workspace } from "@/hooks/useWorkspace";
 import { cn } from "@/lib/utils";
-import { AlertTriangle, LayoutGrid, X } from "lucide-react";
+import { AlertTriangle, LayoutGrid, Loader2, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Portal } from "../ui/Portal";
@@ -146,9 +146,16 @@ export default function DeleteWorkspaceModal({
               <button
                 onClick={handleDeleteWorkspace}
                 disabled={isPending || !isMatch}
-                className="px-4 h-10 rounded-lg text-sm font-semibold text-[#ef4444] bg-[#3f1c22] border border-[#7f1d1d]/50 hover:bg-[#4c1d28] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 h-10 rounded-lg text-sm font-semibold text-[#ef4444] bg-[#3f1c22] border border-[#7f1d1d]/50 hover:bg-[#4c1d28] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
               >
-                {isPending ? "Deleting..." : "Delete workspace forever"}
+                {isPending ? (
+                  <>
+                    <Loader2 size={14} className="animate-spin text-white/80" />
+                    Deleting...
+                  </>
+                ) : (
+                  "Delete workspace forever"
+                )}
               </button>
             </div>
           </div>

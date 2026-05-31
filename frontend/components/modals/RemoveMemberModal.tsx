@@ -2,7 +2,7 @@
 
 import { useRemoveMember, WorkspaceMembers } from "@/hooks/useWorkspace";
 import { getConsistentColor } from "@/lib/utils";
-import { AlertTriangle, UserMinus, X } from "lucide-react";
+import { AlertTriangle, Loader2, UserMinus, X } from "lucide-react";
 import Image from "next/image";
 import { useEffect } from "react";
 
@@ -26,7 +26,7 @@ export default function RemoveMemberModal({
   const handleRemove = (userId: string) => {
     removeMember(userId);
     onClose();
-    window.location.reload;
+    window.location.reload();
   };
 
   useEffect(() => {
@@ -137,9 +137,16 @@ export default function RemoveMemberModal({
             <button
               onClick={() => handleRemove(member.userId)}
               disabled={isPending}
-              className="px-4 h-10 rounded-lg text-sm font-semibold text-[#ef4444] bg-[#3f1c22] border border-[#7f1d1d]/50 hover:bg-[#4c1d28] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 h-10 rounded-lg text-sm font-semibold text-[#ef4444] bg-[#3f1c22] border border-[#7f1d1d]/50 hover:bg-[#4c1d28] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
-              {isPending ? "Removing..." : "Remove member"}
+              {isPending ? (
+                <>
+                  <Loader2 size={14} className="animate-spin" />
+                  Removing...
+                </>
+              ) : (
+                "Remove member"
+              )}
             </button>
           </div>
         </div>

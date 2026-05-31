@@ -9,7 +9,14 @@ import {
 } from "@/hooks/useInvitations";
 import { Workspace } from "@/hooks/useWorkspace";
 import { timeAgo } from "@/lib/utils";
-import { ArrowRight, ChevronDown, Info, UserPlus, X } from "lucide-react";
+import {
+  ArrowRight,
+  ChevronDown,
+  Info,
+  Loader2,
+  UserPlus,
+  X,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { Portal } from "../ui/Portal";
 
@@ -211,10 +218,19 @@ export default function InviteMemberModal({
               <button
                 onClick={handleInvite}
                 disabled={!email || isPending}
-                className="px-5 h-10 rounded-lg text-sm font-semibold text-white bg-[#A855F7] hover:bg-[#9333EA] flex items-center gap-2 transition-all shadow-[0_0_15px_rgba(168,85,247,0.3)]"
+                className="px-5 h-10 rounded-lg text-sm font-semibold text-white bg-[#A855F7] hover:bg-[#9333EA] flex items-center gap-2 transition-all shadow-[0_0_15px_rgba(168,85,247,0.3)] disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isPending ? "Sending..." : "Send invitation"}
-                {!isPending && <ArrowRight size={16} />}{" "}
+                {isPending ? (
+                  <>
+                    <Loader2 size={16} className="animate-spin" />
+                    Sending...
+                  </>
+                ) : (
+                  <>
+                    Send invitation
+                    <ArrowRight size={16} />
+                  </>
+                )}
               </button>
             </div>
           </div>

@@ -189,3 +189,20 @@ export function useUpdateMemberRole(workspaceSlug: string) {
     },
   });
 }
+
+export function useLeaveWorkspace(workspaceSlug: string) {
+  const queryClient = useQueryClient();
+  const router = useRouter();
+
+  return useMutation({
+    mutationFn: () => api.delete(`/workspaces/${workspaceSlug}/leave`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["workspaces"] });
+      router.replace("/dashboard");
+      toast.success("You have left the workspace.");
+    },
+    onError: (err) => {
+      toast.error(getErrorMessage(err));
+    },
+  });
+}

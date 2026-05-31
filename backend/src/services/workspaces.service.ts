@@ -508,4 +508,36 @@ export class WorkspaceService {
 
     return { success: true };
   }
+
+  static async leaveWorkspace(userId: string, workspaceId: string) {
+    const [member] = await db
+      .select({ role: workspaceMembershipsTable.role })
+      .from(workspaceMembershipsTable)
+      .where(
+        and(
+          eq(workspaceMembershipsTable.userId, userId),
+          eq(workspaceMembershipsTable.workspaceId, workspaceId)
+        )
+      )
+      .limit(1);
+
+    if (!member)
+      throw new ApiError(404, 'You are not a member of this workspace.');
+
+    if (member.role === 'Owner') {
+      throw new ApiError(
+        403,
+        'Workspace owners cannot leave. Please delete the workspace instead.'
+      );
+    }
+
+    await db
+      .delete(workspaceMembershipsTable)
+      .where(
+        and(
+          eq(workspaceMembershipsTable.userId, userId),
+          eq(workspaceMembershipsTable.workspaceId, workspaceId)
+        )
+      );
+  }
 }

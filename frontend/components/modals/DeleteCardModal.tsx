@@ -3,7 +3,7 @@
 import { Portal } from "@/components/ui/Portal";
 import { cn } from "@/lib/utils";
 import { BoardCard } from "@/types/board.types";
-import { AlertTriangle, ChevronRight, Trash2, X } from "lucide-react";
+import { AlertTriangle, ChevronRight, Loader2, Trash2, X } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -133,7 +133,7 @@ export function DeleteCardModal({
             >
               {isDeleting ? (
                 <>
-                  <div className="w-3.5 h-3.5 border-2 border-rose-400/30 border-t-rose-400 rounded-full animate-spin" />
+                  <Loader2 size={14} className="animate-spin" />
                   Deleting...
                 </>
               ) : (

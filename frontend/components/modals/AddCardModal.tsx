@@ -1,12 +1,11 @@
 "use client";
 
-import { cn } from "@/lib/utils";
 import { Portal } from "@/components/ui/Portal";
-import { ChevronDown, Plus, X } from "lucide-react";
-import Image from "next/image";
-import { useState } from "react";
 import { CreateCard } from "@/hooks/useCards";
 import { WorkspaceMembers } from "@/hooks/useWorkspace";
+import { cn } from "@/lib/utils";
+import { ChevronDown, Loader2, Plus, X } from "lucide-react";
+import { useState } from "react";
 
 export type AddCardFormData = Omit<CreateCard, "status" | "dueDate"> & {
   dueDate: string;
@@ -36,8 +35,9 @@ export default function AddCardModal({
   projectName?: string;
   workspaceMembers?: WorkspaceMembers[];
   membersLoading?: boolean;
-  onAdd: (data: AddCardFormData) => void;
+  onAdd: (data: AddCardFormData) => void | Promise<void>;
 }) {
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -56,6 +56,16 @@ export default function AddCardModal({
         ? prev.assignees.filter((a) => a !== id)
         : [...prev.assignees, id],
     }));
+  };
+
+  const handleSubmit = async () => {
+    if (!formData.title.trim() || isSubmitting) return;
+    setIsSubmitting(true);
+    try {
+      await onAdd(formData);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -186,13 +196,12 @@ export default function AddCardModal({
                     >
                       <div className="flex items-center gap-2.5 min-w-0">
                         {member.avatarUrl ? (
-                          <Image
+                          <img
                             src={member.avatarUrl}
                             alt={`${member.firstName} ${member.lastName}`}
                             width={28}
                             height={28}
                             className="w-7 h-7 rounded-full object-cover border border-white/10 shrink-0"
-                            unoptimized
                             referrerPolicy="no-referrer"
                           />
                         ) : (
@@ -240,12 +249,21 @@ export default function AddCardModal({
               Cancel
             </button>
             <button
-              onClick={() => onAdd(formData)}
-              disabled={!formData.title.trim()}
-              className="px-5 py-2 bg-[#7C6EF5] hover:bg-[#6b5ee6] disabled:opacity-50 disabled:cursor-not-allowed rounded-lg text-[13px] font-bold text-white flex items-center gap-2 shadow-[0_0_15px_rgba(124,110,245,0.2)] transition-all"
+              onClick={handleSubmit}
+              disabled={!formData.title.trim() || isSubmitting}
+              className="px-5 py-2 bg-[#7C6EF5] hover:bg-[#6b5ee6] disabled:opacity-50 disabled:cursor-not-allowed rounded-lg text-[13px] font-bold text-white flex items-center gap-2 shadow-[0_0_15px_rgba(124,110,245,0.2)] transition-all min-w-30 justify-center"
             >
-              <Plus size={14} strokeWidth={3} />
-              Add card
+              {isSubmitting ? (
+                <>
+                  <Loader2 size={14} strokeWidth={3} className="animate-spin" />
+                  Adding...
+                </>
+              ) : (
+                <>
+                  <Plus size={14} strokeWidth={3} />
+                  Add card
+                </>
+              )}
             </button>
           </div>
         </div>

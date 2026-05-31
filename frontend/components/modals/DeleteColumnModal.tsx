@@ -10,7 +10,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useBoardStore } from "@/store/board.store";
 import { BoardColumn } from "@/types/board.types";
-import { ChevronDown, PanelRightClose, X } from "lucide-react";
+import { ChevronDown, Loader2, PanelRightClose, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -245,7 +245,14 @@ export default function DeleteColumnModal({
                 }
                 className="px-5 h-10 rounded-xl text-[13px] font-semibold text-rose-400 bg-rose-500/10 border border-rose-500/20 hover:bg-rose-500/20 transition-colors disabled:opacity-50 flex items-center gap-2"
               >
-                {isDeletingCol ? "Deleting..." : "Delete column"}
+                {isDeletingCol ? (
+                  <>
+                    <Loader2 size={14} className="animate-spin" />
+                    Deleting...
+                  </>
+                ) : (
+                  "Delete column"
+                )}
               </button>
             </div>
           </div>

@@ -146,4 +146,13 @@ export class WorkspaceController {
 
     res.json(new ApiResponse(200, 'Invitation sent successfully'));
   }
+
+  static async leaveWorkspace(req: AuthenticatedRequest, res: Response) {
+    const userId = req.user.id;
+    const workspaceId = req.workspace?.workspaceId!;
+
+    await WorkspaceService.leaveWorkspace(userId, workspaceId);
+
+    res.json(new ApiResponse(200, 'You have left the workspace.', null));
+  }
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Columns, X, Check, AlertCircle } from "lucide-react";
+import { Columns, X, Check, AlertCircle, Loader2 } from "lucide-react";
 import { useCreateColumn } from "@/hooks/useColumns";
 import { Portal } from "../ui/Portal";
 
@@ -208,7 +208,14 @@ export default function CreateColumnModal({
               disabled={!name.trim() || isPending}
               className="btn-primary h-9 px-4 text-sm font-semibold flex items-center gap-2 focus-ring disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              + Create column
+              {isPending ? (
+                <>
+                  <Loader2 size={16} strokeWidth={2} className="animate-spin" />
+                  Creating...
+                </>
+              ) : (
+                <>+ Create column</>
+              )}
             </button>
           </div>
         </div>

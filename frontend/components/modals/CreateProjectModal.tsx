@@ -24,7 +24,7 @@ import {
   Rocket,
   Settings,
   Smartphone,
-  X, // Added Loader2
+  X,
   type LucideIcon,
 } from "lucide-react";
 import { useRef, useState } from "react";
