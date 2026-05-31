@@ -338,7 +338,10 @@ export function CardSidebar({
                         if (isTogglingAssignee) return;
                         toggleAssignee({ member, isAssigned: !!isAssigned });
                       }}
-                      className="flex items-center justify-between p-2 rounded-lg hover:bg-white/5 cursor-pointer group transition-colors"
+                      className={cn(
+                        "flex items-center justify-between p-2 rounded-lg hover:bg-white/5 cursor-pointer group transition-colors",
+                        isTogglingAssignee && "pointer-events-none opacity-50",
+                      )}
                     >
                       <div className="flex items-center gap-2.5 min-w-0">
                         {member.avatarUrl ? (
