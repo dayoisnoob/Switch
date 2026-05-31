@@ -78,7 +78,8 @@ export function CardSidebar({
 
   const { mutate: updateCard } = useUpdateCard(card.id);
   const { mutate: moveCard } = useMoveCard();
-  const { mutate: toggleAssignee } = useToggleAssignee(card.id);
+  const { mutate: toggleAssignee, isPending: isTogglingAssignee } =
+    useToggleAssignee(card.id);
   const { mutate: toggleLabel } = useToggleLabel(card);
   const { mutate: createLabel, isPending: isCreatingLabel } =
     useCreateLabel(workspaceSlug);
@@ -333,9 +334,10 @@ export function CardSidebar({
                   return (
                     <div
                       key={member.id}
-                      onClick={() =>
-                        toggleAssignee({ member, isAssigned: !!isAssigned })
-                      }
+                      onClick={() => {
+                        if (isTogglingAssignee) return;
+                        toggleAssignee({ member, isAssigned: !!isAssigned });
+                      }}
                       className="flex items-center justify-between p-2 rounded-lg hover:bg-white/5 cursor-pointer group transition-colors"
                     >
                       <div className="flex items-center gap-2.5 min-w-0">

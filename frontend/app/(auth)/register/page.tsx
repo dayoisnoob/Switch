@@ -31,14 +31,12 @@ function SignupContent() {
   }
 
   const [isRedirecting, setIsRedirecting] = useState(false);
-
   const { mutate: sendOtp, isPending, isSuccess } = useInitialiseReg();
 
   const {
     register,
     handleSubmit,
     formState: { errors },
-    reset: resetForm,
   } = useForm<SignupInitiateRequest>();
 
   const handleSignup = async (data: SignupInitiateRequest) => {
@@ -52,7 +50,7 @@ function SignupContent() {
   };
 
   return (
-    <>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[#0A0A0A] p-4 font-sans text-white selection:bg-[#7C6EF5]/30">
       <div className="flex items-center gap-3 mb-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
         <div className="w-10 h-10 rounded-xl bg-[#7C6EF5] flex items-center justify-center text-white text-lg font-black shadow-lg shadow-[#7C6EF5]/20">
           <Image
@@ -196,22 +194,14 @@ function SignupContent() {
           </Link>
         </p>
       </div>
-    </>
+    </div>
   );
 }
 
 export default function SignupPage() {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-[#0A0A0A] p-4 font-sans text-white selection:bg-[#7C6EF5]/30">
-      <Suspense
-        fallback={
-          <div className="flex items-center justify-center">
-            <Loader2 className="w-8 h-8 text-[#7C6EF5] animate-spin" />
-          </div>
-        }
-      >
-        <SignupContent />
-      </Suspense>
-    </div>
+    <Suspense fallback={<FullScreenLoader />}>
+      <SignupContent />
+    </Suspense>
   );
 }
