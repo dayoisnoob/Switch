@@ -1,6 +1,7 @@
 "use client";
 
-import { useResendOtp, useVerifyReg } from "@/hooks/useAuth";
+import { FullScreenLoader } from "@/components/ui/FullScreenLoader";
+import { useMe, useResendOtp, useVerifyReg } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 import { Check, ChevronDown, ChevronLeft, Loader2, Mail } from "lucide-react";
 import Image from "next/image";
@@ -11,6 +12,17 @@ function VerifyContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const email = searchParams.get("email");
+  const { data: user, isLoading } = useMe();
+
+  useEffect(() => {
+    if (user) {
+      router.replace("/dashboard");
+    }
+  }, [user, router]);
+
+  if (isLoading || user) {
+    return <FullScreenLoader />;
+  }
 
   const inviteToken = searchParams.get("inviteToken");
 

@@ -1,6 +1,7 @@
 "use client";
 
-import { useCompleteReg } from "@/hooks/useAuth";
+import { FullScreenLoader } from "@/components/ui/FullScreenLoader";
+import { useCompleteReg, useMe } from "@/hooks/useAuth";
 import { useAcceptInvite } from "@/hooks/useInvitations";
 import { ArrowRight, Check, Eye, EyeOff, Loader2 } from "lucide-react";
 import Image from "next/image";
@@ -21,6 +22,17 @@ function RegisterContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const email = searchParams.get("email");
+  const { data: user, isLoading } = useMe();
+
+  useEffect(() => {
+    if (user) {
+      router.replace("/dashboard");
+    }
+  }, [user, router]);
+
+  if (isLoading || user) {
+    return <FullScreenLoader />;
+  }
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);

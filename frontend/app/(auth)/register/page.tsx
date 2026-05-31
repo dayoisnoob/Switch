@@ -1,21 +1,34 @@
 "use client";
 
 import { GithubIcon, GoogleIcon } from "@/components/auth/auth-components";
-import { useInitialiseReg } from "@/hooks/useAuth";
+import { FullScreenLoader } from "@/components/ui/FullScreenLoader";
+import { useInitialiseReg, useMe } from "@/hooks/useAuth";
 import { ArrowRight, Loader2 } from "lucide-react";
-import Link from "next/link";
-import { useSearchParams } from "next/navigation";
-import { useForm } from "react-hook-form";
-import { Suspense, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
 
 interface SignupInitiateRequest {
   email: string;
 }
 
 function SignupContent() {
+  const router = useRouter();
+  const { data: user, isLoading } = useMe();
   const searchParams = useSearchParams();
   const inviteToken = searchParams.get("inviteToken");
+
+  useEffect(() => {
+    if (user) {
+      router.replace("/dashboard");
+    }
+  }, [user, router]);
+
+  if (isLoading || user) {
+    return <FullScreenLoader />;
+  }
 
   const [isRedirecting, setIsRedirecting] = useState(false);
 
