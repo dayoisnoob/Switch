@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { Suspense, useState } from "react";
+import Image from "next/image";
 
 interface SignupInitiateRequest {
   email: string;
@@ -41,7 +42,13 @@ function SignupContent() {
     <>
       <div className="flex items-center gap-3 mb-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
         <div className="w-10 h-10 rounded-xl bg-[#7C6EF5] flex items-center justify-center text-white text-lg font-black shadow-lg shadow-[#7C6EF5]/20">
-          S
+          <Image
+            src="/logo.svg"
+            alt="Switch Logo"
+            width={32}
+            height={32}
+            priority
+          />
         </div>
         <span className="text-2xl font-bold tracking-tight text-white/90">
           Switch
