@@ -1,19 +1,21 @@
 "use client";
 
+import { useGetPendingInvites } from "@/hooks/useInvitations";
 import {
+  useLeaveWorkspace,
   useUpdateMemberRole,
   useWorkspaceRole,
   Workspace,
   WorkspaceMembers,
 } from "@/hooks/useWorkspace";
 import { formatDate, getConsistentColor } from "@/lib/utils";
-import { ChevronDown, Plus, Search, Trash2, Users } from "lucide-react";
+import { ChevronDown, LogOut, Plus, Search, Trash2, Users } from "lucide-react";
 import Image from "next/image";
 import { ChangeEvent, useState } from "react";
+import LeaveWorkspaceModal from "../modals/LeaveWorkspaceModal";
 import InviteMemberModal from "../modals/InviteMemberModal";
 import RemoveMemberModal from "../modals/RemoveMemberModal";
 import { MembersSkeleton } from "../skeletons/MembersTab";
-import { useGetPendingInvites } from "@/hooks/useInvitations";
 
 export const MembersTab = ({
   members,
@@ -27,11 +29,15 @@ export const MembersTab = ({
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState("All");
   const [inviteModal, setInviteModal] = useState(false);
+  const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false);
   const [memberToRemove, setMemberToRemove] = useState<WorkspaceMembers | null>(
     null,
   );
 
   const { mutate: updateRole } = useUpdateMemberRole(activeWorkspace.slug);
+  const { mutate: leaveWorkspace, isPending: isLeaving } = useLeaveWorkspace(
+    activeWorkspace.slug,
+  );
 
   const { canManageWorkspace, isOwner } = useWorkspaceRole();
 
@@ -103,14 +109,24 @@ export const MembersTab = ({
           </div>
         </div>
 
-        {canManageWorkspace && (
-          <button
-            onClick={() => setInviteModal(true)}
-            className="h-10 px-5 bg-[#7C6EF5] hover:bg-[#6b5ee6] text-white flex items-center justify-center gap-2 rounded-lg text-[13px] font-semibold transition-all shadow-lg shadow-[#7C6EF5]/20 shrink-0"
-          >
-            <Plus size={16} /> Invite Member
-          </button>
-        )}
+        <div className="flex items-center gap-3">
+          {!isOwner && (
+            <button
+              onClick={() => setIsLeaveModalOpen(true)}
+              className="h-10 px-4 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 flex items-center justify-center gap-2 rounded-lg text-[13px] font-semibold transition-all shrink-0"
+            >
+              <LogOut size={15} /> Leave Workspace
+            </button>
+          )}
+          {canManageWorkspace && (
+            <button
+              onClick={() => setInviteModal(true)}
+              className="h-10 px-5 bg-[#7C6EF5] hover:bg-[#6b5ee6] text-white flex items-center justify-center gap-2 rounded-lg text-[13px] font-semibold transition-all shadow-lg shadow-[#7C6EF5]/20 shrink-0"
+            >
+              <Plus size={16} /> Invite Member
+            </button>
+          )}
+        </div>
       </div>
 
       {membersLoading ? (
@@ -267,6 +283,17 @@ export const MembersTab = ({
         member={memberToRemove}
         workspaceName={activeWorkspace.name}
         workspaceSlug={activeWorkspace.slug}
+      />
+
+      <LeaveWorkspaceModal
+        isOpen={isLeaveModalOpen}
+        onClose={() => setIsLeaveModalOpen(false)}
+        onConfirm={() => leaveWorkspace()}
+        isPending={isLeaving}
+        title="Leave workspace"
+        description="Are you sure you want to leave this workspace? You'll lose access to all projects and boards."
+        confirmLabel="Leave"
+        isDangerous
       />
     </div>
   );

@@ -1,17 +1,7 @@
-import LeaveWorkspaceModal from "@/components/modals/LeaveWorkspaceModal";
-import {
-  useLeaveWorkspace,
-  useUpdateWorkspace,
-  Workspace,
-} from "@/hooks/useWorkspace";
-import {
-  AlertTriangle,
-  Building2,
-  Link2,
-  Loader2,
-  LogOut,
-  Save,
-} from "lucide-react";
+"use client";
+
+import { useUpdateWorkspace, Workspace } from "@/hooks/useWorkspace";
+import { AlertTriangle, Building2, Link2, Loader2, Save } from "lucide-react";
 import { useState } from "react";
 
 interface SettingsTabProps {
@@ -27,17 +17,12 @@ export const SettingsTab = ({
 }: SettingsTabProps) => {
   const [name, setName] = useState(activeWorkspace?.name || "");
   const [slug, setSlug] = useState(activeWorkspace?.slug || "");
-  const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false);
 
   const hasNameChanged = name.trim() !== activeWorkspace?.name;
   const hasSlugChanged = slug.trim() !== activeWorkspace?.slug;
   const hasChanges = hasNameChanged || hasSlugChanged;
 
   const { mutate: updateWorkspace, isPending } = useUpdateWorkspace(
-    activeWorkspace.slug,
-  );
-
-  const { mutate: leaveWorkspace, isPending: isLeaving } = useLeaveWorkspace(
     activeWorkspace.slug,
   );
 
@@ -50,6 +35,8 @@ export const SettingsTab = ({
 
     updateWorkspace(payload);
   };
+
+  if (!isOwner) return null;
 
   return (
     <div className="max-w-3xl animate-in fade-in duration-300 pb-10">
@@ -130,54 +117,31 @@ export const SettingsTab = ({
       </div>
 
       <div className="bg-[#13131A] border border-rose-500/20 rounded-2xl p-8 shadow-xl relative overflow-hidden group">
-        <div className="absolute inset-0  opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
 
         <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-6 relative z-10">
           <div>
             <h2 className="text-lg font-bold text-rose-400 tracking-tight flex items-center gap-2 mb-2">
-              {isOwner ? <AlertTriangle size={18} /> : <LogOut size={18} />}
+              <AlertTriangle size={18} />
               Danger Zone
             </h2>
             <p className="text-[13px] text-white/40 leading-relaxed max-w-md">
-              {isOwner
-                ? "Permanently delete this workspace, including all projects, members, and data."
-                : "Remove yourself from this workspace. You will lose access to all projects and boards."}
+              Permanently delete this workspace, including all projects,
+              members, and data.
               <span className="block mt-1 font-semibold text-rose-400/70">
-                {isOwner
-                  ? "This action cannot be undone."
-                  : "You will need a new invitation to rejoin."}
+                This action cannot be undone.
               </span>
             </p>
           </div>
 
-          {isOwner ? (
-            <button
-              onClick={onOpenDeleteModal}
-              className="shrink-0 h-10 px-5 bg-rose-500/10 hover:bg-rose-500 hover:text-white text-rose-400 border border-rose-500/20 rounded-xl text-[13px] font-semibold transition-all duration-300"
-            >
-              Delete Workspace
-            </button>
-          ) : (
-            <button
-              onClick={() => setIsLeaveModalOpen(true)}
-              className="shrink-0 h-10 px-5 bg-rose-500/10 hover:bg-rose-500 hover:text-white text-rose-400 border border-rose-500/20 rounded-xl text-[13px] font-semibold transition-all duration-300"
-            >
-              Leave Workspace
-            </button>
-          )}
+          <button
+            onClick={onOpenDeleteModal}
+            className="shrink-0 h-10 px-5 bg-rose-500/10 hover:bg-rose-500 hover:text-white text-rose-400 border border-rose-500/20 rounded-xl text-[13px] font-semibold transition-all duration-300"
+          >
+            Delete Workspace
+          </button>
         </div>
       </div>
-
-      <LeaveWorkspaceModal
-        isOpen={isLeaveModalOpen}
-        onClose={() => setIsLeaveModalOpen(false)}
-        onConfirm={() => leaveWorkspace()}
-        isPending={isLeaving}
-        title="Leave workspace"
-        description="Are you sure you want to leave this workspace? You'll lose access to all projects and boards."
-        confirmLabel="Leave"
-        isDangerous
-      />
     </div>
   );
 };
