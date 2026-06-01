@@ -28,14 +28,11 @@ type EmailConfig = {
 };
 
 const buildEmailConfig = (data: EmailJob): EmailConfig => {
-  const greeting = data.user.firstName ? `Hi ${data.user.firstName}` : 'Hello,';
-
   switch (data.type) {
     case 'welcome':
       return {
         subject: 'Welcome to Switch',
         intro: [
-          greeting,
           'Welcome aboard! Your email has been successfully verified and your account is ready.',
         ],
         action: {
@@ -50,7 +47,6 @@ const buildEmailConfig = (data: EmailJob): EmailConfig => {
       return {
         subject: 'Confirmation: Your Switch account has been deleted',
         intro: [
-          greeting,
           'Your Switch account has been permanently deleted.',
           'All of your personal data, workspaces, and projects have been securely removed from our active systems.',
         ],
@@ -62,7 +58,6 @@ const buildEmailConfig = (data: EmailJob): EmailConfig => {
       return {
         subject: 'Your Switch Verification Code',
         intro: [
-          greeting,
           'We received a request to verify your identity. Your one-time verification code is:',
           `<h2 style="text-align: center; font-size: 32px; letter-spacing: 8px; color: #09090b; margin: 24px 0;">${data.code}</h2>`,
           'This code will expire in exactly 10 minutes.',
@@ -75,7 +70,6 @@ const buildEmailConfig = (data: EmailJob): EmailConfig => {
       return {
         subject: 'You have been invited to a workspace on Switch',
         intro: [
-          greeting,
           `${data.inviterName} has invited you to collaborate in the ${data.workspaceName} workspace.`,
         ],
         action: {
@@ -95,12 +89,31 @@ const buildEmailConfig = (data: EmailJob): EmailConfig => {
       return {
         subject: 'Security Alert: Your Switch password was changed',
         intro: [
-          greeting,
           'This is a confirmation that the password for your Switch account was just updated.',
         ],
         outro: [
           'If you made this change, no further action is required.',
           '**If you did NOT make this change, please contact our support team immediately to secure your account.**',
+        ],
+      };
+
+    case 'forgotPassword':
+      return {
+        subject: 'Reset your Switch Password',
+        intro: [
+          'We received a request to reset the password for your Switch account.',
+        ],
+        action: {
+          instructions:
+            'Click the button below to choose a new password. This link will expire in 15 minutes.',
+          button: {
+            text: 'Reset Password',
+            link: data.link,
+            color: '#7C6EF5',
+          },
+        },
+        outro: [
+          'If you did not request a password reset, you can safely ignore this email. Your password will remain unchanged.',
         ],
       };
   }

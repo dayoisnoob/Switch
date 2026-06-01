@@ -65,14 +65,6 @@ export class AuthController {
     res.json(new ApiResponse(200, 'Email verified successfully'));
   }
 
-  static async verifyOtpForResetPassword(req: Request, res: Response) {
-    const token = await AuthService.verifyOtpForResetPassword(req.body);
-
-    res.json(
-      new ApiResponse(200, 'OTP verified successfully', { token: token })
-    );
-  }
-
   static async completeReg(req: Request, res: Response) {
     const { user, tokens } = await AuthService.completeReg(req.body);
 

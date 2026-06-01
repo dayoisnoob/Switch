@@ -29,18 +29,23 @@ export const registerSocketHandlers = (io: Server, socket: Socket) => {
 
 const broadcastPresence = (io: Server, room: string) => {
   const socketsInRoom = io.sockets.adapter.rooms.get(room);
+  if (!socketsInRoom) return;
 
-  const users = socketsInRoom
-    ? Array.from(socketsInRoom).map((socketId) => {
-        const s = io.sockets.sockets.get(socketId);
-        return {
-          userId: s?.data.userId,
-          firstName: s?.data.firstName,
-          lastName: s?.data.lastName,
-          avatarUrl: s?.data.avatarUrl,
-        };
-      })
-    : [];
+  const seen = new Set<string>();
+  const users = [];
+
+  for (const socketId of socketsInRoom) {
+    const s = io.sockets.sockets.get(socketId);
+    if (!s) continue;
+    if (seen.has(s.data.userId)) continue;
+    seen.add(s.data.userId);
+    users.push({
+      userId: s.data.userId,
+      firstName: s.data.firstName,
+      lastName: s.data.lastName,
+      avatarUrl: s.data.avatarUrl,
+    });
+  }
 
   io.to(room).emit('board:presence', { users });
 };

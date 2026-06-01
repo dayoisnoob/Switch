@@ -26,6 +26,11 @@ export type EmailJob =
       inviterName: string;
       workspaceName: string;
       link: string;
+    }
+  | {
+      type: 'forgotPassword';
+      user: { firstName?: string; email: string };
+      link: string;
     };
 
 export const emailQueue = new Queue<EmailJob>('emails', {

@@ -20,6 +20,15 @@ function SignupContent() {
   const searchParams = useSearchParams();
   const inviteToken = searchParams.get("inviteToken");
 
+  const [isRedirecting, setIsRedirecting] = useState(false);
+  const { mutate: sendOtp, isPending, isSuccess } = useInitialiseReg();
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<SignupInitiateRequest>();
+
   useEffect(() => {
     if (user) {
       router.replace("/dashboard");
@@ -29,15 +38,6 @@ function SignupContent() {
   if (isLoading || user) {
     return <FullScreenLoader />;
   }
-
-  const [isRedirecting, setIsRedirecting] = useState(false);
-  const { mutate: sendOtp, isPending, isSuccess } = useInitialiseReg();
-
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<SignupInitiateRequest>();
 
   const handleSignup = async (data: SignupInitiateRequest) => {
     sendOtp({ email: data.email, token: inviteToken || "" });

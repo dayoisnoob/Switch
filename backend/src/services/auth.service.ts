@@ -10,6 +10,7 @@ import { otpTable, refreshTokensTable, usersTable } from '../db';
 import { queueEmail } from '../queues/email.queue';
 import type { OAuthProfileInput } from '../types/auth.types';
 import { generateSecureOtp } from '../utils/helpers';
+import jwt from 'jsonwebtoken';
 import { jwtDecode, jwtToken, jwtVerify } from '../utils/jwt.util';
 import { authTokens } from '../utils/tokens.util';
 import type {
@@ -159,47 +160,6 @@ export class AuthService {
         .where(eq(usersTable.email, email))
         .returning();
     });
-  }
-
-  static async verifyOtpForResetPassword(data: {
-    email: string;
-    code: string;
-  }) {
-    const { email, code } = data;
-    const existing = await AuthService.findUserByIdentifier(
-      email,
-      'email',
-      true
-    );
-
-    if (!existing) throw new ApiError(404, 'User does not exist');
-
-    const { otpId } = await AuthService.verifyOtp(
-      existing.id,
-      code,
-      'password_reset'
-    );
-
-    await db
-      .update(otpTable)
-      .set({
-        isInvalidated: true,
-      })
-      .where(eq(otpTable.id, otpId))
-      .returning();
-
-    const payload = {
-      id: existing.id,
-      purpose: 'password_reset',
-    };
-
-    const token = jwtToken(
-      payload,
-      `${env.RESET_TOKEN_SECRET}${existing.passwordHash}`,
-      env.RESET_TOKEN_EXPIRY
-    );
-
-    return token;
   }
 
   static async completeReg(userData: SignupInput) {
@@ -453,12 +413,26 @@ export class AuthService {
       return;
     }
 
-    await AuthService.sendOtp(
-      existing.id,
-      email,
-      'password_reset',
-      existing.firstName as string
+    const secret = `${env.RESET_TOKEN_SECRET}${existing.passwordHash}`;
+
+    const token = jwt.sign(
+      { id: existing.id, purpose: 'password_reset' },
+      secret,
+      {
+        expiresIn: '15m',
+      }
     );
+
+    const resetLink = `${env.FRONTEND_URL}/reset-password?token=${token}`;
+
+    await queueEmail({
+      type: 'forgotPassword',
+      user: {
+        firstName: existing.firstName as string,
+        email: existing.email,
+      },
+      link: resetLink,
+    });
 
     return;
   }
@@ -494,10 +468,14 @@ export class AuthService {
         'This account uses OAuth. Password reset is not available.'
       );
 
+    console.log('got here');
+
     const decoded = jwtVerify(
       token,
       `${env.RESET_TOKEN_SECRET}${user.passwordHash}`
     );
+
+    console.log(decoded);
 
     if (decoded.purpose !== 'password_reset')
       throw new ApiError(403, 'Invalid reset token.');

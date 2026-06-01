@@ -14,16 +14,6 @@ function VerifyContent() {
   const email = searchParams.get("email");
   const { data: user, isLoading } = useMe();
 
-  useEffect(() => {
-    if (user) {
-      router.replace("/dashboard");
-    }
-  }, [user, router]);
-
-  if (isLoading || user) {
-    return <FullScreenLoader />;
-  }
-
   const inviteToken = searchParams.get("inviteToken");
 
   const [code, setCode] = useState(["", "", "", "", "", ""]);
@@ -49,6 +39,16 @@ function VerifyContent() {
   useEffect(() => {
     if (!email) router.replace("/register");
   }, [email, router]);
+
+  useEffect(() => {
+    if (user) {
+      router.replace("/dashboard");
+    }
+  }, [user, router]);
+
+  if (isLoading || user) {
+    return <FullScreenLoader />;
+  }
 
   const handleChange = (index: number, value: string) => {
     if (value.length > 1) return;

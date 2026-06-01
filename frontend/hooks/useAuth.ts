@@ -15,6 +15,16 @@ export interface LoginRequest {
   password: string;
 }
 
+interface SuccessResponse {
+  message: string;
+}
+
+export interface ResetPasswordRequest {
+  token: string;
+  newPassword: string;
+  confirmNewPassword: string;
+}
+
 export interface UserProfile {
   id: string;
   firstName: string;
@@ -186,3 +196,35 @@ export const useLogout = () => {
     router.replace("/login");
   };
 };
+
+export function useForgotPassword() {
+  return useMutation({
+    mutationFn: (email: string): Promise<SuccessResponse> =>
+      api.post("/auth/forgot-password", { email }),
+
+    onSuccess: (data) => {
+      const message = data?.message;
+      toast.success(message);
+    },
+
+    onError: (err) => {
+      const message = getErrorMessage(err);
+      toast.error(message);
+    },
+  });
+}
+
+export function useResetPassword() {
+  return useMutation({
+    mutationFn: (data: ResetPasswordRequest): Promise<SuccessResponse> =>
+      api.post("/auth/reset-password", data),
+
+    onSuccess: (data) => {
+      toast.success(data.message || "Password reset successfully!");
+    },
+    onError: (err) => {
+      const message = getErrorMessage(err);
+      toast.error(message);
+    },
+  });
+}

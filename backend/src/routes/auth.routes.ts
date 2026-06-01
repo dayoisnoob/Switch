@@ -142,13 +142,6 @@ router.post(
 );
 
 router.post(
-  '/forgot-password/verify-otp',
-  registerIpLimiter,
-  validateInput(verifyOtpSchema),
-  asyncHandler(AuthController.verifyOtpForResetPassword)
-);
-
-router.post(
   '/reset-password',
   resetPasswordLimiter,
   validateInput(resetPasswordSchema),

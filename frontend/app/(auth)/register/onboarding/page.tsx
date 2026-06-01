@@ -24,16 +24,6 @@ function RegisterContent() {
   const email = searchParams.get("email");
   const { data: user, isLoading } = useMe();
 
-  useEffect(() => {
-    if (user) {
-      router.replace("/dashboard");
-    }
-  }, [user, router]);
-
-  if (isLoading || user) {
-    return <FullScreenLoader />;
-  }
-
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -57,6 +47,16 @@ function RegisterContent() {
   useEffect(() => {
     if (!email) router.replace("/register");
   }, [email, router]);
+
+  useEffect(() => {
+    if (user) {
+      router.replace("/dashboard");
+    }
+  }, [user, router]);
+
+  if (isLoading || user) {
+    return <FullScreenLoader />;
+  }
 
   const onFinish = (data: FormValues) => {
     if (!email) return;

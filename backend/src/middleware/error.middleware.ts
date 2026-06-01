@@ -19,6 +19,12 @@ export const globalErrorHandler = (
       .json(new ApiResponse(409, 'Resource already exists', null));
   }
 
+  if (err.name === 'TokenExpiredError') {
+    err = new ApiError(401, 'This link has expired. Please request a new one.');
+  } else if (err.name === 'JsonWebTokenError') {
+    err = new ApiError(401, 'Invalid authentication token.');
+  }
+
   const error =
     err instanceof ApiError
       ? err
