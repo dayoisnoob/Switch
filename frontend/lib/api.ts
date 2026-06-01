@@ -1,4 +1,4 @@
-import axios, { AxiosError } from "axios";
+import axios, { AxiosError, isAxiosError } from "axios";
 import { ApiError } from "./ApiError";
 import { toast } from "sonner";
 
@@ -17,41 +17,50 @@ const processQueue = (error: Error | null) => {
 
 api.interceptors.response.use(
   (response) => response.data?.data ?? response.data,
-  async (error: AxiosError<any>) => {
+  async (error) => {
     const originalRequest = error.config;
-    const status = error.response?.status ?? 500;
-    const data = error.response?.data;
-    const message =
-      data?.errors?.[0]?.message ?? data?.message ?? "Something went wrong";
     const isAuthRoute = originalRequest?.url?.startsWith("/auth/");
     const isMeRoute = originalRequest?.url?.includes("/users/me");
 
-    // Handle rate limits with a toast
-    if (status === 429) toast.error(message);
-
-    if (status !== 401 || isAuthRoute || isMeRoute || !originalRequest) {
-      return Promise.reject(new ApiError(message, status));
+    if (!isAxiosError(error) || error.response?.status !== 401 || isAuthRoute) {
+      const data = error.response?.data;
+      const message =
+        data?.errors?.[0]?.message ?? data?.message ?? "Something went wrong";
+      return Promise.reject(
+        new ApiError(message, error.response?.status ?? 500),
+      );
     }
 
-    // 401 Token Refresh Logic
+    if (isMeRoute) {
+      if (isRefreshing) {
+        return new Promise<void>((resolve, reject) => {
+          refreshQueue.push((err) => {
+            if (err) return reject(err);
+            resolve();
+          });
+        }).then(() => api(originalRequest));
+      }
+      return Promise.reject(new ApiError("Unauthorized", 401));
+    }
 
     if (isRefreshing) {
       return new Promise<void>((resolve, reject) => {
-        refreshQueue.push((err) => (err ? reject(err) : resolve()));
+        refreshQueue.push((err) => {
+          if (err) return reject(err);
+          resolve();
+        });
       }).then(() => api(originalRequest));
     }
 
     isRefreshing = true;
-
     try {
       await api.post("/auth/refresh");
       processQueue(null);
       return api(originalRequest);
     } catch (refreshError) {
-      const err = new Error("Session expired. Please sign in again.");
-      processQueue(err);
+      processQueue(new Error("Session expired"));
       window.location.href = "/login";
-      return Promise.reject(err);
+      return Promise.reject(refreshError);
     } finally {
       isRefreshing = false;
     }

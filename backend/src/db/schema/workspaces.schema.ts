@@ -1,16 +1,15 @@
+import type { InferSelectModel } from 'drizzle-orm';
 import {
+  index,
   pgTable,
-  uuid,
-  varchar,
+  text,
   timestamp,
   uniqueIndex,
-  index,
-  pgEnum,
-  text,
+  uuid,
+  varchar,
 } from 'drizzle-orm/pg-core';
-import { usersTable } from './users.schema';
-import type { InferSelectModel } from 'drizzle-orm';
 import { workspaceRoleEnum } from './enums.schema';
+import { usersTable } from './users.schema';
 
 export const workspacesTable = pgTable('workspaces', {
   id: uuid('id').primaryKey().defaultRandom(),
