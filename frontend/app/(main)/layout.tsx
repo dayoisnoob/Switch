@@ -41,7 +41,7 @@ import {
   useParams,
   usePathname,
   useRouter,
-  useSearchParams,
+  useSearchParams,https://api.switchapp.space/health
 } from "next/navigation";
 import { ReactNode, useEffect, useState, Suspense } from "react";
 
@@ -160,7 +160,7 @@ function MainLayoutContent({ children }: { children: ReactNode }) {
       icon: Package,
       count: projects.length || undefined,
     },
-    {
+    {https://api.switchapp.space/health
       name: "Members",
       href: `/${activeWorkspace?.slug}?tab=members`,
       icon: Users,
