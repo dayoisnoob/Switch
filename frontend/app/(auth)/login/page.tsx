@@ -52,7 +52,7 @@ export default function LoginPage() {
 
         <div className="space-y-3 mb-2">
           <a
-            href={`${process.env.NEXT_PUBLIC_API_URL}/auth/google`}
+            href={`api/auth/google`}
             className="w-full h-11 flex items-center justify-center gap-3 bg-white/5 hover:bg-white/10 border border-white/5 rounded-xl text-[14px] font-medium text-white/80 transition-all group"
           >
             <GoogleIcon />
@@ -60,7 +60,7 @@ export default function LoginPage() {
           </a>
 
           <a
-            href={`${process.env.NEXT_PUBLIC_API_URL}/auth/github`}
+            href={`api/auth/github`}
             className="w-full h-11 flex items-center justify-center gap-3 bg-white/5 hover:bg-white/10 border border-white/5 rounded-xl text-[14px] font-medium text-white/80 transition-all group"
           >
             <GithubIcon />
