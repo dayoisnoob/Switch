@@ -7,6 +7,7 @@ export const COOKIE_OPTIONS: CookieOptions = {
   httpOnly: true,
   secure: isProd,
   sameSite: 'lax',
+  domain: isProd ? '.switchapp.space' : undefined,
   path: '/',
   maxAge: 30 * 24 * 60 * 60 * 1000,
 };
