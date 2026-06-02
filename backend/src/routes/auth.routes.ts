@@ -117,8 +117,8 @@ router.patch(
 
 router.post(
   '/login',
-  loginIpLimiter,
-  loginEmailLimiter,
+  // loginIpLimiter,
+  // loginEmailLimiter,
   validateInput(loginSchema),
   asyncHandler(AuthController.login)
 );
