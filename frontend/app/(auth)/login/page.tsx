@@ -14,7 +14,7 @@ export default function LoginPage() {
   const router = useRouter();
 
   useEffect(() => {
-    if (!isLoading && user) {
+    if (user) {
       router.replace("/dashboard");
     }
   }, [user, router]);
