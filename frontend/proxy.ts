@@ -21,5 +21,5 @@ export default function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/:path*"],
+  matcher: ["/workspaceSlug/:path*"],
 };
