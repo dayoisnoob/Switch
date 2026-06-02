@@ -5,11 +5,11 @@ export const isProd = env.NODE_ENV === 'production';
 
 export const COOKIE_OPTIONS: CookieOptions = {
   httpOnly: true,
-  secure: isProd,
-  sameSite: 'lax',
-  maxAge: 30 * 24 * 60 * 60 * 1000,
+  secure: true,
+  sameSite: 'none',
+  domain: isProd ? '.switchapp.space' : undefined,
   path: '/',
-  domain: undefined,
+  maxAge: 30 * 24 * 60 * 60 * 1000,
 };
 
 export const RESEND_COOLDOWN_SECONDS = 60;
