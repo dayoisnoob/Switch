@@ -67,7 +67,7 @@ export const useBoardStore = create<BoardStore>((set) => ({
       board: {
         ...board,
         columns: [...board.columns].sort((a, b) =>
-          a.order.localeCompare(b.order),
+          a.order < b.order ? -1 : a.order > b.order ? 1 : 0,
         ),
       },
     }),
@@ -171,13 +171,12 @@ export const useBoardStore = create<BoardStore>((set) => ({
   moveColumn: (columnId, newOrder) =>
     set((state) => {
       if (!state.board) return state;
-
       const updatedColumns = state.board.columns.map((col) =>
         col.id === columnId ? { ...col, order: newOrder } : col,
       );
-
-      updatedColumns.sort((a, b) => a.order.localeCompare(b.order));
-
+      updatedColumns.sort((a, b) =>
+        a.order < b.order ? -1 : a.order > b.order ? 1 : 0,
+      );
       return { board: { ...state.board, columns: updatedColumns } };
     }),
 
