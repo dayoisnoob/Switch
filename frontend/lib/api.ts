@@ -25,12 +25,12 @@ api.interceptors.response.use(
       data?.errors?.[0]?.message ?? data?.message ?? "Something went wrong";
 
     const isAuthRoute = originalRequest?.url?.startsWith("/auth/");
-    const isMeRoute = originalRequest?.url?.includes("/users/me");
+    // const isMeRoute = originalRequest?.url?.includes("/users/me");
 
     // Handle rate limits with a toast
     if (status === 429) toast.error(message);
 
-    if (status !== 401 || isAuthRoute || isMeRoute || !originalRequest) {
+    if (status !== 401 || isAuthRoute || !originalRequest) {
       return Promise.reject(new ApiError(message, status));
     }
 
