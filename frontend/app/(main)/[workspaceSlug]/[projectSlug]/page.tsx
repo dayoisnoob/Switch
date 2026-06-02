@@ -320,15 +320,28 @@ export default function KanbanBoardPage() {
 
       if (active.data.current?.type === "Column") {
         if (activeId === overId) return;
+
         const fromIndex = columns.findIndex((c) => c.id === activeId);
         const toIndex = columns.findIndex((c) => c.id === overId);
         const reordered = arrayMove(columns, fromIndex, toIndex);
+
         const prevOrder = reordered[toIndex - 1]?.order ?? null;
         const nextOrder = reordered[toIndex + 1]?.order ?? null;
-        const newOrder = generateKeyBetween(prevOrder, nextOrder);
 
-        setColumns(reordered);
+        let newOrder;
+        try {
+          newOrder = generateKeyBetween(prevOrder, nextOrder);
+        } catch (error) {
+          newOrder = generateKeyBetween(prevOrder, null);
+        }
+
+        const optimisticallyUpdated = reordered.map((col) =>
+          col.id === activeId ? { ...col, order: newOrder } : col,
+        );
+
+        setColumns(optimisticallyUpdated);
         isMutatingRef.current = true;
+
         moveColumn(
           { columnId: activeId, order: newOrder },
           {
@@ -368,13 +381,30 @@ export default function KanbanBoardPage() {
 
       const prevOrder = updatedCol.cards[finalIndex - 1]?.order ?? null;
       const nextOrder = updatedCol.cards[finalIndex + 1]?.order ?? null;
-      const newOrder = generateKeyBetween(prevOrder, nextOrder);
 
-      setColumns(reorderedCols);
+      let newOrder;
+      try {
+        newOrder = generateKeyBetween(prevOrder, nextOrder);
+      } catch (error) {
+        newOrder = generateKeyBetween(prevOrder, null);
+      }
 
+      const finalReorderedCols = reorderedCols.map((col) => {
+        if (col.id === updatedCol.id) {
+          return {
+            ...col,
+            cards: col.cards.map((c) =>
+              c.id === activeId ? { ...c, order: newOrder } : c,
+            ),
+          };
+        }
+        return col;
+      });
+
+      setColumns(finalReorderedCols);
       resetCardDragRefs();
-
       isMutatingRef.current = true;
+
       moveCard(
         {
           cardId: activeId,
@@ -388,7 +418,7 @@ export default function KanbanBoardPage() {
           onSettled: () => {
             isMutatingRef.current = false;
           },
-          onError: () => setColumns(columns),
+          onError: () => setColumns(columns), // Revert on fail
         },
       );
     },

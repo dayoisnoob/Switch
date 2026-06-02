@@ -62,9 +62,6 @@ export function useBoardSocket(boardId: string) {
           .getState()
           .moveCard(cardId, fromColumnId, toColumnId, newIndex);
 
-        console.log("actor Id", actorId);
-        console.log("current user", currentUser?.id);
-
         if (actorId !== currentUser?.id) {
           const actor = actorName || "A teammate";
           if (fromColumnId === toColumnId) {
