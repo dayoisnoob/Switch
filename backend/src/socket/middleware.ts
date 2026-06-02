@@ -1,3 +1,4 @@
+import { parse } from 'cookie';
 import type { Socket } from 'socket.io';
 import { env } from '../config/env';
 import { jwtVerify } from '../utils/jwt.util';
@@ -7,8 +8,13 @@ export const socketAuthMiddleware = (
   next: (err?: Error) => void
 ) => {
   try {
-    const token = socket.handshake.auth.token;
+    const cookieHeader = socket.handshake.headers.cookie;
+    if (!cookieHeader) {
+      return next(new Error('Authentication required.'));
+    }
 
+    const cookies = parse(cookieHeader);
+    const token = cookies['__auth.access'];
     if (!token) {
       return next(new Error('Authentication required.'));
     }

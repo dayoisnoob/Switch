@@ -5,8 +5,8 @@ export const isProd = env.NODE_ENV === 'production';
 
 export const COOKIE_OPTIONS: CookieOptions = {
   httpOnly: true,
-  secure: true,
-  sameSite: 'none',
+  secure: isProd,
+  sameSite: 'lax',
   domain: isProd ? '.switchapp.space' : undefined,
   path: '/',
   maxAge: 30 * 24 * 60 * 60 * 1000,
