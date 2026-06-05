@@ -3,7 +3,6 @@ import { db } from '../config/db';
 import { env } from '../config/env';
 import {
   boardsTable,
-  cardAssigneeRelations,
   cardAssigneesTable,
   cardsTable,
   projectsTable,
