@@ -26,7 +26,7 @@ interface BoardStore {
     cardId: string,
     fromColumnId: string,
     toColumnId: string,
-    newIndex: number,
+    order: string,
   ) => void;
 
   // Column operations
@@ -120,7 +120,7 @@ export const useBoardStore = create<BoardStore>((set) => ({
       };
     }),
 
-  moveCard: (cardId, fromColumnId, toColumnId, newIndex) =>
+  moveCard: (cardId, fromColumnId, toColumnId, newOrder) =>
     set((state) => {
       if (!state.board) return state;
 
@@ -137,7 +137,12 @@ export const useBoardStore = create<BoardStore>((set) => ({
       if (cardIndex === -1) return state;
 
       const [card] = fromCol.cards.splice(cardIndex, 1);
-      toCol.cards.splice(newIndex, 0, card);
+      const updatedCard = { ...card, order: newOrder };
+
+      toCol.cards.push(updatedCard);
+      toCol.cards.sort((a, b) =>
+        a.order < b.order ? -1 : a.order > b.order ? 1 : 0,
+      );
 
       return { board: { ...state.board, columns } };
     }),

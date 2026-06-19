@@ -52,7 +52,7 @@ export function useBoardSocket(boardId: string) {
         cardId,
         fromColumnId,
         toColumnId,
-        newIndex,
+        order,
         actorId,
         actorName,
         fromColumnName,
@@ -60,7 +60,7 @@ export function useBoardSocket(boardId: string) {
       }) => {
         useBoardStore
           .getState()
-          .moveCard(cardId, fromColumnId, toColumnId, newIndex);
+          .moveCard(cardId, fromColumnId, toColumnId, order);
 
         if (actorId !== currentUser?.id) {
           const actor = actorName || "A teammate";
