@@ -380,7 +380,7 @@ export class CardsService {
       cardId,
       fromColumnId: oldCol.id,
       toColumnId: updatedCard.columnId,
-      newIndex: updatedCard.order,
+      order: updatedCard.order,
       actorId: userId,
       actorName,
       fromColumnName: oldCol.name,
