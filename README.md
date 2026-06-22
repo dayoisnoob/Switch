@@ -2,7 +2,7 @@
 
 A minimal, real-time collaborative Kanban board built from scratch. Multiple people can work the same board at once: drag a card and everyone watching sees it move within milliseconds, no refresh required.
 
-**Live:** [switchapp.space](https://switchapp.space)
+**Live:** [app.switchapp.space](https://app.switchapp.space)
 
 ## 🛠 Tech Stack
 
