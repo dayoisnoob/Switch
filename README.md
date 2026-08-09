@@ -95,7 +95,7 @@ bun run dev             # http://localhost:7001
 
 
 🚧 Known Limitations
-A few things noted during a self-review of this codebase, kept here deliberately rather than swept under the rug:
+A few things noted during a self-review of this codebase:
 
   *No Periodic Rebalance Job: There is currently no job to rebalance fractional-indexing keys. This is fine at the current scale, but would be required if a single column saw very heavy, sustained reordering.
 
